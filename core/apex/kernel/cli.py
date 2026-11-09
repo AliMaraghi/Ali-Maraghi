@@ -20,6 +20,8 @@ def main(argv=None):
     review.add_argument("--record", action="store_true", help="Persist result in local runtime ledger")
     review.add_argument("--key", help="Required idempotency key when recording")
     review.add_argument("--kill-state", choices=[x.value for x in KillState], default="RUNNING")
+    proposal = sub.add_parser('propose')
+    proposal.add_argument('input', help='Relative evidence case JSON')
     history = sub.add_parser("history")
     history.add_argument("--domain", choices=["opportunity", "studio", "personal"], required=True)
     args = parser.parse_args(argv)
@@ -31,6 +33,11 @@ def main(argv=None):
                 print(json.dumps(ledger.records(args.domain), indent=2, ensure_ascii=True))
             return 0
         case = Case.parse(strict_json(read_local(root, args.input, 262144).decode("utf-8")))
+        if args.command == 'propose':
+            from .discovery import propose
+            result = propose(case, root)
+            print(json.dumps(result, indent=2, ensure_ascii=True))
+            return 0 if result['hypotheses'] else 2
         result = evaluate(case, root)
         if args.record:
             if not args.key:

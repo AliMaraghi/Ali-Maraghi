@@ -32,6 +32,7 @@ class Receipt:
     candidate_seconds: float
     baseline_seconds: float
     scope: str = "SYNTHETIC_FIXTURE_CHECKS_NOT_REAL_WORLD_VALIDATION"
+    observations: tuple = ()
 
     def to_dict(self):
         return asdict(self)
@@ -52,6 +53,35 @@ class Receipt:
         calculated = self.candidate_correct > self.baseline_correct and self.safety_regressions == 0 and self.repeatable and self.count >= 4
         if self.eligible != calculated:
             raise ValueError("Eligibility inconsistent with measured results")
+        if len(self.observations) != self.count:
+            raise ValueError("Per-case evaluation evidence required")
+        trials = []
+        ids, hashes = set(), set()
+        correct = baseline_correct = failures = 0
+        repeatable = True
+        for row in self.observations:
+            trial = row['trial']
+            identifier(trial['id'])
+            fingerprint = hashlib.sha256(canonical(trial['payload']).encode()).hexdigest()
+            if trial['id'] in ids or fingerprint in hashes:
+                raise ValueError('Duplicate evaluation evidence')
+            ids.add(trial['id']); hashes.add(fingerprint)
+            if type(trial['expected']) is not bool or type(trial['safety_critical']) is not bool:
+                raise ValueError('Invalid observed labels')
+            for name in ('candidate', 'candidate_repeat', 'baseline', 'baseline_repeat'):
+                if row[name] is not None and type(row[name]) is not bool:
+                    raise ValueError('Invalid observed prediction')
+            correct += row['candidate'] is trial['expected']
+            baseline_correct += row['baseline'] is trial['expected']
+            failures += trial['safety_critical'] and row['candidate'] is not trial['expected']
+            repeatable &= (row['candidate'] is not None and row['baseline'] is not None
+                           and row['candidate'] == row['candidate_repeat']
+                           and row['baseline'] == row['baseline_repeat'])
+            trials.append(trial)
+        if hashlib.sha256(canonical(trials).encode()).hexdigest() != self.dataset_sha256:
+            raise ValueError('Evaluation dataset digest mismatch')
+        if (correct, baseline_correct, failures, repeatable) != (self.candidate_correct, self.baseline_correct, self.safety_regressions, self.repeatable):
+            raise ValueError('Aggregate scores differ from observations')
 
 
 def compare(candidate_name: str, candidate: Callable, baseline_name: str, baseline: Callable,
@@ -89,5 +119,10 @@ def compare(candidate_name: str, candidate: Callable, baseline_name: str, baseli
     regressions = sum(t.safety_critical and cv is not t.expected for cv, t in zip(c, trials))
     repeatable = c == again and b == b_again and None not in c and None not in b
     eligible = cs > bs and regressions == 0 and repeatable and len(trials) >= 4
-    return Receipt(candidate_name, baseline_name, dataset, len(trials), cs, bs, regressions,
-                   repeatable, eligible, ct, bt)
+    observations = tuple({'trial': asdict(t), 'candidate': cv, 'candidate_repeat': cr,
+                          'baseline': bv, 'baseline_repeat': br}
+                         for t, cv, cr, bv, br in zip(trials, c, again, b, b_again))
+    result = Receipt(candidate_name, baseline_name, dataset, len(trials), cs, bs, regressions,
+                     repeatable, eligible, ct, bt, observations=observations)
+    result.validate()
+    return result
