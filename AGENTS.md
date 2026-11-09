@@ -1,0 +1,5 @@
+# APEX v4.4 — durable repository directives for Codex
+
+This is a personal research/development codebase, **not a completed AGI**. The 18-section North Star is in `docs/apex_handoff_20261109/APEX_4_4_FINAL_MASTER_MANIFESTO.md` (immutable SHA-256 in mission). Read `docs/apex_handoff_20261109/MISSION_CONTRACT.md` for this development session and `APEX_4_4_ACCEPTANCE_GATE_FA.md` for acceptance details. Do not falsely equate code or unit tests to deployed capability.
+
+Work within the unprivileged dev workspace only. No root/sudo/Docker/production files/paid services/private data/employer systems/external write actions without explicit user approval. Never send credentials or sensitive personal information to logs/commits or public outputs. No public repository. Keep originals unchanged, use reproducible tests, evidence, source links, exact cost accounting and robust holdout benchmark. Prefer implementing and verifying over promising. Persist project state under `docs/apex_status/`, not chat memory. Summarize to user in Persian. Do not ask approval for routine code changes/tests in the workspace.

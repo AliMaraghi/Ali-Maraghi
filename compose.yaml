@@ -1,0 +1,68 @@
+# Private bootstrap: no database, Redis, or app ports exposed publicly.
+# Not a production Apex 4.4 release. Only public-source monitoring + PWA.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: apex
+      POSTGRES_USER: apex
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - apex_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apex -d apex"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - apex_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+  core:
+    build: ./core
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://apex:${POSTGRES_PASSWORD}@postgres:5432/apex
+      APEX_ENV: private-bootstrap
+      APEX_AI_BUDGET_USD: "0"
+      APEX_RELEASE: "night1-2026-11-08"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  monitor:
+    build: ./core
+    restart: unless-stopped
+    command: ["python", "-m", "apex.monitor"]
+    environment:
+      DATABASE_URL: postgresql://apex:${POSTGRES_PASSWORD}@postgres:5432/apex
+      APEX_MONITOR_ENABLED: ${APEX_MONITOR_ENABLED:-true}
+      APEX_MONITOR_INTERVAL_SECONDS: ${APEX_MONITOR_INTERVAL_SECONDS:-21600}
+      APEX_AI_BUDGET_USD: "0"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  apex_db:
+  apex_redis:
