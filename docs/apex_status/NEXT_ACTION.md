@@ -41,3 +41,20 @@ DECISION_LOG.md and CONSTITUTION_COVERAGE.md. Run `python3 -B scripts/test_offli
 for available tests; do not repeat broad tests absent changes/failures/new concerns.
 Runtime is ignored runtime/; scratch is ignored work/. No public push, production,
 paid APIs or personal/employer accounts. Budget GBP0/USD0; GBP20 is only proposed.
+
+## Night-shift continuation (supersedes earlier implementation counts)
+
+Read NIGHT_SHIFT_REPORT.md and `git log` first. Night tests:111 passed, two skipped.
+Rule-based hypothesis proposal now exists (`python -m apex.kernel.cli propose
+examples/evidence_review_synthetic.json` with PYTHONPATH=core). That example
+correctly abstains: synthetic sources cannot support evidence-backed proposals.
+Opportunity ranking, per-case evolution receipts, dry-run scheduling, local journal
+health and pre-production SRT export are implemented/tested. No new subagents ran.
+
+Next: obtain a real public-source packet and independently review claim entailment;
+measure proposal usefulness against a manual causal checklist on fresh cases.
+Add authorized retrieval only after assessing network boundaries. Isolate and lock
+web-service dependencies before integration tests. Test recovery on a local copied
+journal and bound same-user access before proposing any production work. Supply
+lawful footage and independent audiovisual/style review before film completion.
+Existing frozen benchmark cases are regression data, no longer unseen.

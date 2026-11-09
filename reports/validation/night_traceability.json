@@ -1,0 +1,7 @@
+{
+  "status": "PASS_SOURCE_TRACE_ONLY",
+  "requirements": 178,
+  "source_units": 968,
+  "errors": [],
+  "semantic_acceptance": "NOT TESTED"
+}

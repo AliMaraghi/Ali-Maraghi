@@ -1,0 +1,58 @@
+{
+  "script": [
+    {
+      "shot_id": "S01",
+      "start_seconds": 0,
+      "end_seconds": 8,
+      "narration": ""
+    },
+    {
+      "shot_id": "S02",
+      "start_seconds": 8,
+      "end_seconds": 18,
+      "narration": "A place can be new. The habits we bring to it are older."
+    },
+    {
+      "shot_id": "S03",
+      "start_seconds": 18,
+      "end_seconds": 28,
+      "narration": "We carry them in the pace of a walk. In what we pass without looking."
+    },
+    {
+      "shot_id": "S04",
+      "start_seconds": 28,
+      "end_seconds": 40,
+      "narration": "Then something ordinary interrupts us."
+    },
+    {
+      "shot_id": "S05",
+      "start_seconds": 40,
+      "end_seconds": 52,
+      "narration": "A line of light. A doorway. The time it takes for a wave to disappear."
+    },
+    {
+      "shot_id": "S06",
+      "start_seconds": 52,
+      "end_seconds": 65,
+      "narration": "Perhaps being somewhere else begins here: with noticing what was already there."
+    },
+    {
+      "shot_id": "S07",
+      "start_seconds": 65,
+      "end_seconds": 75,
+      "narration": ""
+    }
+  ],
+  "subtitles_srt": "1\n00:00:08,000 --> 00:00:18,000\nA place can be new. The habits we bring to it are older.\n\n2\n00:00:18,000 --> 00:00:28,000\nWe carry them in the pace of a walk. In what we pass without looking.\n\n3\n00:00:28,000 --> 00:00:40,000\nThen something ordinary interrupts us.\n\n4\n00:00:40,000 --> 00:00:52,000\nA line of light. A doorway. The time it takes for a wave to disappear.\n\n5\n00:00:52,000 --> 00:01:05,000\nPerhaps being somewhere else begins here: with noticing what was already there.\n",
+  "duration_seconds": 75,
+  "status": "PREPRODUCTION_ONLY",
+  "film_completed": false,
+  "qc": {
+    "timeline": "PASS_STRUCTURE_ONLY",
+    "media_decode": "NOT_TESTED",
+    "audio_loudness": "NOT_TESTED",
+    "caption_speech_sync": "NOT_TESTED",
+    "rights": "REQUIRES_INDEPENDENT_REVIEW"
+  },
+  "limitation": "Caption timing follows planned shots, not measured speech. No media was opened or rendered."
+}

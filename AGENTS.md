@@ -26,3 +26,14 @@ it never deploys or changes policy. Candidate and baseline must be compared on
 fresh evaluation data before operational promotion can even be considered.
 All 18 sections, section 0 and appendices remain future requirements where
 unimplemented. Do not convert unit-test counts into full domain acceptance.
+
+## Night increment
+
+Read `docs/apex_status/NIGHT_SHIFT_REPORT.md` for the latest evidence. The
+`apex.kernel.cli propose` command generates bounded rule-based hypotheses only
+from integrity-eligible observations; source labels still do not prove truth.
+`kernel/opportunities.py` ranks review priority, never verified economic value.
+Lab receipts now require per-case repeated observations; aggregate-only historical
+receipts cannot authorize new promotions. Scheduling is dry-run only: no daemon,
+worker, network dispatch or persistent global stop control has been enabled.
+`apex.studio.edit_package` exports planned script/captions, never a rendered film.
