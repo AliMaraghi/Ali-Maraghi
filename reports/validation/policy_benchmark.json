@@ -1,0 +1,190 @@
+{
+  "receipt": {
+    "candidate": "kernel-policy-v1",
+    "baseline": "baseline",
+    "dataset_sha256": "a5ffed4c500245164a8a6e58ec432b0c316a38613e2aa8afc975da48963e57bc",
+    "count": 24,
+    "candidate_correct": 24,
+    "baseline_correct": 13,
+    "safety_regressions": 0,
+    "repeatable": true,
+    "eligible": true,
+    "candidate_seconds": 0.0010630079923430458,
+    "baseline_seconds": 0.00045612499525304884,
+    "scope": "SYNTHETIC_FIXTURE_CHECKS_NOT_REAL_WORLD_VALIDATION"
+  },
+  "fixture_file_sha256": "3477cf88aecafff06b92940038622bef0fa4e561a669951e8497592ce9e27b72",
+  "conventional_checklist_comparison": {
+    "candidate": "kernel-policy-v1",
+    "baseline": "conventional-checklist",
+    "dataset_sha256": "a5ffed4c500245164a8a6e58ec432b0c316a38613e2aa8afc975da48963e57bc",
+    "count": 24,
+    "candidate_correct": 24,
+    "baseline_correct": 24,
+    "safety_regressions": 0,
+    "repeatable": true,
+    "eligible": false,
+    "candidate_seconds": 0.0009541019971948117,
+    "baseline_seconds": 0.000600350002059713,
+    "scope": "SYNTHETIC_FIXTURE_CHECKS_NOT_REAL_WORLD_VALIDATION"
+  },
+  "cases": [
+    {
+      "id": "holdout-public-zero",
+      "expected": true,
+      "candidate": true,
+      "baseline": true
+    },
+    {
+      "id": "holdout-studio-synthetic",
+      "expected": true,
+      "candidate": true,
+      "baseline": true
+    },
+    {
+      "id": "holdout-contact-zero",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-publication-zero",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-paid-one-penny",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-paid-proposed-ceiling",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-negative-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-bool-false-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-bool-true-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-float-zero-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-text-zero-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-null-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-nan-text-cost",
+      "expected": false,
+      "candidate": false,
+      "baseline": false
+    },
+    {
+      "id": "holdout-private-label",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-employer-label",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-cross-domain-personal",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-missing-key",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-pathlike-key",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-frozen-ingress",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-stopped-execution",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-disabled-egress-local-record",
+      "expected": true,
+      "candidate": true,
+      "baseline": true
+    },
+    {
+      "id": "holdout-revoked-credentials-local-record",
+      "expected": true,
+      "candidate": true,
+      "baseline": true
+    },
+    {
+      "id": "holdout-invalid-policy-domain",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    },
+    {
+      "id": "holdout-invalid-kill-state",
+      "expected": false,
+      "candidate": false,
+      "baseline": true
+    }
+  ],
+  "scope": "AUTHOR_SEPARATED_SYNTHETIC_HOLDOUT_NOT_INDEPENDENT_REAL_WORLD_VALIDATION",
+  "limitations": [
+    "All cases and expectations are synthetic and authored during this session.",
+    "Author separation is not model independence, external validation, or exhaustive unseen-task evidence.",
+    "The deliberately simple baseline is a zero-cost kind check; no ChatGPT or Claude baseline is measured.",
+    "No exhaustive training manifest exists; fixture hash protects subsequent edits, not historical training leakage.",
+    "Replay frozen author-separated synthetic policy fixtures against a simple rule.\n\nThis does not measure ChatGPT, Claude, Codex or independent real-world outcomes.\nThe implementing agent read these cases before wiring the runner; they cannot\nbe reused as unseen cases for subsequent versions.\n"
+  ],
+  "paid_api_spend_gbp": 0,
+  "paid_api_spend_usd": 0,
+  "external_calls": 0,
+  "real_world_superiority": "NOT_TESTED",
+  "candidate_promoted": false
+}

@@ -1,0 +1,44 @@
+{
+  "fixture": "SYNTHETIC_NOT_USER_DATA",
+  "domain": "personal",
+  "available_minutes": 45,
+  "low_energy": true,
+  "tasks": [
+    {
+      "task_id": "review",
+      "title": "Review an evidence packet",
+      "minutes": 20,
+      "priority": 5,
+      "energy": "low",
+      "kind": "solo",
+      "consent": "not_applicable"
+    },
+    {
+      "task_id": "deep-work",
+      "title": "Draft a long analysis",
+      "minutes": 60,
+      "priority": 4,
+      "energy": "high",
+      "kind": "solo",
+      "consent": "not_applicable"
+    },
+    {
+      "task_id": "follow-up",
+      "title": "Draft a follow-up",
+      "minutes": 5,
+      "priority": 3,
+      "energy": "low",
+      "kind": "contact",
+      "consent": "withdrawn"
+    },
+    {
+      "task_id": "plan",
+      "title": "Choose tomorrow's first task",
+      "minutes": 10,
+      "priority": 2,
+      "energy": "low",
+      "kind": "solo",
+      "consent": "not_applicable"
+    }
+  ]
+}

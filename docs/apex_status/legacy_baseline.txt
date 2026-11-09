@@ -1,0 +1,32 @@
+Legacy baseline captured 2026-11-09T22:52:06.301672+00:00
+Snapshot: 61adae7
+No Docker, database, network, or installation used.
+Python 3.12.3
+fastapi: NOT_INSTALLED
+httpx: NOT_INSTALLED
+pytest: NOT_INSTALLED
+psycopg: NOT_INSTALLED
+uvicorn: NOT_INSTALLED
+COMMAND: /usr/bin/python3 -B -m unittest discover -s tests -p test_discovery.py -v
+EXIT: 0
+
+test_alternatives_are_distinct (test_discovery.DiscoverySafetyTests.test_alternatives_are_distinct) ... ok
+test_api_spend_and_action_disabled (test_discovery.DiscoverySafetyTests.test_api_spend_and_action_disabled) ... ok
+test_critic_always_challenges_initial_assumption (test_discovery.DiscoverySafetyTests.test_critic_always_challenges_initial_assumption) ... ok
+test_empty_title_fails_closed (test_discovery.DiscoverySafetyTests.test_empty_title_fails_closed) ... ok
+test_fixture_is_explicitly_synthetic (test_discovery.DiscoverySafetyTests.test_fixture_is_explicitly_synthetic) ... ok
+test_no_false_benchmark_claim (test_discovery.DiscoverySafetyTests.test_no_false_benchmark_claim) ... ok
+test_normal_cycle_blocked_without_evidence (test_discovery.DiscoverySafetyTests.test_normal_cycle_blocked_without_evidence) ... ok
+test_observation_not_implicitly_publication (test_discovery.DiscoverySafetyTests.test_observation_not_implicitly_publication) ... ok
+test_reject_foreign_link_and_credentials (test_discovery.DiscoverySafetyTests.test_reject_foreign_link_and_credentials) ... ok
+test_title_injection_is_inert (test_discovery.DiscoverySafetyTests.test_title_injection_is_inert) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.165s
+
+OK
+
+COMMAND: /usr/bin/python3 -B -m pytest -q -p no:cacheprovider tests
+EXIT: 1
+
+/usr/bin/python3: No module named pytest

@@ -8,3 +8,6 @@ __pycache__/
 *.db
 *.sqlite*
 .DS_Store
+work/
+runtime/
+*.partial

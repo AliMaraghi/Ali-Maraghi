@@ -1,0 +1,175 @@
+{
+  "captured_at": "2026-11-09T23:13:50.841757+00:00",
+  "baseline_commit": "61adae7",
+  "files": [
+    {
+      "path": "core/Dockerfile",
+      "sha256": "5894e0f64fdd2510677b21973afa55473c9164f723e8fec2d2f6fd5d56733733"
+    },
+    {
+      "path": "core/apex/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "core/apex/app.py",
+      "sha256": "5c10fb9cd091d309b93f85836c6788c95847f429209abd6c216ac2a36953a3ae"
+    },
+    {
+      "path": "core/apex/discovery/__init__.py",
+      "sha256": "37bd86e60cc3be09817c8397c3cd6455dd7212567a9c2e0f93db01645a6c78c2"
+    },
+    {
+      "path": "core/apex/discovery/cli.py",
+      "sha256": "71ecfa743679f21c364bf6fbf0e845e9d33e7e8921ed9acf127b3e6276152daa"
+    },
+    {
+      "path": "core/apex/discovery/engine.py",
+      "sha256": "82630916bb81a4347f7cd7ff539768e4fd7ecbddfaaab08f332a28c1e973ca8d"
+    },
+    {
+      "path": "core/apex/domains.py",
+      "sha256": "99f67c2709dca73e1cf70fb0b7ea9901cb70ad99eedcdec976473a79bb7d7b35"
+    },
+    {
+      "path": "core/apex/kernel/__init__.py",
+      "sha256": "02dec62dce81016cc4e6f1e24e95f4c8a7cedd20848c41e1c90efab02c5e39ab"
+    },
+    {
+      "path": "core/apex/kernel/cli.py",
+      "sha256": "30ce9152c08519be2a5a38770e40e02f13b17d9753bb11a3b7951c475cb8c0be"
+    },
+    {
+      "path": "core/apex/kernel/critic.py",
+      "sha256": "be329f06c36c029ebee294c783b9699598e680d698bb718a05030dfcd2445644"
+    },
+    {
+      "path": "core/apex/kernel/engine.py",
+      "sha256": "ca601346690a85819eac44fa0020edfffa7d46e0c2a898d84e87a66553c7b63a"
+    },
+    {
+      "path": "core/apex/kernel/evidence.py",
+      "sha256": "a740d336b8e2fc648e538f51f5e7c48732f05a2510fc93909876a3b63d99d24b"
+    },
+    {
+      "path": "core/apex/kernel/lab.py",
+      "sha256": "8a7bbb3e843895ee5f04c00f652aedb64505ecb63783a7f2e844df7c085a1c92"
+    },
+    {
+      "path": "core/apex/kernel/memory.py",
+      "sha256": "7f5e6b8fa992d59ac8d1f4e6eecae6aace53521775f10922a6df7630debab0b4"
+    },
+    {
+      "path": "core/apex/kernel/policy.py",
+      "sha256": "8dbca21e3b01f7cb4b7ab158dae7b20c3129807c211958c8053b06b9bf981476"
+    },
+    {
+      "path": "core/apex/kernel/schema.py",
+      "sha256": "4de21dfd8d71e074ba472e48d9db5aad8cf781cd1fa155ace57c68974cc6868a"
+    },
+    {
+      "path": "core/apex/monitor.py",
+      "sha256": "5d891a6f8ae326b4f2e798a5201c0cd92b5752e7c8559c04d75d7ce879ff45ae"
+    },
+    {
+      "path": "core/apex/rss.py",
+      "sha256": "d0e291d6770df75b65aeaf31fc620b1730abe9d3cc3c2448c5ba55d5fb5b4dff"
+    },
+    {
+      "path": "core/apex/storage.py",
+      "sha256": "f9dba629fd035a213944b43e408731aba425e30c3988b8beedde0d092bea97c1"
+    },
+    {
+      "path": "core/requirements.txt",
+      "sha256": "3fd9278510947782893c879f3ba5791023f020e4116097102d2ac7ac3384eadc"
+    },
+    {
+      "path": "tests/test_app.py",
+      "sha256": "06a0366c6bb4ad910421b772731d718e9959c9ce70dfd3b694c5aa819248c1be"
+    },
+    {
+      "path": "tests/test_discovery.py",
+      "sha256": "1c1e9bba25d8bd1c9332988c55b2f0b1e7dab019ad6719193a23e636669474b3"
+    },
+    {
+      "path": "tests/test_domains.py",
+      "sha256": "565eb0f2aaad608b1f2509da559370066eda8569963292658c3289855099410b"
+    },
+    {
+      "path": "tests/test_kernel.py",
+      "sha256": "d67c647b247402e83f68290a565fab7c875c2f78296406010bcc2f16910aa674"
+    },
+    {
+      "path": "tests/test_kernel_holdout.py",
+      "sha256": "1adb55e8b3cca20242d22efa693716eafd98ae66b6c83029561063dc80e2c824"
+    },
+    {
+      "path": "tests/test_legacy_security.py",
+      "sha256": "0310469c86796addd836b91eab93aad5c2ea2d0c968205b0c478c017cd192cfe"
+    },
+    {
+      "path": "tests/test_rss.py",
+      "sha256": "b4b9d10a55b10a04400cf4ba0bc5de6377f0b3883a163193838edb42fe4cd4bd"
+    },
+    {
+      "path": "tests/test_traceability.py",
+      "sha256": "1d7ad83b5ab7107902583415e39847f3a060dea3128cce43c8ced53ea9b7284f"
+    },
+    {
+      "path": "scripts/backup_postgres.sh",
+      "sha256": "9502b499580c7fba94d82b67085bc2924338581e864962cc9b1a9731988b3707"
+    },
+    {
+      "path": "scripts/benchmark_kernel.py",
+      "sha256": "f3f6340cb7b0a38f717c50faff3a5d231faac2fcfa7ef7c5fceb1e1d31f1871d"
+    },
+    {
+      "path": "scripts/run_discovery_once.sh",
+      "sha256": "77666a75eb1e78e4e575dede1104cdfed0b631b41980aab1448d53bd3eeea9ee"
+    },
+    {
+      "path": "scripts/run_examples.py",
+      "sha256": "1ec09955ea8358b27c10bb8784b66ad7918d578a8a84b6f1b704e2600a1683fb"
+    },
+    {
+      "path": "scripts/smoke_kernel.py",
+      "sha256": "76d1aa6a5e88a97acc1ceae32228003ffe73f906c14d4e65d0a27f0b8eeac40a"
+    },
+    {
+      "path": "scripts/test_offline.py",
+      "sha256": "466fe6209af381e90259fba6f5767b5d143d1d272b569416a5d693fca1699741"
+    },
+    {
+      "path": "scripts/traceability.py",
+      "sha256": "a3ef782cf4d14e019ed55611cfb9d04db16f59d582448459f7c3e8779f23aed0"
+    },
+    {
+      "path": "scripts/verify.sh",
+      "sha256": "bf59a66702bad795baecc1db62646fc36f0077e233e07e28706f3729e0884e3d"
+    },
+    {
+      "path": "examples/README.md",
+      "sha256": "bb40ad61158b7bf722a7f07a462cd401c97bd546e40a51298b28dcff56bf9b52"
+    },
+    {
+      "path": "examples/evidence_review_synthetic.json",
+      "sha256": "e36a5395fd9b635f953a195a77acd65911ce2959ff3adb3e48edce7ac549395d"
+    },
+    {
+      "path": "examples/invisible_systems_75s.json",
+      "sha256": "6915f6de1f3598d50ae99a8488b8ddd33a73905461fbbd92c4df998828aec02a"
+    },
+    {
+      "path": "examples/opportunity_synthetic.json",
+      "sha256": "64745a211c263eb54d70370eb888acba5c493dff2cc46b163ad8d4bd5ac997bd"
+    },
+    {
+      "path": "examples/personal_synthetic.json",
+      "sha256": "29ec6f284b3cc17f819eb4dee6593996dd5a40d99dc3a455dcfad90bfc3ae463"
+    },
+    {
+      "path": "examples/source_fixture.txt",
+      "sha256": "67f589ff3ce3c23d7aee9699ca49f15f4250b45775fa47339c25f6daefba520c"
+    }
+  ],
+  "scope": "Local code/test/example inputs; no source authenticity or real-world performance claim"
+}

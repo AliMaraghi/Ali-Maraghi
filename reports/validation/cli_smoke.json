@@ -1,0 +1,23 @@
+{
+  "key": "smoke-d559df39f190a549b0e9bab6",
+  "runs": [
+    {
+      "returncode": 2,
+      "status": "BLOCKED_PENDING_EVIDENCE",
+      "ledger_seq": 2,
+      "input_sha256": "8c030fe177c2e47b2707026d85d62885967879ca101d23af42c42a0de063658b",
+      "engine_code_sha256": "d559df39f190a549b0e9bab6a3b4b802c4618afd2d2f8bade24d60f8ecaef830"
+    },
+    {
+      "returncode": 2,
+      "status": "BLOCKED_PENDING_EVIDENCE",
+      "ledger_seq": 2,
+      "input_sha256": "8c030fe177c2e47b2707026d85d62885967879ca101d23af42c42a0de063658b",
+      "engine_code_sha256": "d559df39f190a549b0e9bab6a3b4b802c4618afd2d2f8bade24d60f8ecaef830"
+    }
+  ],
+  "ledger_integrity_events": 2,
+  "records_for_this_key": 1,
+  "studio_records": 0,
+  "scope": "SYNTHETIC_CLI_PROCESS_RESTART_SMOKE_NOT_REAL_WORLD_VALUE"
+}

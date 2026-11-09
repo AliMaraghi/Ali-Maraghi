@@ -11,13 +11,17 @@ SOURCES = {
     'arxiv-ml': 'https://export.arxiv.org/api/query?search_query=cat:cs.LG&start=0&max_results=10&sortBy=submittedDate&sortOrder=descending',
 }
 ALLOWED_HOSTS = {'arxiv.org', 'export.arxiv.org', 'www.arxiv.org'}
+MAX_FEED_BYTES = 2_097_152
 
 
 def allowed_link(url):
+    if (not isinstance(url, str) or len(url) > 2000
+            or any(ord(char) < 33 or ord(char) == 127 for char in url)):
+        return False
     try:
-        p = urlparse(url.strip())
+        p = urlparse(url)
         return (p.scheme == 'https' and p.hostname in ALLOWED_HOSTS
-                and not p.username and not p.password and p.port in (None, 443)
+                and p.username is None and p.password is None and p.port in (None, 443)
                 and not p.fragment and len(url) <= 2000)
     except (ValueError, AttributeError, TypeError):
         return False
@@ -38,6 +42,14 @@ def _canonical_atom_url(raw_url):
 
 
 def extract_items(raw, limit=30):
+    if not isinstance(raw, bytes) or len(raw) > MAX_FEED_BYTES:
+        raise ValueError('Feed must be bytes within the size limit')
+    if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 1000:
+        raise ValueError('Item limit must be an integer from 1 to 1000')
+    # Public RSS/Atom does not need DTDs or custom entities. Reject them before
+    # XML parsing, including UTF-16/32 encodings that could hide declarations.
+    if b'\x00' in raw or b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
+        raise ValueError('Feed declarations and NUL bytes are not permitted')
     root = ET.fromstring(raw)
     results = []
     if root.tag == ATOM_NS + 'feed':

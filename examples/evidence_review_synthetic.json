@@ -1,0 +1,55 @@
+{
+  "id": "workflow-review-synthetic-v1",
+  "domain": "opportunity",
+  "problem": "Can a repeatable process reduce review time?",
+  "assumptions": [
+    "The recorded duration is representative"
+  ],
+  "baseline": "Manual review",
+  "hypotheses": [
+    {
+      "id": "h1",
+      "mechanism": "Repeated document matching dominates review effort",
+      "prediction": "Matching automation reduces minutes",
+      "falsifier": "No reduction on fresh documents"
+    },
+    {
+      "id": "h2",
+      "mechanism": "Human judgement about ambiguity dominates effort",
+      "prediction": "Faster retrieval leaves total duration unchanged",
+      "falsifier": "Matching alone removes most delay"
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "statement": "A recorded duration is 12 minutes",
+      "kind": "observation",
+      "evidence_ids": [
+        "e1"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e1",
+      "claim_id": "c1",
+      "source_uri": "https://example.org/study",
+      "publisher": "Fixture publisher",
+      "independence_group": "group1",
+      "retrieved_at": "2026-11-09T10:00:00Z",
+      "expires_at": "2026-11-20T10:00:00Z",
+      "artifact": "examples/source_fixture.txt",
+      "sha256": "67f589ff3ce3c23d7aee9699ca49f15f4250b45775fa47339c25f6daefba520c",
+      "excerpt": "Observed duration: 12 minutes.",
+      "method": "observation",
+      "synthetic": true,
+      "stance": "supports",
+      "domain": "opportunity",
+      "sensitivity": "synthetic"
+    }
+  ],
+  "neglected_need": "Who cannot use the existing review process?",
+  "second_order_effect": "Time saved could be lost in correcting automation errors",
+  "smallest_test": "Measure manual and assisted review on unseen public documents"
+}

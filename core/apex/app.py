@@ -3,14 +3,15 @@ from datetime import datetime, timezone
 from html import escape
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
-from .storage import ensure_schema, list_items
+from .storage import database_ready, list_items
 
 app=FastAPI(title='Apex 4.4 private bootstrap',docs_url=None,redoc_url=None)
 
 @app.get('/healthz')
 def healthz():
     try:
-        ensure_schema()
+        if not database_ready():
+            raise RuntimeError("Database readiness probe failed")
         return {"status":"ok","database":"connected"}
     except Exception:
         return JSONResponse(status_code=503,content={"status":"degraded","database":"unavailable"})

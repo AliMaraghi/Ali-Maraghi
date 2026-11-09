@@ -1,0 +1,70 @@
+{
+  "fixture": "PROPOSED_SHOTS_NO_MEDIA_SUPPLIED",
+  "domain": "studio",
+  "shots": [
+    {
+      "shot_id": "S01",
+      "duration_seconds": 8,
+      "asset_id": "coast_open",
+      "visual": "Locked coastal frame; wait for a wave to finish.",
+      "narration": "",
+      "sound": "Unprocessed location sound.",
+      "framing": "16:9"
+    },
+    {
+      "shot_id": "S02",
+      "duration_seconds": 10,
+      "asset_id": "threshold",
+      "visual": "Street threshold or doorway; human presence optional.",
+      "narration": "A place can be new. The habits we bring to it are older.",
+      "sound": "Quiet street tone; cut after the wave retreats.",
+      "framing": "16:9"
+    },
+    {
+      "shot_id": "S03",
+      "duration_seconds": 10,
+      "asset_id": "footsteps",
+      "visual": "Footsteps, pavement or a moving shadow.",
+      "narration": "We carry them in the pace of a walk. In what we pass without looking.",
+      "sound": "Two distinct footsteps; no added commercial music.",
+      "framing": "16:9"
+    },
+    {
+      "shot_id": "S04",
+      "duration_seconds": 12,
+      "asset_id": "surface_detail",
+      "visual": "Still detail of a wall, hinge or worn surface.",
+      "narration": "Then something ordinary interrupts us.",
+      "sound": "Leave silence after the line.",
+      "framing": "16:9"
+    },
+    {
+      "shot_id": "S05",
+      "duration_seconds": 12,
+      "asset_id": "horizon",
+      "visual": "Hold a horizon longer than the opening.",
+      "narration": "A line of light. A doorway. The time it takes for a wave to disappear.",
+      "sound": "Return to the original coastal sound.",
+      "framing": "16:9"
+    },
+    {
+      "shot_id": "S06",
+      "duration_seconds": 13,
+      "asset_id": "threshold_return",
+      "visual": "Return to an earlier threshold or matched framing.",
+      "narration": "Perhaps being somewhere else begins here: with noticing what was already there.",
+      "sound": "Continuous ambient bridge, no crescendo.",
+      "framing": "16:9"
+    },
+    {
+      "shot_id": "S07",
+      "duration_seconds": 10,
+      "asset_id": "coast_close",
+      "visual": "Quiet coast or empty frame; final three seconds show title.",
+      "narration": "",
+      "sound": "Hold after the last visible movement.",
+      "framing": "16:9"
+    }
+  ],
+  "assets": []
+}

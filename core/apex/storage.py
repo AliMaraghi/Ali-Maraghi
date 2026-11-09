@@ -13,7 +13,17 @@ CREATE TABLE IF NOT EXISTS public_observations (
 def connection():
     import psycopg
     from psycopg.rows import dict_row
-    return psycopg.connect(os.environ["DATABASE_URL"], row_factory=dict_row)
+    return psycopg.connect(
+        os.environ["DATABASE_URL"], row_factory=dict_row,
+        connect_timeout=5, options="-c statement_timeout=5000",
+    )
+
+def database_ready():
+    """Probe an existing database without schema creation or data changes."""
+    with connection() as db:
+        db.execute("SET TRANSACTION READ ONLY")
+        row = db.execute("SELECT 1 AS ready").fetchone()
+        return bool(row and row["ready"] == 1)
 
 def ensure_schema():
     with connection() as db:

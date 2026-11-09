@@ -8,8 +8,60 @@ PYTHONPATH=core python -m apex.discovery.cli --fixture
 """
 import argparse
 import json
+import os
+from pathlib import Path
+import stat
 import sys
 from .engine import Signal, run_cycle, blocked
+
+WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
+MAX_INPUT_BYTES = 65536
+
+
+def read_offline_input(path):
+    """Read a bounded regular JSON file beneath this development workspace.
+
+    Walk directory descriptors without following symlinks, so a renamed path
+    cannot redirect a later read outside the workspace. Never read FIFOs/devices.
+    """
+    relative = Path(path).absolute().relative_to(WORKSPACE_ROOT)
+    if not relative.parts or '..' in relative.parts:
+        raise ValueError('Input must be a file within the development workspace')
+    directory = os.open(WORKSPACE_ROOT, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        for component in relative.parts[:-1]:
+            next_directory = os.open(
+                component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                dir_fd=directory,
+            )
+            os.close(directory)
+            directory = next_directory
+        fd = os.open(
+            relative.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+            dir_fd=directory,
+        )
+        with os.fdopen(fd, 'rb') as source:
+            if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
+                raise ValueError('Input must be a regular file')
+            raw = source.read(MAX_INPUT_BYTES + 1)
+    finally:
+        os.close(directory)
+    if len(raw) > MAX_INPUT_BYTES:
+        raise ValueError('Input JSON over 64 KiB')
+    doc = json.loads(raw.decode('utf-8'))
+    if not isinstance(doc, dict):
+        raise ValueError('Input JSON must be object')
+    if set(doc) - {'title', 'url', 'source', 'observed_at', 'synthetic'}:
+        raise ValueError('Unknown signal fields')
+    if any(not isinstance(doc.get(key), str) for key in ('title', 'url')):
+        raise ValueError('Signal title and URL must be strings')
+    if 'source' in doc and not isinstance(doc['source'], str):
+        raise ValueError('Signal source must be a string')
+    if doc.get('observed_at') is not None and not isinstance(doc['observed_at'], str):
+        raise ValueError('Observation time must be a string or null')
+    if 'synthetic' in doc and not isinstance(doc['synthetic'], bool):
+        raise ValueError('Synthetic flag must be a boolean')
+    return Signal(**doc)
 
 def latest_signal_from_db():
     # This is the only database operation. It reads existing observations;
@@ -40,12 +92,7 @@ def main(argv=None):
                 print(json.dumps(result,indent=2,ensure_ascii=False))
                 return 2
         else:
-            from pathlib import Path
-            p=Path(args.input_json)
-            if p.stat().st_size > 65536: raise ValueError('Input JSON over 64 KiB')
-            doc=json.loads(p.read_text(encoding='utf-8'))
-            if not isinstance(doc,dict): raise ValueError('Input JSON must be object')
-            sig=Signal(**{k:v for k,v in doc.items() if k in {'title','url','source','observed_at','synthetic'}})
+            sig=read_offline_input(args.input_json)
         result=run_cycle(sig)
         print(json.dumps(result,ensure_ascii=False,indent=2))
         return 0 if result['status']=='BLOCKED_PENDING_EVIDENCE' else 2

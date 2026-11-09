@@ -1,0 +1,1 @@
+Observed duration: 12 minutes. This is synthetic test data.

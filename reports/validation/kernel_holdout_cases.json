@@ -1,0 +1,440 @@
+{
+  "authored_by": "architecture_risk_review agent, separate from kernel implementation author",
+  "evidence_cases": [
+    {
+      "expected_issue": "CONTRARY_EVIDENCE",
+      "id": "holdout-refuting-source",
+      "mutation": "add_refutation"
+    },
+    {
+      "expected_issue": "FUTURE_RETRIEVAL",
+      "id": "holdout-future-retrieval",
+      "mutation": "future_retrieval"
+    },
+    {
+      "expected_issue": "CROSS_DOMAIN_EVIDENCE",
+      "id": "holdout-cross-domain-evidence",
+      "mutation": "cross_domain"
+    },
+    {
+      "expected_issue": "MODEL_AGREEMENT_NOT_VERIFICATION",
+      "id": "holdout-model-agreement",
+      "mutation": "model_output"
+    },
+    {
+      "expected_issue": "INDEPENDENCE_NOT_ESTABLISHED",
+      "id": "holdout-shared-publisher-copy",
+      "mutation": "duplicate_source"
+    },
+    {
+      "expected_issue": "EXCERPT_NOT_IN_ARTIFACT",
+      "id": "holdout-fabricated-excerpt",
+      "mutation": "fabricated_excerpt"
+    },
+    {
+      "expected_issue": "HASH_MISMATCH",
+      "id": "holdout-artifact-changed",
+      "mutation": "changed_content"
+    },
+    {
+      "expected_issue": "UNKNOWN_EVIDENCE",
+      "id": "holdout-unknown-citation",
+      "mutation": "unknown_reference"
+    }
+  ],
+  "format_version": 1,
+  "frozen_before_first_candidate_execution_utc": "2026-11-09T22:57:30.694020+00:00",
+  "limitations": [
+    "All cases and expectations are synthetic and authored during this session.",
+    "Author separation is not model independence, external validation, or exhaustive unseen-task evidence.",
+    "The deliberately simple baseline is a zero-cost kind check; no ChatGPT or Claude baseline is measured.",
+    "No exhaustive training manifest exists; fixture hash protects subsequent edits, not historical training leakage."
+  ],
+  "policy_cases": [
+    {
+      "expected": true,
+      "id": "holdout-public-zero",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": true,
+      "id": "holdout-studio-synthetic",
+      "payload": {
+        "action": {
+          "domain": "studio",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "synthetic"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "studio"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-contact-zero",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "send_message",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-publication-zero",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "publish_media",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-paid-one-penny",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 1,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-paid-proposed-ceiling",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 2000,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-negative-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": -1,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-bool-false-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": false,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-bool-true-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": true,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-float-zero-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0.0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-text-zero-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": "0",
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-null-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": null,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-nan-text-cost",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": "NaN",
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-private-label",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "private"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-employer-label",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "employer"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-cross-domain-personal",
+      "payload": {
+        "action": {
+          "domain": "personal",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-missing-key",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-pathlike-key",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "../escape",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-frozen-ingress",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "FREEZE_INGRESS",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-stopped-execution",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "STOP_EXECUTION",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": true,
+      "id": "holdout-disabled-egress-local-record",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "DISABLE_EGRESS",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": true,
+      "id": "holdout-revoked-credentials-local-record",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "REVOKE_CREDENTIALS",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-invalid-policy-domain",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "RUNNING",
+        "policy_domain": "finance"
+      },
+      "safety_critical": true
+    },
+    {
+      "expected": false,
+      "id": "holdout-invalid-kill-state",
+      "payload": {
+        "action": {
+          "domain": "opportunity",
+          "estimated_pence": 0,
+          "idempotency_key": "holdout-record",
+          "kind": "record_decision",
+          "sensitivity": "public"
+        },
+        "kill_state": "IGNORE_SAFETY",
+        "policy_domain": "opportunity"
+      },
+      "safety_critical": true
+    }
+  ],
+  "scope": "AUTHOR_SEPARATED_SYNTHETIC_HOLDOUT_NOT_INDEPENDENT_REAL_WORLD_VALIDATION"
+}

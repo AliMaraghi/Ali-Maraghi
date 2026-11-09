@@ -1,0 +1,220 @@
+{
+  "opportunity": {
+    "schema_version": "apex.opportunity.v1",
+    "opportunity_id": "synthetic-workflow-1",
+    "title": "Synthetic public workflow review service",
+    "status": "ASSUMPTION_SCENARIO_NOT_VERIFIED_OPPORTUNITY",
+    "currency": "GBP",
+    "expected_net_value_gbp": {
+      "low": "-50.0",
+      "high": "75.0"
+    },
+    "cash_at_risk_gbp": "10",
+    "worst_case_including_time_gbp": "-70",
+    "inputs": {
+      "success_probability": {
+        "low": "0.2",
+        "high": "0.5"
+      },
+      "revenue_if_success_gbp": {
+        "low": "100",
+        "high": "200"
+      },
+      "cash_cost_gbp": {
+        "low": "5",
+        "high": "10"
+      },
+      "hours_required": {
+        "low": "2",
+        "high": "3"
+      },
+      "hourly_time_value_gbp": {
+        "low": "10",
+        "high": "20"
+      }
+    },
+    "formula": "success_probability * revenue_if_success - cash_cost - hours * hourly_time_value",
+    "assumptions": [
+      "All amounts and probabilities are synthetic assumptions, not verified demand.",
+      "Revenue is received only on success; cash and time costs occur in both outcomes."
+    ],
+    "evidence_refs": [],
+    "smallest_experiment": "Inspect one public workflow and document a measurable friction without contacting anyone.",
+    "time_to_first_action_minutes": 30,
+    "critic": [
+      "Probability and revenue assumptions need independent demand evidence.",
+      "Eligibility, taxes, competition and legal constraints remain unassessed.",
+      "Time has an opportunity cost even when additional API spending is zero."
+    ],
+    "verified_demand": false,
+    "realized_income_gbp": null,
+    "external_actions": [],
+    "actual_external_spend_gbp": "0"
+  },
+  "personal": {
+    "schema_version": "apex.personal.v1",
+    "schedule": [
+      {
+        "task_id": "review",
+        "title": "Review an evidence packet",
+        "start_minute": 0,
+        "end_minute": 20,
+        "mode": "SUGGESTED"
+      },
+      {
+        "task_id": "plan",
+        "title": "Choose tomorrow's first task",
+        "start_minute": 20,
+        "end_minute": 30,
+        "mode": "SUGGESTED"
+      }
+    ],
+    "deferred": [
+      {
+        "task_id": "deep-work",
+        "reason": "LOW_ENERGY_PREFERENCE"
+      },
+      {
+        "task_id": "follow-up",
+        "reason": "CONTACT_CONSENT_ABSENT_OR_WITHDRAWN"
+      }
+    ],
+    "minutes_used": 30,
+    "minutes_remaining": 15,
+    "method": "priority_descending_then_duration_ascending_then_id",
+    "external_actions": [],
+    "contact_authorized": false,
+    "outcome_status": "PLAN_ONLY_NOT_MEASURED_PRODUCTIVITY"
+  },
+  "studio": {
+    "schema_version": "apex.video.v1",
+    "title": "Invisible Systems: The Art of Being Somewhere Else",
+    "location": "Lagos, Portugal",
+    "duration_seconds": 75,
+    "status": "BLOCKED",
+    "timeline": [
+      {
+        "shot_id": "S01",
+        "start_seconds": 0,
+        "end_seconds": 8,
+        "asset_id": "coast_open",
+        "visual": "Locked coastal frame; wait for a wave to finish.",
+        "narration": "",
+        "sound": "Unprocessed location sound.",
+        "framing": "16:9"
+      },
+      {
+        "shot_id": "S02",
+        "start_seconds": 8,
+        "end_seconds": 18,
+        "asset_id": "threshold",
+        "visual": "Street threshold or doorway; human presence optional.",
+        "narration": "A place can be new. The habits we bring to it are older.",
+        "sound": "Quiet street tone; cut after the wave retreats.",
+        "framing": "16:9"
+      },
+      {
+        "shot_id": "S03",
+        "start_seconds": 18,
+        "end_seconds": 28,
+        "asset_id": "footsteps",
+        "visual": "Footsteps, pavement or a moving shadow.",
+        "narration": "We carry them in the pace of a walk. In what we pass without looking.",
+        "sound": "Two distinct footsteps; no added commercial music.",
+        "framing": "16:9"
+      },
+      {
+        "shot_id": "S04",
+        "start_seconds": 28,
+        "end_seconds": 40,
+        "asset_id": "surface_detail",
+        "visual": "Still detail of a wall, hinge or worn surface.",
+        "narration": "Then something ordinary interrupts us.",
+        "sound": "Leave silence after the line.",
+        "framing": "16:9"
+      },
+      {
+        "shot_id": "S05",
+        "start_seconds": 40,
+        "end_seconds": 52,
+        "asset_id": "horizon",
+        "visual": "Hold a horizon longer than the opening.",
+        "narration": "A line of light. A doorway. The time it takes for a wave to disappear.",
+        "sound": "Return to the original coastal sound.",
+        "framing": "16:9"
+      },
+      {
+        "shot_id": "S06",
+        "start_seconds": 52,
+        "end_seconds": 65,
+        "asset_id": "threshold_return",
+        "visual": "Return to an earlier threshold or matched framing.",
+        "narration": "Perhaps being somewhere else begins here: with noticing what was already there.",
+        "sound": "Continuous ambient bridge, no crescendo.",
+        "framing": "16:9"
+      },
+      {
+        "shot_id": "S07",
+        "start_seconds": 65,
+        "end_seconds": 75,
+        "asset_id": "coast_close",
+        "visual": "Quiet coast or empty frame; final three seconds show title.",
+        "narration": "",
+        "sound": "Hold after the last visible movement.",
+        "framing": "16:9"
+      }
+    ],
+    "asset_checks": [],
+    "blockers": [
+      {
+        "asset_id": "coast_open",
+        "reason": "MISSING_ASSET_RECORD"
+      },
+      {
+        "asset_id": "threshold",
+        "reason": "MISSING_ASSET_RECORD"
+      },
+      {
+        "asset_id": "footsteps",
+        "reason": "MISSING_ASSET_RECORD"
+      },
+      {
+        "asset_id": "surface_detail",
+        "reason": "MISSING_ASSET_RECORD"
+      },
+      {
+        "asset_id": "horizon",
+        "reason": "MISSING_ASSET_RECORD"
+      },
+      {
+        "asset_id": "threshold_return",
+        "reason": "MISSING_ASSET_RECORD"
+      },
+      {
+        "asset_id": "coast_close",
+        "reason": "MISSING_ASSET_RECORD"
+      }
+    ],
+    "export_plan": {
+      "primary_aspect_ratio": "16:9",
+      "secondary_aspect_ratio": "9:16",
+      "primary_resolution": "1920x1080",
+      "audio_sample_rate_hz": 48000,
+      "subtitle_format": "SRT",
+      "fps": "MATCH_APPROVED_SOURCE_AFTER_INSPECTION"
+    },
+    "quality_review_required": [
+      "Decode media and verify trim durations",
+      "Review composition and continuity",
+      "Check speech intelligibility, peaks and loudness",
+      "Verify subtitle timing",
+      "Verify rights including ambient music and identifiable people",
+      "Founder style approval and independent viewer feedback"
+    ],
+    "rendered_video_path": null,
+    "film_completed": false,
+    "external_actions": [],
+    "actual_external_spend_gbp": "0",
+    "founder_style_approved": false
+  }
+}

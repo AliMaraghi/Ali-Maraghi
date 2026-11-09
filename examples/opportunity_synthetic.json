@@ -1,0 +1,35 @@
+{
+  "fixture": "SYNTHETIC_NOT_DEMAND_EVIDENCE",
+  "domain": "opportunity",
+  "scenario": {
+    "opportunity_id": "synthetic-workflow-1",
+    "title": "Synthetic public workflow review service",
+    "success_probability": {
+      "low": "0.2",
+      "high": "0.5"
+    },
+    "revenue_if_success_gbp": {
+      "low": "100",
+      "high": "200"
+    },
+    "cash_cost_gbp": {
+      "low": "5",
+      "high": "10"
+    },
+    "hours_required": {
+      "low": "2",
+      "high": "3"
+    },
+    "hourly_time_value_gbp": {
+      "low": "10",
+      "high": "20"
+    },
+    "assumptions": [
+      "All amounts and probabilities are synthetic assumptions, not verified demand.",
+      "Revenue is received only on success; cash and time costs occur in both outcomes."
+    ],
+    "smallest_experiment": "Inspect one public workflow and document a measurable friction without contacting anyone.",
+    "time_to_first_action_minutes": 30,
+    "evidence_refs": []
+  }
+}
