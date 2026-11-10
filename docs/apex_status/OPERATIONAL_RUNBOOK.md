@@ -31,3 +31,19 @@ content must not be copied into public logs. Sensitive data is unsupported.
 `--kill-state STOP_EXECUTION` prevents workflow/OWP planning in that invocation.
 This is not a durable global kill switch. No background task survives this chat.
 Do not run legacy Docker/service/backup/monitor scripts listed in AGENTS.md.
+
+## Durable jobs increment (supersedes earlier absence of a queue)
+
+Use jobs-submit with a task/case packet, jobs-run-one with a worker ID, and
+jobs-status for a readonly view. jobs-control --state STOP_EXECUTION commits local
+stop; jobs-control --state RUNNING is an explicit trusted local-operator resume.
+No network/model handler can be queued. Every mutation couples its audit event
+transactionally. Handler result and job completion commit together. Lease attempts
+are fenced by tokens; max3 attempts and bounded backoff; exhausted crashes dead-letter.
+Only one iteration runs per invocation; no background process or cron was installed.
+
+Status COMPLETE is processing status; consult workflow_status and its report for
+blocked evidence. STOP is graceful: it waits behind an active write transaction,
+and lock timeout must be reported as failure. It is not production global stop.
+Current caps:100 active/1000 retained jobs,262144-byte payload,15–300-second lease.
+Source script is separately invoked, bounded and live-blocked; PUBLIC_SOURCE_ADAPTER.md.

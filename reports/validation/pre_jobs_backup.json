@@ -1,0 +1,6 @@
+{
+  "backup_path": "work/pre-jobs-20261110/kernel.sqlite3",
+  "events_preserved": 4,
+  "sha256": "77a09e36ab4c6cf60d3fe4b6d2fd4e0b177c651724277e7eeebab0e84611c7ad",
+  "scope": "Development journal only; no production backup"
+}

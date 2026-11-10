@@ -22,3 +22,19 @@ ID for reevaluation; historical readonly reports remain historical, not current.
 If chain verification fails, stop writes and preserve evidence in the authorized
 workspace. Do not silently reconstruct or delete events. Request the narrow
 maintenance authority required before touching any non-development store.
+
+## Additive queue and actual crash recovery evidence
+
+Before initialization, the actual development journal was copied with SQLite backup
+into work/pre-jobs-20261110/kernel.sqlite3 (mode0600 in private directory); receipt
+in pre_jobs_backup.json. No production state was read. New job_meta(v1)/jobs tables
+and job audit-event kind preserve existing events. Reverting code does not require
+dropping tables or editing old events; preserve the snapshot and investigate first.
+
+JobTests.test_process_crash_during_completion_rolls_back_and_lease_recovers executes
+os._exit(17) in a separate worker after workflow append and before job completion.
+SQLite rollback removes the uncommitted workflow result; the committed claim remains.
+After lease expiry, a new fenced attempt processes it with exactly one final decision.
+No external effects are involved; exactly-once outside SQLite is NOT established.
+If the code fingerprint changes, review and resubmit a NEW task/job ID. Do not silently
+resume an old task with new code. No automatic journal purge or lease override exists.

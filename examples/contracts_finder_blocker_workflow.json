@@ -1,0 +1,72 @@
+{
+  "task": {
+    "task_id": "cf-diagnostic-20261110-v1",
+    "domain": "opportunity",
+    "expires_at": "2026-11-17T07:29:15.724573+00:00",
+    "max_sources": 1,
+    "max_runtime_ms": 10000,
+    "paid_budget_pence": 0
+  },
+  "case": {
+    "id": "cf-live-rejection",
+    "domain": "opportunity",
+    "problem": "Why did the bounded public-source adapter fail to produce a usable procurement packet?",
+    "assumptions": [
+      "The local failure receipt reports a client validation result, not an independently verified upstream fault.",
+      "No raw notices were retained; current query semantics and page counts need separate confirmation."
+    ],
+    "baseline": "Manual inspection of the same failure receipt and official API documentation; no independent utility score collected.",
+    "hypotheses": [
+      {
+        "id": "query",
+        "mechanism": "The service ignores the query page-size parameter because the current request contract differs.",
+        "prediction": "A documented conforming request returns the requested count.",
+        "falsifier": "The exact current documented request is honored yet still fails."
+      },
+      {
+        "id": "parser",
+        "mechanism": "The client interprets the response collection at the wrong structural level.",
+        "prediction": "Independent schema review reveals a mismatch between release packages and notices.",
+        "falsifier": "Independent raw-schema review confirms the expected collection and count."
+      }
+    ],
+    "claims": [
+      {
+        "id": "observed",
+        "statement": "The live diagnostic attempt returned no usable packet and reported Server exceeded requested page size.",
+        "kind": "observation",
+        "evidence_ids": [
+          "local-receipt"
+        ]
+      },
+      {
+        "id": "cause",
+        "statement": "The upstream API has a defect. This is an unverified interpretation requiring disconfirmation.",
+        "kind": "inference",
+        "evidence_ids": []
+      }
+    ],
+    "evidence": [
+      {
+        "id": "local-receipt",
+        "claim_id": "observed",
+        "source_uri": "https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=2026-11-09&publishedTo=2026-11-10&size=5&page=1&orderBy=publishedDate&order=DESC",
+        "publisher": "APEX local adapter observation; not an upstream factual assertion",
+        "independence_group": "apex-local-observer",
+        "retrieved_at": "2026-11-10T07:29:15.724573+00:00",
+        "expires_at": "2026-11-17T07:29:15.724573+00:00",
+        "artifact": "reports/validation/public_source_diagnostic_attempt.json",
+        "sha256": "4a04f1f4c5ca33938ef71cd2a8cd8581d58585997c3e0f755639be5a808d5490",
+        "excerpt": "Server exceeded requested page size",
+        "method": "observation",
+        "synthetic": false,
+        "stance": "supports",
+        "domain": "opportunity",
+        "sensitivity": "public"
+      }
+    ],
+    "neglected_need": "Distinguish inaccessible data from an incompatible parser before abandoning a source.",
+    "second_order_effect": "Relaxing page validation may hide coverage errors or increase data collection.",
+    "smallest_test": "Review the current documented request contract against a bounded, authorized response; retain no contacts and do not infer customer demand."
+  }
+}

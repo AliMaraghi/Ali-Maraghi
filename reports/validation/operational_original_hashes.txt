@@ -1,0 +1,13 @@
+docs/apex_handoff_20261109/AGENTS_TEMPLATE.md: OK
+docs/apex_handoff_20261109/APEX_4_4_ACCEPTANCE_GATE_FA.md: OK
+docs/apex_handoff_20261109/APEX_4_4_ACCEPTANCE_MATRIX.csv: OK
+docs/apex_handoff_20261109/APEX_4_4_FINAL_MASTER_MANIFESTO.docx: OK
+docs/apex_handoff_20261109/APEX_4_4_FINAL_MASTER_MANIFESTO.md: OK
+docs/apex_handoff_20261109/APEX_4_4_FINAL_MASTER_MANIFESTO.pdf: OK
+docs/apex_handoff_20261109/APEX_4_4_FINAL_SHA256SUMS.txt: OK
+docs/apex_handoff_20261109/APEX_4_4_Opus_Implementation_Brief.md: OK
+docs/apex_handoff_20261109/APEX_4_4_User_Supplied_Source.md: OK
+docs/apex_handoff_20261109/APEX_RDE_R1_OFFLINE_PATCH.zip: OK
+docs/apex_handoff_20261109/EXECUTION_PROMPT.md: OK
+docs/apex_handoff_20261109/MISSION_CONTRACT.md: OK
+docs/apex_handoff_20261109/README_FA.md: OK

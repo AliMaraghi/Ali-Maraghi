@@ -1,0 +1,7 @@
+{
+  "files_scanned": 42,
+  "credential_pattern_findings": [],
+  "original_documents_changed": false,
+  "evidence_hashes_match": true,
+  "scope": "Narrow pattern scan; not exhaustive secret/DLP detection"
+}

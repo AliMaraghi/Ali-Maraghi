@@ -1,0 +1,18 @@
+test_collect_worker_contract_omits_environment_secrets (test_public_source.SourceTests.test_collect_worker_contract_omits_environment_secrets) ... ok
+test_dns_rejects_any_private_mixed_or_mapped_answer (test_public_source.SourceTests.test_dns_rejects_any_private_mixed_or_mapped_answer) ... ok
+test_ip_pinning_uses_tls_hostname_without_second_dns_lookup (test_public_source.SourceTests.test_ip_pinning_uses_tls_hostname_without_second_dns_lookup) ... ok
+test_minimized_packet_preserves_disconfirmation_not_demand (test_public_source.SourceTests.test_minimized_packet_preserves_disconfirmation_not_demand) ... ok
+test_no_authority_or_any_stop_prevents_subprocess (test_public_source.SourceTests.test_no_authority_or_any_stop_prevents_subprocess) ... ok
+test_open_but_missing_deadline_is_not_actionable (test_public_source.SourceTests.test_open_but_missing_deadline_is_not_actionable) ... ok
+test_parent_timeout_kills_hung_worker (test_public_source.SourceTests.test_parent_timeout_kills_hung_worker) ... ok
+test_peer_mismatch_fails_before_tls (test_public_source.SourceTests.test_peer_mismatch_fails_before_tls) ... ok
+test_redirect_loop_bounded_and_valid_json_succeeds (test_public_source.SourceTests.test_redirect_loop_bounded_and_valid_json_succeeds) ... ok
+test_redirect_revalidated_and_rebinding_stops_second_connection (test_public_source.SourceTests.test_redirect_revalidated_and_rebinding_stops_second_connection) ... ok
+test_schema_duplicate_future_and_page_overflow_fail_closed (test_public_source.SourceTests.test_schema_duplicate_future_and_page_overflow_fail_closed) ... ok
+test_transport_limit_encoding_type_status_and_closed_connections (test_public_source.SourceTests.test_transport_limit_encoding_type_status_and_closed_connections) ... ok
+test_url_host_port_path_scope_and_query_cannot_escape (test_public_source.SourceTests.test_url_host_port_path_scope_and_query_cannot_escape) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.310s
+
+OK

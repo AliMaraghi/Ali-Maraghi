@@ -11,6 +11,7 @@ from pathlib import Path
 import hashlib
 import os
 import sqlite3
+import uuid
 
 from .engine import canonical
 from .schema import DOMAINS, identifier, strict_json
@@ -74,12 +75,19 @@ class Ledger:
 
     @contextmanager
     def transaction(self):
-        self.db.execute("BEGIN IMMEDIATE")
+        # Nested workflows participate in their caller's atomic job transaction.
+        nested = self.db.in_transaction
+        savepoint = 'sp_' + uuid.uuid4().hex
+        self.db.execute('SAVEPOINT ' + savepoint if nested else "BEGIN IMMEDIATE")
         try:
             yield
-            self.db.execute("COMMIT")
+            self.db.execute('RELEASE ' + savepoint if nested else "COMMIT")
         except BaseException:
-            self.db.execute("ROLLBACK")
+            if nested:
+                self.db.execute('ROLLBACK TO ' + savepoint)
+                self.db.execute('RELEASE ' + savepoint)
+            else:
+                self.db.execute("ROLLBACK")
             raise
 
     @staticmethod
@@ -97,7 +105,7 @@ class Ledger:
 
     def _append(self, key, kind, domain, payload):
         identifier(key)
-        if domain not in DOMAINS or kind not in {"decision", "evaluation", "promotion", "rejection", "rollback"}:
+        if domain not in DOMAINS or kind not in {"decision", "evaluation", "promotion", "rejection", "rollback", "job"}:
             raise ValueError("Invalid event classification")
         encoded = canonical(payload)
         if len(encoded.encode()) > 1_048_576:

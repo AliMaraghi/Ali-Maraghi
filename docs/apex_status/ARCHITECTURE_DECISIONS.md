@@ -67,3 +67,12 @@ Review-kit descriptions of their own state are historical claims. In particular,
 its claimed signed baseline is not available: BASELINE.json is an unsigned local
 observation, not an independent attestation. Current approval does not cover
 production, purchases, paid calls, personal accounts or employer data.
+
+## Later operational delta — same four planes
+
+Plane I now has an explicit source adapter with tested transport bounds; live page
+compatibility and current licence confirmation remain BLOCKED. Plane III now has
+manual one-iteration durable local evidence dispatch, connected to plane II workflow
+and plane IV journal. Additive queue tables/savepoints were introduced after the
+previous no-migration increment. No model/UAC role activation, daemon, external
+handler, production release or authenticated mobile command plane is implied.

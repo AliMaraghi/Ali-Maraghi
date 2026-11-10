@@ -8,3 +8,5 @@ Coding-agent subscription/quota, host compute, electricity and engineering/found
 time are not separately metered; total economic cost is UNKNOWN. No estimate is
 represented as an invoice or independently audited cost. Current runtime policy
 rejects any nonzero paid estimate and rejects booleans/floats as integer money.
+
+Operational continuation: two manually invoked anonymous public GET attempts, no paid API/service. Each invocation capped at two HTTP hops; exact hops on rejected packets were not persisted. No autonomous polling or purchases.

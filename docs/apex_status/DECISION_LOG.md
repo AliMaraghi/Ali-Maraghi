@@ -67,3 +67,14 @@ source snapshot membership and explicit unverified states. No new dependencies,
 DB schema, network or service. Four logical planes and both §5 six-sublayer sets
 are mapped without changing originals. Current135 tests pass; two web skips.
 Continue bounded offline validation; no superiority or field value established.
+
+## Operational continuation — 2026-11-10
+
+Resumed9f2a920 and reran135-pass baseline. Designed/tested explicit public adapter;
+network permission granted, two attempts blocked by response page-size contract.
+No gate relaxed and no actual opportunity packet fabricated. Subsequent founder
+instruction prioritised five defects; implemented local durable queue/fencing/
+transactional audit around existing workflow, retaining finite budgets/exact counts.
+Actual blocked-source receipt ran through CLI queue to durable blocked report.
+Final162 passed,2 skipped; crash/competition/security evidence recorded. Independent
+review/utility baseline unavailable and explicitly not claimed. No production/spend.

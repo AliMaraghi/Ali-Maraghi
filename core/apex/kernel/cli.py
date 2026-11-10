@@ -27,6 +27,14 @@ def main(argv=None):
     owp.add_argument('--kill-state', choices=[x.value for x in KillState], default='RUNNING')
     coverage = sub.add_parser('owp-coverage')
     coverage.add_argument('input', help='Relative snapshot coverage record JSON')
+    submit = sub.add_parser('jobs-submit')
+    submit.add_argument('input', help='Relative workflow task/case packet')
+    submit.add_argument('--job-id', required=True)
+    worker = sub.add_parser('jobs-run-one')
+    worker.add_argument('--worker-id', required=True)
+    control = sub.add_parser('jobs-control')
+    control.add_argument('--state', choices=[s.value for s in KillState], required=True)
+    sub.add_parser('jobs-status')
     workflow = sub.add_parser('workflow')
     workflow.add_argument('input', help='Relative JSON containing task and case')
     workflow.add_argument('--kill-state', choices=[x.value for x in KillState], default='RUNNING')
@@ -39,6 +47,27 @@ def main(argv=None):
     # Determined by installed source, never by a research document or environment variable.
     root = Path(__file__).resolve().parents[3]
     try:
+        if args.command.startswith('jobs-'):
+            from .jobs import Jobs
+            from .workflow import Task
+            from .schema import fields
+            if args.command == 'jobs-status':
+                with Ledger.read_only(root) as ledger:
+                    print(json.dumps(Jobs.read_only(ledger).status(), indent=2))
+                return 0
+            packet = None
+            if args.command == 'jobs-submit':
+                packet = fields(strict_json(read_local(root, args.input, 262144).decode()), {'task', 'case'})
+            with Ledger(root) as ledger:
+                queue = Jobs(ledger)
+                if args.command == 'jobs-submit':
+                    result = {'submitted': queue.submit(args.job_id, Task.parse(packet['task']), Case.parse(packet['case']))}
+                elif args.command == 'jobs-control':
+                    queue.set_stop(KillState(args.state)); result = {'stop_state': queue.control().value}
+                else:
+                    result = queue.run_one(root, args.worker_id)
+            print(json.dumps(result, indent=2))
+            return 0
         if args.command in {'owp-plan', 'owp-coverage'}:
             from .owp import plan_search, inspect_coverage
             packet = strict_json(read_local(root, args.input, 262144).decode())

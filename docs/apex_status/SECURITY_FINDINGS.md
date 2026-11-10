@@ -26,3 +26,13 @@ from them. The adaptation caps axes/sources/probes and file bytes, rejects unkno
 fields, expired requests, private/IP endpoints, non-integer costs and source-ID
 collisions. Coverage rejects tampering, paths outside workspace, symlinks, stale
 snapshots and impossible membership. Tests do not establish production security.
+
+## Operational remediation update
+
+Current Jobs implements stop-before-dispatch, per-attempt lease fencing, bounded
+retry/retention and coupled state/workflow/audit transactions. Existing finite cost
+and exact coverage validation retained. Reference runtime remains unmodified/excluded.
+See OPERATIONAL_INCREMENT_REVIEW.md for tests and limitations. Source transport pins
+validated IPs and checks TLS hostname; it is not a general-purpose approved fetcher.
+A real response violated requested page-size bound and was rejected. No usable
+notice packet exists. Stop is local/graceful, not owner authentication or revocation.

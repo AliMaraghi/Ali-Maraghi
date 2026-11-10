@@ -1,12 +1,16 @@
 {
-  "recorded_at": "2026-11-10T07:16:57.357347+00:00",
-  "benchmark": "Frozen synthetic policy regression; already seen by implementer",
-  "fixture_sha256": "3477cf88aecafff06b92940038622bef0fa4e561a669951e8497592ce9e27b72",
-  "candidate_correct": 24,
-  "weak_rule_correct": 13,
-  "full_checklist_correct": 24,
-  "cases": 24,
-  "candidate_promoted": false,
-  "independent_real_evaluation": "NOT RUN",
-  "source_report": "reports/validation/epoch_policy_benchmark.json"
+  "recorded_at": "2026-11-10T07:49:06.810563+00:00",
+  "policy_regression": {
+    "cases": 24,
+    "candidate_correct": 24,
+    "weak_rule_correct": 13,
+    "full_checklist_correct": 24,
+    "fixture_sha256": "3477cf88aecafff06b92940038622bef0fa4e561a669951e8497592ce9e27b72",
+    "already_seen": true,
+    "candidate_promoted": false
+  },
+  "actual_cli_record": "reports/validation/operational_cli_e2e.json",
+  "independent_baseline_definition": "NOT AVAILABLE",
+  "independent_real_utility": "NOT MEASURED",
+  "limitation": "Operational contract and recovery tests are not intelligence,market or time-saving evidence."
 }

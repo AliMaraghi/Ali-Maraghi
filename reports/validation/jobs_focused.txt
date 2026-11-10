@@ -1,0 +1,17 @@
+test_actual_workflow_receipt_and_idempotence_survive_reopen (test_jobs.JobTests.test_actual_workflow_receipt_and_idempotence_survive_reopen) ... ok
+test_code_change_denies_dispatch (test_jobs.JobTests.test_code_change_denies_dispatch) ... ok
+test_completion_audit_failure_rolls_back_workflow_and_job (test_jobs.JobTests.test_completion_audit_failure_rolls_back_workflow_and_job) ... ok
+test_every_stop_persists_and_blocks_before_handler (test_jobs.JobTests.test_every_stop_persists_and_blocks_before_handler) ... ok
+test_finite_budget_and_exact_queue_counts_fail_before_state (test_jobs.JobTests.test_finite_budget_and_exact_queue_counts_fail_before_state) ... ok
+test_identity_collision_and_unrelated_result_rejected (test_jobs.JobTests.test_identity_collision_and_unrelated_result_rejected) ... ok
+test_nested_transaction_failure_does_not_escape_outer_rollback (test_jobs.JobTests.test_nested_transaction_failure_does_not_escape_outer_rollback) ... ok
+test_process_crash_during_completion_rolls_back_and_lease_recovers (test_jobs.JobTests.test_process_crash_during_completion_rolls_back_and_lease_recovers) ... ok
+test_reclaimed_same_worker_has_new_token_and_exact_expiry (test_jobs.JobTests.test_reclaimed_same_worker_has_new_token_and_exact_expiry) ... ok
+test_retry_backoff_limit_and_expired_dead_job_does_not_starve_next (test_jobs.JobTests.test_retry_backoff_limit_and_expired_dead_job_does_not_starve_next) ... ok
+test_submit_and_control_audit_failure_rolls_back_mutation (test_jobs.JobTests.test_submit_and_control_audit_failure_rolls_back_mutation) ... ok
+test_two_processes_cannot_claim_same_unexpired_attempt (test_jobs.JobTests.test_two_processes_cannot_claim_same_unexpired_attempt) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.197s
+
+OK

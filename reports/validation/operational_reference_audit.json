@@ -1,0 +1,260 @@
+{
+  "archive_sha256": "611ff49f1e68e33e0e1f69fafb464ae9ea382b1d03ced4c5e6add497913a4a67",
+  "crc_valid": true,
+  "files": 48,
+  "manifest_checksums_matched": 47,
+  "authenticity_note": "Checksums establish internal consistency, not a publisher signature.",
+  "entries": [
+    {
+      "path": ".gitignore",
+      "bytes": 249,
+      "sha256": "051e6e27d139353ba89a0811e2f1c533055fc2cf546092d8b8cfa42e18b677d6"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 1806,
+      "sha256": "4115145e9ca579330f96b5d288ff51a8b4d3e3cc5ac3f1875d2e7b63d267c9df"
+    },
+    {
+      "path": "PACKAGE_SHA256SUMS.txt",
+      "bytes": 4343,
+      "sha256": "c7e436805ddea0927b83fca4f9a40b67ec9b9a0a19079e6bd258be0f9bce0837"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2389,
+      "sha256": "09426b59eab713128872750295969601a18c1845c3cbce572dfb0bce1f401673"
+    },
+    {
+      "path": "VERSION",
+      "bytes": 92,
+      "sha256": "4d34b9634ef5e4c905b02f061cbf829acc07a5e6fa1c05a287fdfb4b3c7e39eb"
+    },
+    {
+      "path": "apex_epoch/__init__.py",
+      "bytes": 106,
+      "sha256": "8a93aa6dbf69b70217070959d0462dfb19e951ddd6fa2e90ff0cd68f7c1ad412"
+    },
+    {
+      "path": "apex_epoch/__main__.py",
+      "bytes": 47,
+      "sha256": "79ee6f134c5c5193377cf9b189cbdcc3e2095e49ba9cec310114441c15a917c4"
+    },
+    {
+      "path": "apex_epoch/budget.py",
+      "bytes": 2668,
+      "sha256": "f77a28138b5f83331ce1b95d740dbb6204678f3423f9c6556c6fdaa08e0674f7"
+    },
+    {
+      "path": "apex_epoch/cli.py",
+      "bytes": 1926,
+      "sha256": "d7c37acb39948f8354a6d385194b79d2a4f327ecbbeaf918faa241d24a8b4c9c"
+    },
+    {
+      "path": "apex_epoch/constitution.py",
+      "bytes": 2233,
+      "sha256": "9942e6e5c172255c3ed3f94651364c8426d7fa1d3d0479393cea36a98759c3e3"
+    },
+    {
+      "path": "apex_epoch/coverage.py",
+      "bytes": 1825,
+      "sha256": "7a4644454ee4ff3165456b577178a0228d2b7f5254f4978595a26831b4c0e33d"
+    },
+    {
+      "path": "apex_epoch/database.py",
+      "bytes": 7243,
+      "sha256": "15d943317c7dfea977090b779211ad2c18af6068d09ff2462d789d841e5a01ff"
+    },
+    {
+      "path": "apex_epoch/eval_lab.py",
+      "bytes": 3682,
+      "sha256": "1176304c71b6f8d522fa2beed7ec1c4fcee4a1691fb9bc6a84191a8f273f35d3"
+    },
+    {
+      "path": "apex_epoch/evidence.py",
+      "bytes": 6102,
+      "sha256": "a718d6d0390b87e16a0249ca2ea4b65fabdf18df8ee5882c02292db5a1bcc625"
+    },
+    {
+      "path": "apex_epoch/identity.py",
+      "bytes": 2063,
+      "sha256": "32771f98ebac780e88e7ef4d39f4bf935b12b43e50a3d11b866dcfd0f5969e5f"
+    },
+    {
+      "path": "apex_epoch/media.py",
+      "bytes": 2866,
+      "sha256": "ae127a520ef5a485f3c6a944135edb9c9b5728d7f9029f1a2112f262b3ef10b2"
+    },
+    {
+      "path": "apex_epoch/models.py",
+      "bytes": 4154,
+      "sha256": "eda44b606d2fe80f5c01604ced07e7eca0f93172162a86920a6d0c64f39a8072"
+    },
+    {
+      "path": "apex_epoch/ops.py",
+      "bytes": 1317,
+      "sha256": "dad77fb42311fd35b8823f300e82a444f394e5ef18352c6a1761a34f68f62e79"
+    },
+    {
+      "path": "apex_epoch/owp.py",
+      "bytes": 5638,
+      "sha256": "7e745e1575e472aedb42be7b63d78401ce1b5b1d78eea183becf2c19a0b16cf2"
+    },
+    {
+      "path": "apex_epoch/planner.py",
+      "bytes": 3088,
+      "sha256": "7ad5a07fd671591704340395de7ccf890c33751df57ea43a8e2fc2e948b008e0"
+    },
+    {
+      "path": "apex_epoch/policy.py",
+      "bytes": 5011,
+      "sha256": "ed55173286b5e7e52115fee3ada3689c5c49810e6c4e3b2e226ab4c9a260b6ef"
+    },
+    {
+      "path": "apex_epoch/rde.py",
+      "bytes": 3525,
+      "sha256": "bcb154a2e3649aa1e42066bc7b14a87962f6e587edcd7f3a5c48c39ecfb2bef0"
+    },
+    {
+      "path": "apex_epoch/roles.py",
+      "bytes": 2862,
+      "sha256": "7ee4109e760f8ee44c0689e821d07e451a94e4d13a7b50fdeaa65e64822aac97"
+    },
+    {
+      "path": "apex_epoch/security.py",
+      "bytes": 2434,
+      "sha256": "9a83970bc585306935bb38698b350c0bc4e966315b50b81e09ed4082fde3faca"
+    },
+    {
+      "path": "apex_epoch/worker.py",
+      "bytes": 1580,
+      "sha256": "d6544c02929994ad992f926e69d5e507f2db7c5f0a43a530288d04aca589f1d5"
+    },
+    {
+      "path": "apex_epoch/workqueue.py",
+      "bytes": 4016,
+      "sha256": "695a4c59420e215395d4c746fcf76897ca4aa61d03d8c1929cf445a181c11e24"
+    },
+    {
+      "path": "docs/ACCEPTANCE_A01_TO_A09.csv",
+      "bytes": 553,
+      "sha256": "dafe3939f11167ed91e1153c3096bcc40a2217c3673e5d6de7d83791402f1557"
+    },
+    {
+      "path": "docs/ARCHITECTURE_FOUR_LAYER_CONSTITUTION.md",
+      "bytes": 10895,
+      "sha256": "c026b4aace59d4c069562137176d8768632b1147917dfe2bb06c0057b63a5a97"
+    },
+    {
+      "path": "docs/ARGUE_AGAINST_MYSELF.md",
+      "bytes": 7520,
+      "sha256": "c31ba1892d9b4e0e8f445ad3e562d60e819ac458d3e102fccaa03b77de9b22a9"
+    },
+    {
+      "path": "docs/EXECUTION_STAGES_AND_ACCEPTANCE.md",
+      "bytes": 7583,
+      "sha256": "010fc650b3f9f5684c4e72e7fc66965d9cd6908b4cc97def907e8df7b9162161"
+    },
+    {
+      "path": "docs/NEXT_ACTION.md",
+      "bytes": 1448,
+      "sha256": "b62f54b7127c98af5dcfb82a08fd9b07982a9ad604a37f8fe3c4a36705feada7"
+    },
+    {
+      "path": "docs/OWP_OPEN_WORLD_WEALTH_SPEC.md",
+      "bytes": 6012,
+      "sha256": "729eac6375e0e4dce5554e6bed2830352f1bd0ec08c79dd999f8e62788369d94"
+    },
+    {
+      "path": "docs/SECURITY_AND_RELIABILITY_GATES.md",
+      "bytes": 5444,
+      "sha256": "15b1b81c298c45c1fe4abb923e973569e1a20bbccee9cbdaeb5e3c0f72b2045c"
+    },
+    {
+      "path": "docs/SOURCES_AND_RATIONALE.md",
+      "bytes": 3043,
+      "sha256": "5e95908088df1f0589803d615b8f8c252aebbf8ccf6f06db1a13d16f9e1b4441"
+    },
+    {
+      "path": "docs/TRACEABILITY_0_TO_18.csv",
+      "bytes": 3061,
+      "sha256": "01aaba3598630d12a7bc64613150cb21ecbb25348522666985f4fef19a6d092b"
+    },
+    {
+      "path": "examples/EXAMPLE_OFFLINE_COMMANDS.md",
+      "bytes": 878,
+      "sha256": "c57af68853fded03be719bd4cdd5b64818174383a6411596c7a4031cc7f4a2fc"
+    },
+    {
+      "path": "prompts/FOUNDER_MASTER_DIRECTIVE_FOR_CODEX.md",
+      "bytes": 27806,
+      "sha256": "a818b073059bc467476c04a31504c18ca34677f4d122ed181965eb831373055a"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 392,
+      "sha256": "8792cb664b96bbcc2c853510be310a5b1ea02224996c7c7caa0b1c67f71228bc"
+    },
+    {
+      "path": "reference/OPUS_IMPLEMENTATION_BRIEF_ARCHIVE.md",
+      "bytes": 11653,
+      "sha256": "ed9fe2d3ddaae0edbe83dff04f46aa7d1d2e403a18b248776dea5ded1a1ab7e7"
+    },
+    {
+      "path": "reference/ORIGINAL_ACCEPTANCE_GATE_FA.md",
+      "bytes": 17217,
+      "sha256": "6b2111a9ab264319e6465c9a8c9cda4b8f5ef0c59a163a90d73536ee8cac9ea9"
+    },
+    {
+      "path": "reference/ORIGINAL_ACCEPTANCE_MATRIX.csv",
+      "bytes": 1352,
+      "sha256": "5976124277424dbfef68aec5be779750124e37eeaef70c01733790d9df8626cc"
+    },
+    {
+      "path": "reference/ORIGINAL_DOCUMENT_HASHES.txt",
+      "bytes": 411,
+      "sha256": "3e6719a3dd78b76cb24054459a2b68d04608ea554ecc2b5455b656337f01b694"
+    },
+    {
+      "path": "reference/ORIGINAL_MASTER_MANIFESTO_READONLY.md",
+      "bytes": 125977,
+      "sha256": "3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd"
+    },
+    {
+      "path": "reference/ORIGINAL_USER_SOURCE.md",
+      "bytes": 42543,
+      "sha256": "0abf0eb4d6500991e4fa1e646531ac38eee7da4d72ff7b7770e38cb5049718ba"
+    },
+    {
+      "path": "reports/BUILD_AUDIT_REPORT.md",
+      "bytes": 1497,
+      "sha256": "c00ced153230f27bba06ff7310935abf5d434ffa641f69c45a6af6e5a4a9eb7f"
+    },
+    {
+      "path": "reports/LOCAL_STATUS.json",
+      "bytes": 8505,
+      "sha256": "0749d7f63a0332d2e736cd6442258a219a61e89442d2afd2a10be7b62985b7fe"
+    },
+    {
+      "path": "reports/UNIT_TEST_LOG.txt",
+      "bytes": 6959,
+      "sha256": "c97a52f78a73c9aa5169b36e5ea444017d85c5a9b62e978b5ea262acc0feade4"
+    },
+    {
+      "path": "tests/test_epoch.py",
+      "bytes": 19576,
+      "sha256": "0152753529d41b14998149f094b16b5a613d87c677ba4e78e7734bb10e4e13a5"
+    }
+  ],
+  "adversarial_probe": {
+    "reproduced": {
+      "worker_executes_despite_stop": true,
+      "old_attempt_can_finish_reclaimed_lease_without_token": true,
+      "queue_state_commits_without_audit_event": true,
+      "nonfinite_cost_passes_gateway": true,
+      "fractional_counts_accepted_as_full_coverage": true
+    },
+    "disposition": "DO_NOT_IMPORT_REFERENCE_RUNTIME",
+    "scope": "Synthetic in-memory adverse cases; not production incidents"
+  }
+}

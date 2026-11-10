@@ -53,3 +53,14 @@ fetch sources or prove demand. Workflow replay returns historical evidence witho
 freshness revalidation. `scripts/smoke_local_recovery.py` uses synthetic isolated
 journals only; no production/offsite restore is established. Do not activate
 workers, network adapters or role capabilities from reference flags/booleans.
+
+## Current operational continuation
+
+Latest evidence:162 passed/two optional web skips. Read OPERATIONAL_INCREMENT_REVIEW.md
+and current NEXT_ACTION.md. Jobs now persist with fenced leases, stop checks and
+atomic workflow/audit; jobs-run-one is manual/local, no daemon or network handler.
+Source adapter is separately explicit; live packet BLOCKED because service returned
+more than requested size5. Verify current request/licence before further retrieval.
+Never broaden caps to pass a source test. Stop is queue-local/graceful, not global
+revocation. Current local task cf-diagnostic-20261110-v1 reports blocked evidence,
+not verified demand. The unmodified reference still has its five known defects.

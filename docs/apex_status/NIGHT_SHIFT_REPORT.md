@@ -1,77 +1,90 @@
-# Night engineering checkpoint — 2026-11-10
+# Operational checkpoint — 2026-11-10
 
-Status: TESTED_OFFLINE increment; complete APEX NOT ACCEPTED. Work stayed in
-/home/apexdev/apex-work. No production, accounts, employer data, deployment,
-network retrieval, purchases or paid API calls. No new subagents used.
+Branch apex/four-layer-owp-integration; entry HEAD9f2a920. Latest verified code
+commit is in CHECKPOINT.json and local Git history. The uploaded ZIP remains
+untracked/unchanged. Original documents and all four-plane requirements retained.
+Previous report preserved as NIGHT_SHIFT_REPORT_20261110_epoch.md.
 
-## Code and Git
+## What now runs
 
-Entry HEAD bcde451; branch apex/four-layer-owp-integration. Commit 0cb89f8 saved
-bounded workflow/replay and read-only report functionality before reference
-integration. Latest implementation commit is recorded in CHECKPOINT.json and
-`git log`; the local completion log references that commit without changing it.
+The existing evidence workflow now has a persistent local queue: submit a typed
+Task/Case, claim one attempt, enforce durable stop, run the fixed workflow, commit
+its result and the matching job/audit atomically, then read the historical report.
+No arbitrary handlers or network tools are available to queued input. No daemon,
+production deployment, mobile endpoint, paid service or account integration ran.
 
-Code added/adapted: core/apex/kernel/owp.py, CLI owp-plan and owp-coverage,
-tests/test_owp.py, traceability export and both-six-set tests. The prior workflow
-joins evidence checks, opposing template hypotheses, criticism, fail-closed
-status and durable replay in one local transaction; it cannot promote a version.
+Three missing operational controls were implemented in existing kernel modules:
+STOP_EXECUTION enforcement at dispatch, attempt-token lease fencing (including
+same-worker reuse), and transactional job/workflow/audit completion. Existing strict
+finite integer cost and exact snapshot-count checks were preserved and retested.
+The immutable reference still reproduces five defects; it remains excluded.
 
-OWP accepts arbitrary bounded axes/source candidates; no fixed country/sector
-idea list. It strictly validates all inputs, caps source/probe space, reports
-omitted pairs and rejects spend/expired/stopped requests. Coverage verifies local
-snapshot hashes, integral counts and inspected/selected ID membership. It never
-claims source completeness, actual inspection, market gap or demand verification.
-The source candidate registry is metadata only; no connector is enabled.
+New code: kernel/jobs.py; nested savepoints in kernel/memory.py; four jobs-* CLI
+commands. Additive job_meta(v1)/jobs tables; existing event schema/data retained
+with new job event kind. Actual dev journal backed up before initialization under
+ignored work/pre-jobs-20261110/. This is not a production backup or migration.
 
-Recovery script backs up/reopens one synthetic journal and compares exact records.
-No DB schema changed. Existing verified evidence, economics, lab receipts, domain
-planning, scheduling specification and studio exports were retained.
+A separate explicit Contracts Finder source adapter implements fixed host/path,
+validated DNS/IP-pinned TLS, redirect revalidation, response/time/request caps and
+no retries. It is NOT wired to the worker. Two authorized public diagnostic calls
+ran. The current endpoint returned more releases than the requested size5; the
+client rejected it. No usable procurement packet or raw contact data was retained.
+Current endpoint licence/request encoding verification remains pending. See
+PUBLIC_SOURCE_ADAPTER.md for exact blocker and next integration requirements.
 
-## Kit reconciliation
+## Actual end-to-end execution
 
-Archive SHA-256: 611ff49f1e68e33e0e1f69fafb464ae9ea382b1d03ced4c5e6add497913a4a67.
-48 files reviewed, CRC valid, 47/47 manifest checksums match. All five requested
-review docs copied unchanged into docs/. Every import/defer/reject decision and
-file hash is in REVIEW_KIT_INVENTORY.csv / REVIEW_KIT_DECISIONS.md. Original
-manifesto remains 3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd.
+The real source failure receipt was made into a dated diagnostic evidence packet,
+not synthetic market data. Eight separate CLI processes submitted/stopped/denied/
+resumed/processed/read it. Result: job COMPLETE, workflow BLOCKED_PENDING_EVIDENCE;
+unsupported upstream-fault inference was not accepted. Second worker run EMPTY;
+readonly report linked the same durable result. Evidence:
+reports/validation/operational_cli_e2e.json and the saved blocker case.
 
-Reference's 69 tests pass, but five new synthetic probes reproduce: worker bypasses
-STOP_EXECUTION, stale attempt can finish reclaimed lease, task commits without
-audit event, NaN cost allowed, fractional counts treated as coverage. Rejected
-these runtime imports; preserved stronger existing implementation. Advertised
-APEX_EPOCH_ENGINEERING_V1/prototype/apex_reference/ is absent; actual code is in
-APEX_EPOCH_ENGINEERING_V1/apex_epoch/. Uploaded ZIP remains untracked/preserved;
-reference extraction is ignored work/review-kit/, never production or installed.
+COMPLETE means job processing completed, never that evidence, demand or the full
+mission was validated. The receipt timestamp is local capture-file mtime, not
+upstream publication time. No market candidate or income was invented.
 
-## Observed verification
+## Tests and comparative evidence
 
-- Current suite: 135 passed, 2 optional FastAPI/httpx integration skips, 0 failures.
-- Kit suite: 69 passed. Adverse probes: five defects reproduced (not five passes).
-- Source trace: 178 groups, 968 source units, all 0–18/appendices/18 roles/A01–A09;
-  both canonical and historical six §5 sublayers remain separately addressable.
-- Original hashes: all 13 listed entries match. Syntax parsing and edited-code/generated-document whitespace pass; five original
-  Markdown hard-break lines in the copied founder directive remain byte-preserved.
-- Synthetic policy benchmark: candidate24/24, weakrule13/24, fullchecklist24/24.
-  Already seen cases, no independent holdout or model superiority; no promotion.
-- OWP CLI examples: two unexecuted probes; two snapshot IDs/one declared inspected.
-- Local synthetic backup/restore: one event reopened identically; not production
-  MTTR, encrypted/offsite recovery or service availability evidence.
+- Baseline rerun135 passed /2 optional web skips.
+- Final full suite162 passed /2 optional FastAPI/httpx integration skips; no failures.
+- Includes stop denial before handler, stale/foreign/expired lease denial, exact
+  boundary expiry, retry cap/backoff/dead-letter recovery, two-process claims,
+  actual os._exit during workflow completion, restart with rollback/no duplicate,
+  submit/claim/control/completion audit failure and queue bounds.
+- Source tests cover mixed DNS, redirect rebinding, peer pinning, hostname-verified
+  TLS context, response limits/status/encoding, no implicit authority and killing
+  a hung subprocess. Fixtures are synthetic; live compatibility remains BLOCKED.
+- Frozen policy benchmark unchanged:24/24 kernel,13/24 weak rule,24/24 full checklist.
+- Reference's five adverse cases still reproduce. These are regression cases,
+  not independently defined holdouts or evidence of intelligence superiority.
+- Original13 listed hashes match; trace178 groups/968 units retained. Canonical
+  and historical six §5 sublayers,18 roles,0–18,appendices,A01–A09 remain.
 
-Exact commands/results/report hashes: TEST_EVIDENCE.csv. Benchmark methodology
-and timings: MEASURED_BENCHMARKS.csv and reports/validation/epoch_policy_benchmark.json.
-Original failed workflow run was preserved before fixes in override_tests_first_failure.txt.
-Full file changes: `git show --stat` and `git diff bcde451..HEAD --name-only`.
+TEST_EVIDENCE.csv records exact commands/logs/hashes. OPERATIONAL_INCREMENT_REVIEW.md
+maps every defect to current control and test. CLI timings are observations of one
+run, not a utility benchmark. Independent manual/model baseline utility, correction
+minutes and real economic value are NOT MEASURED. No independent reviewer was
+available; this was implementer self-review, not independent semantic acceptance.
 
-## Honest remaining gaps and decision
+## Remaining limits and next decision
 
-No real opportunity packet/customer validation/income, no authorized film assets
-or rendered movie, no direct-model/human comparison, no encrypted private memory,
-authenticated mobile command plane, operational queue/global stop or deployed
-runtime. Source-line retention is not complete independent semantic atomization.
-Workflow time limit is cooperative, not preemptive. URL validation is parse-only;
-all network adapters remain absent. All 18 full-domain acceptance gates stay open.
+Durable stop is local to this queue and graceful. In-flight transaction finishes
+before concurrent stop commits; lock timeout is a failed stop, not success. Local
+operator resume is not remote owner authentication. Source transport is separate;
+queue stop does not cancel unrelated processes or credentials. Ledger remains
+unencrypted/same-user trusted, with no protected external audit sink.
 
-Additional paid API spend GBP0/USD0; hosting/subscription/time not separately
-metered, total cost unknown. Continue bounded validation toward Nov30; pivot/stop
-if an independent same-input comparison cannot show useful value over a checklist.
-See NEXT_ACTION.md, ARCHITECTURE_DECISIONS.md and RECOVERY_RUNBOOK.md to resume.
+Next: verify current authoritative API parameter encoding and licence, preserve
+strict caps, then accept one genuine bounded packet before market analysis. Obtain
+an independent reviewer/fresh same-input baseline before value claims. Add staging
+service lifecycle and authenticated private control only after separate security
+and integration evidence. Film remains blocked by footage/rights/rendering/review.
+All full manifesto acceptance remains open; nothing is reclassified as complete.
+
+Additional paid API spendGBP0/USD0. Two public retrieval invocations; actual HTTP
+hop counts were not retained on rejection (each bounded to2), so no exact hop count
+is asserted. Hosting/subscription/human effort not separately metered. No production,
+employer data, purchases, publication or irreversible external changes. Continue
+bounded validation; Nov30 remains continue/pivot/stop review, not a delivery promise.

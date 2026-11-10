@@ -1,0 +1,361 @@
+{
+  "scope": "Actual saved live-source failure receipt processed through development CLI/queue/workflow/journal; not a successful market retrieval or independent utility trial",
+  "results": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-submit",
+        "examples/contracts_finder_blocker_workflow.json",
+        "--job-id",
+        "cf-diagnostic-job-20261110"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.2574049459944945,
+      "output": {
+        "submitted": "cf-diagnostic-job-20261110"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-control",
+        "--state",
+        "STOP_EXECUTION"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.21587753399217036,
+      "output": {
+        "stop_state": "STOP_EXECUTION"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-run-one",
+        "--worker-id",
+        "local-review-worker"
+      ],
+      "exit_code": 2,
+      "elapsed_seconds": 0.30380628000420984,
+      "output": {
+        "status": "BLOCKED_INVALID_INPUT_OR_POLICY",
+        "error_type": "PermissionError"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-control",
+        "--state",
+        "RUNNING"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.23327132500708103,
+      "output": {
+        "stop_state": "RUNNING"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-run-one",
+        "--worker-id",
+        "local-review-worker"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.2699953609990189,
+      "output": {
+        "state": "COMPLETE",
+        "workflow_status": "BLOCKED_PENDING_EVIDENCE",
+        "result_seq": 9,
+        "replayed": false
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-run-one",
+        "--worker-id",
+        "local-review-worker"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.26894985800026916,
+      "output": {
+        "state": "EMPTY"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "report",
+        "--domain",
+        "opportunity",
+        "--task-id",
+        "cf-diagnostic-20261110-v1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.2264899549918482,
+      "output": {
+        "report": {
+          "actions_executed": [],
+          "created_at": "2026-11-10T07:41:55+00:00",
+          "discovery": {
+            "actions_executed": [],
+            "baseline": "Manual inspection of the same failure receipt and official API documentation; no independent utility score collected.",
+            "case_id": "cf-live-rejection",
+            "domain": "opportunity",
+            "empirical_superiority_proven": false,
+            "excluded_claims": [
+              "cause"
+            ],
+            "hypotheses": [
+              {
+                "claim_id": "observed",
+                "contrary_refs": [],
+                "evidence_refs": [
+                  "local-receipt"
+                ],
+                "falsifier": "A controlled change leaves the outcome unchanged",
+                "id": "observed-process",
+                "mechanism": "A repeatable process constraint produces the reported observation",
+                "observation": "The live diagnostic attempt returned no usable packet and reported Server exceeded requested page size.",
+                "prediction": "Changing the constrained step changes the measured outcome",
+                "status": "UNTESTED_RULE_BASED_HYPOTHESIS"
+              },
+              {
+                "claim_id": "observed",
+                "contrary_refs": [],
+                "evidence_refs": [
+                  "local-receipt"
+                ],
+                "falsifier": "The pattern persists under independent representative sampling",
+                "id": "observed-measurement",
+                "mechanism": "Selection or measurement bias produces the apparent pattern",
+                "observation": "The live diagnostic attempt returned no usable packet and reported Server exceeded requested page size.",
+                "prediction": "Independent sampling weakens or reverses the observed pattern",
+                "status": "UNTESTED_RULE_BASED_HYPOTHESIS"
+              },
+              {
+                "claim_id": "observed",
+                "contrary_refs": [],
+                "evidence_refs": [
+                  "local-receipt"
+                ],
+                "falsifier": "Context stratification adds no explanatory value",
+                "id": "observed-context",
+                "mechanism": "A neglected contextual variable explains the outcome",
+                "observation": "The live diagnostic attempt returned no usable packet and reported Server exceeded requested page size.",
+                "prediction": "Stratifying by context explains variation better than the proposed intervention",
+                "status": "UNTESTED_RULE_BASED_HYPOTHESIS"
+              }
+            ],
+            "limits": "Source integrity is not truth. Causal families are templates, not discoveries or proof of novelty.",
+            "negative_space": [
+              {
+                "claim_id": "observed",
+                "question": "Which affected group or missing measurement would distinguish competing explanations?",
+                "second_order_test": "Measure correction effort and displaced work as well as the headline outcome"
+              },
+              {
+                "claim_id": "cause",
+                "question": "Which affected group or missing measurement would distinguish competing explanations?",
+                "second_order_test": "Measure correction effort and displaced work as well as the headline outcome"
+              }
+            ],
+            "source_review": {
+              "actions_executed": [],
+              "additional_paid_ai_gbp": 0,
+              "additional_paid_ai_usd": 0,
+              "api_calls": 0,
+              "case_id": "cf-live-rejection",
+              "claims": [
+                {
+                  "evidence_ids": [
+                    "local-receipt"
+                  ],
+                  "id": "observed",
+                  "kind": "observation",
+                  "statement": "The live diagnostic attempt returned no usable packet and reported Server exceeded requested page size."
+                },
+                {
+                  "evidence_ids": [],
+                  "id": "cause",
+                  "kind": "inference",
+                  "statement": "The upstream API has a defect. This is an unverified interpretation requiring disconfirmation."
+                }
+              ],
+              "critic": {
+                "findings": [
+                  {
+                    "code": "UNSUPPORTED_CLAIM",
+                    "detail": "No eligible source artifact supports review of this claim.",
+                    "status": "OPEN",
+                    "target": "cause"
+                  },
+                  {
+                    "code": "INDEPENDENCE_NOT_ESTABLISHED",
+                    "detail": "An inference needs corroboration; source labels alone prove no independence.",
+                    "status": "OPEN",
+                    "target": "cause"
+                  }
+                ],
+                "kind": "DETERMINISTIC_CHECKLIST",
+                "unresolved_review": [
+                  "Check source authenticity and claim entailment manually.",
+                  "Check total cost, opportunity cost, rights and failure scenarios."
+                ]
+              },
+              "diversity_limit": "Lexical checks cannot establish substantive causal independence.",
+              "domain": "opportunity",
+              "empirical_superiority_proven": false,
+              "engine_code_sha256": "228859493cdc121756ce749eb35a321535c93f7a7ca96a60ddd1d3b47f7e5fa3",
+              "engine_version": "apex-kernel-0.1",
+              "evaluated_at": "2026-11-10T07:41:55+00:00",
+              "evidence_checks": [
+                {
+                  "eligible_for_review": true,
+                  "id": "local-receipt",
+                  "issues": [],
+                  "retrieved_at": "2026-11-10T07:29:15.724573+00:00",
+                  "sha256": "4a04f1f4c5ca33938ef71cd2a8cd8581d58585997c3e0f755639be5a808d5490",
+                  "source_uri": "https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=2026-11-09&publishedTo=2026-11-10&size=5&page=1&orderBy=publishedDate&order=DESC",
+                  "truth_verified": false
+                }
+              ],
+              "experiment": {
+                "baseline": "Manual inspection of the same failure receipt and official API documentation; no independent utility score collected.",
+                "executed": false,
+                "smallest_test": "Review the current documented request contract against a bounded, authorized response; retain no contacts and do not infer customer demand."
+              },
+              "hypotheses": [
+                {
+                  "falsifier": "The exact current documented request is honored yet still fails.",
+                  "id": "query",
+                  "mechanism": "The service ignores the query page-size parameter because the current request contract differs.",
+                  "prediction": "A documented conforming request returns the requested count."
+                },
+                {
+                  "falsifier": "Independent raw-schema review confirms the expected collection and count.",
+                  "id": "parser",
+                  "mechanism": "The client interprets the response collection at the wrong structural level.",
+                  "prediction": "Independent schema review reveals a mismatch between release packages and notices."
+                }
+              ],
+              "hypothesis_origin": "OPERATOR_SUPPLIED_NOT_AUTONOMOUS_DISCOVERY",
+              "input_sha256": "2b05e6df6781f9b62180dd199d80f42818d192fd257eb8ad442362fdb32402f6",
+              "negative_space": {
+                "neglected_need": "Distinguish inaccessible data from an incompatible parser before abandoning a source.",
+                "second_order_effect": "Relaxing page validation may hide coverage errors or increase data collection.",
+                "status": "UNTESTED_QUESTIONS"
+              },
+              "problem_discovery": {
+                "assumptions": [
+                  "The local failure receipt reports a client validation result, not an independently verified upstream fault.",
+                  "No raw notices were retained; current query semantics and page counts need separate confirmation."
+                ],
+                "missing_evidence": [
+                  "INDEPENDENCE_NOT_ESTABLISHED",
+                  "UNSUPPORTED_CLAIM"
+                ],
+                "question": "Why did the bounded public-source adapter fail to produce a usable procurement packet?"
+              },
+              "provenance": [
+                {
+                  "artifact": "reports/validation/public_source_diagnostic_attempt.json",
+                  "claim_id": "observed",
+                  "domain": "opportunity",
+                  "excerpt": "Server exceeded requested page size",
+                  "expires_at": "2026-11-17T07:29:15.724573+00:00",
+                  "id": "local-receipt",
+                  "independence_group": "apex-local-observer",
+                  "method": "observation",
+                  "publisher": "APEX local adapter observation; not an upstream factual assertion",
+                  "retrieved_at": "2026-11-10T07:29:15.724573+00:00",
+                  "sensitivity": "public",
+                  "sha256": "4a04f1f4c5ca33938ef71cd2a8cd8581d58585997c3e0f755639be5a808d5490",
+                  "source_uri": "https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=2026-11-09&publishedTo=2026-11-10&size=5&page=1&orderBy=publishedDate&order=DESC",
+                  "stance": "supports",
+                  "synthetic": false
+                }
+              ],
+              "status": "BLOCKED_PENDING_EVIDENCE",
+              "verified_demand": false
+            },
+            "status": "PROPOSALS_FOR_REVIEW"
+          },
+          "domain": "opportunity",
+          "elapsed_ms": 3.79558299027849,
+          "evaluation_status": "NO_EMPIRICAL_EXPERIMENT_RUN",
+          "limits": {
+            "automatic_retries": 0,
+            "bytes_per_artifact": 1048576,
+            "external_calls": 0,
+            "source_count": 1,
+            "time_enforcement": "COOPERATIVE_POST_STAGE_NOT_PREEMPTIVE",
+            "time_ms": 10000
+          },
+          "paid_spend_pence": 0,
+          "production_status": "NOT_DEPLOYED",
+          "promotion": "REJECT_NO_INDEPENDENT_EVALUATION",
+          "reason": null,
+          "request_sha256": "061e05159eb644b1297e7d3a7f87dbd5556217fbfaf0af174ff59b042996b255",
+          "schema_version": "apex.workflow.v1",
+          "status": "BLOCKED_PENDING_EVIDENCE",
+          "task_id": "cf-diagnostic-20261110-v1"
+        },
+        "ledger_seq": 9,
+        "historical_record": true,
+        "evidence_rechecked": false
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "apex.kernel.cli",
+        "jobs-status"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.2282337840006221,
+      "output": {
+        "stop_state": "RUNNING",
+        "jobs": [
+          {
+            "id": "cf-diagnostic-job-20261110",
+            "domain": "opportunity",
+            "state": "COMPLETE",
+            "attempts": 1,
+            "max_attempts": 2,
+            "result_seq": 9
+          }
+        ],
+        "scope": "Local evidence jobs only; no external effects or production daemon"
+      }
+    }
+  ],
+  "independent_baseline_utility": "NOT MEASURED",
+  "external_actions": [],
+  "paid_api_spend_pence": 0
+}

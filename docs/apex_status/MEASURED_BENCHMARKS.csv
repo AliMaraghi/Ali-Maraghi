@@ -1,3 +1,5 @@
 comparison,cases,candidate_correct,baseline_correct,candidate_seconds,baseline_seconds,scope,report
 weak zero-cost rule,24,24,13,0.0007116929918993264,0.00029878799978177994,synthetic regression; not unseen or intelligence benchmark,reports/validation/epoch_policy_benchmark.json
 complete conventional checklist,24,24,24,0.0005566280015045777,0.00036233900755178183,synthetic regression; not unseen or intelligence benchmark,reports/validation/epoch_policy_benchmark.json
+operational rerun weak rule,24,24,13,0.0007165090064518154,0.0003039760049432516,already-seen synthetic policy regression; independent utility NOT MEASURED,reports/validation/operational_policy_benchmark.json
+operational rerun full checklist,24,24,24,0.0006166300008771941,0.0004001890047220513,already-seen synthetic policy regression; independent utility NOT MEASURED,reports/validation/operational_policy_benchmark.json
