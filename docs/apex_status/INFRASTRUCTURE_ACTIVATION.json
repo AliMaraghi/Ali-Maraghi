@@ -1,0 +1,44 @@
+{
+  "recorded_at": "2026-11-10T21:03:00.477009+00:00",
+  "entry_commit": "4b8a685",
+  "branch": "apex/unified-field-integration",
+  "tests": {
+    "tests_run": 195,
+    "passed": 193,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "scope": "OFFLINE_TESTS_NOT_DEPLOYMENT_OR_REAL_WORLD_VALIDATION"
+  },
+  "implemented": [
+    "Database-backed authenticated /console and /reports views",
+    "Protected /status.json and /reports.json",
+    "Explicit supervisable worker loop and worker --once",
+    "Uninstalled restricted staging unit example"
+  ],
+  "actual_http_test": "reports/validation/activation_owner_http.json",
+  "actual_worker_cycle": {
+    "state": "CYCLE_COMPLETED",
+    "released": [],
+    "outcomes": [],
+    "network_calls": 0,
+    "paid_api_spend_pence": 0
+  },
+  "deployed_services": [],
+  "working_external_urls": [],
+  "paid_api_spend_pence": 0,
+  "provider_inventory_requested": 130,
+  "provider_master_source": "MISSING in authorized project sources; prior searches retained",
+  "installed_public_adapters": [
+    "fts",
+    "ted"
+  ],
+  "new_provider_connections": [],
+  "cloudflare_credential_binding": "NOT_AVAILABLE",
+  "staging_host_binding": "NOT_AVAILABLE",
+  "docker_inspection": "PERMISSION_DENIED",
+  "user_systemd": "BUS_UNAVAILABLE",
+  "laptop_off_vps_on": "NOT_TESTED",
+  "independent_benchmark": "NOT_MEASURED",
+  "original_sha256": "3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd"
+}

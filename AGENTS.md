@@ -73,3 +73,5 @@ TED continuation: read CONNECTOR_INCREMENT_REPORT.md. Trace ted-field-20261110-v
 Mission runtime continuation: read MISSION_RUNTIME_REPORT.md. missions CLI schedules bounded dependency graphs over existing Jobs; concurrency1, no daemon. Six deterministic review jobs completed from persisted TED trace. This is not independent external verification or qualified commercial advice.184 tests passed/2 skipped.
 
 Recurring schedules: SCHEDULE_INCREMENT_REPORT.md. schedules add/poll/status persists bounded recurrence; no daemon. Evidence expiry is never refreshed by scheduling. Six old mission jobs preserved.191 tests passed/2 skipped.
+
+Activation continuation: read ACTIVATION_INCREMENT_REPORT.md. /console and /reports are authenticated local database projections; worker CLI executable but no persistent service installed. Production authentication/staging credentials unavailable.193 tests passed/2 skipped.

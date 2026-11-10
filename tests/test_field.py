@@ -257,6 +257,11 @@ with Ledger(Path(sys.argv[1])) as ledger:
             conn.request('GET','/trace.json',headers={'Authorization':auth});res=conn.getresponse();body=res.read()
             self.assertEqual(res.status,200);self.assertEqual(json.loads(body)['trace_id'],'test-field')
             self.assertEqual(res.getheader('Cache-Control'),'no-store')
+            for path in ['/console','/reports','/status.json','/reports.json']:
+                conn.request('GET',path);res=conn.getresponse();res.read();self.assertEqual(res.status,401)
+                conn.request('GET',path,headers={'Authorization':auth});res=conn.getresponse();body=res.read()
+                self.assertEqual(res.status,200)
+                self.assertIn(b'test-field',body)
             conn.request('POST','/',headers={'Authorization':auth});res=conn.getresponse();res.read();self.assertEqual(res.status,405)
             conn.close()
         finally:server.shutdown();thread.join(timeout=5);server.server_close()

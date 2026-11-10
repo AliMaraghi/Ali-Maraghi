@@ -1,0 +1,28 @@
+# TEMPLATE ONLY. Install only after staging-host identity/permissions and recovery
+# acceptance. No service has been installed by this file.
+[Unit]
+Description=APEX bounded local mission scheduler
+After=network.target
+ConditionPathExists=/etc/apex/staging.authorized
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=apexdev
+WorkingDirectory=/home/apexdev/apex-work
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/apex worker --interval 60
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=30
+Environment=PYTHONDONTWRITEBYTECODE=1
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/apexdev/apex-work/runtime
+ProtectHome=read-only
+RestrictAddressFamilies=AF_UNIX
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

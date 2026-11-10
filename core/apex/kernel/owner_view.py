@@ -35,11 +35,13 @@ def handler(root, trace, token, expires_at):
                 self.send_response(401)
                 self.send_header('WWW-Authenticate','Basic realm="APEX local owner", charset="UTF-8"')
                 data = b'Owner authentication required'
-            elif self.path not in {'/', '/trace.json'}:
+            elif self.path not in {'/', '/trace.json','/console','/reports','/status.json','/reports.json'}:
                 self.send_response(404); data = b'Not found'
             else:
                 try:
                     with Ledger.read_only(root) as ledger:
+                        from .dashboard import snapshot, render
+                        overview = snapshot(ledger)
                         result = report(ledger, trace)
                         from ..connectors import verify
                         from .jobs import Jobs
@@ -49,7 +51,10 @@ def handler(root, trace, token, expires_at):
                             from .missions import Missions
                             result['runtime']['missions']=[Missions.read_only(ledger).status(r[0]) for r in ledger.db.execute('SELECT id FROM mission_graphs ORDER BY id')]
                     encoded = json.dumps(result, indent=2, ensure_ascii=True)
-                    if self.path == '/trace.json': data = encoded.encode()
+                    if self.path in {'/console','/reports'}:data=render(overview,self.path=='/reports')
+                    elif self.path=='/status.json':data=json.dumps(overview).encode()
+                    elif self.path=='/reports.json':data=json.dumps({'reports':overview['reports']}).encode()
+                    elif self.path == '/trace.json': data = encoded.encode()
                     else:
                         data = ('<!doctype html><html lang="en"><meta charset="utf-8">'
                             '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -60,9 +65,9 @@ def handler(root, trace, token, expires_at):
                     self.send_response(200)
                 except Exception:
                     self.send_response(503); data = b'Trace unavailable'
-            self.send_header('Content-Type','application/json' if self.path=='/trace.json' else 'text/html; charset=utf-8')
+            self.send_header('Content-Type','application/json' if self.path.endswith('.json') else 'text/html; charset=utf-8')
             self.send_header('Cache-Control','no-store')
-            self.send_header('Content-Security-Policy',"default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+            self.send_header('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'")
             self.send_header('X-Content-Type-Options','nosniff')
             self.send_header('Content-Length',str(len(data)))
             self.end_headers(); self.wfile.write(data)

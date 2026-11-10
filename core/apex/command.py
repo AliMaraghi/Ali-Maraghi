@@ -24,6 +24,7 @@ def main(argv=None):
     connectors=s.add_parser('connectors');connectors.add_argument('operation',choices=['verify'])
     s.add_parser('audit')
     s.add_parser('costs')
+    wo=s.add_parser('worker');wo.add_argument('--once',action='store_true');wo.add_argument('--interval',type=int,default=60)
     mi=s.add_parser('missions');mi.add_argument('operation',choices=['submit','tick','status']);mi.add_argument('target');mi.add_argument('--worker',default='local-mission-worker')
     sc=s.add_parser('schedules');sc.add_argument('operation',choices=['add','poll','status']);sc.add_argument('--input')
     st=s.add_parser('status');st.add_argument('--json',action='store_true')
@@ -42,7 +43,11 @@ def main(argv=None):
             return kernel(args.args)
         if args.command=='test-all':
             return subprocess.run([sys.executable,'-B',str(ROOT/'scripts/test_offline.py')],cwd=ROOT).returncode
-        if args.command=='schedules':
+        if args.command=='worker':
+            from .kernel.worker import cycle,serve
+            if args.once:result=cycle(ROOT)
+            else:serve(ROOT,args.interval);return 0
+        elif args.command=='schedules':
             from .kernel.schedules import Schedules
             with Ledger(ROOT) as ledger:
                 schedules=Schedules(ledger)

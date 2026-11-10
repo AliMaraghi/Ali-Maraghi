@@ -1,0 +1,62 @@
+{
+  "observed_at": "2026-11-10T21:02:18.608852+00:00",
+  "scope": "Actual existing development database; ephemeral loopback test server stopped",
+  "checks": [
+    {
+      "path": "/console",
+      "authenticated": false,
+      "http_status": 401,
+      "response_bytes": 29,
+      "no_store": true
+    },
+    {
+      "path": "/console",
+      "authenticated": true,
+      "http_status": 200,
+      "response_bytes": 11799,
+      "no_store": true
+    },
+    {
+      "path": "/reports",
+      "authenticated": false,
+      "http_status": 401,
+      "response_bytes": 29,
+      "no_store": true
+    },
+    {
+      "path": "/reports",
+      "authenticated": true,
+      "http_status": 200,
+      "response_bytes": 4630,
+      "no_store": true
+    },
+    {
+      "path": "/status.json",
+      "authenticated": false,
+      "http_status": 401,
+      "response_bytes": 29,
+      "no_store": true
+    },
+    {
+      "path": "/status.json",
+      "authenticated": true,
+      "http_status": 200,
+      "response_bytes": 8442,
+      "no_store": true
+    },
+    {
+      "path": "/reports.json",
+      "authenticated": false,
+      "http_status": 401,
+      "response_bytes": 29,
+      "no_store": true
+    },
+    {
+      "path": "/reports.json",
+      "authenticated": true,
+      "http_status": 200,
+      "response_bytes": 2443,
+      "no_store": true
+    }
+  ]
+}
