@@ -1,0 +1,154 @@
+unittest.case.FunctionTestCase (test_status_is_honest)
+test_app.py:test_status_is_honest ... skipped 'Missing optional dependencies: fastapi, httpx'
+unittest.case.FunctionTestCase (test_pwa_exists)
+test_app.py:test_pwa_exists ... skipped 'Missing optional dependencies: fastapi, httpx'
+test_alternatives_are_distinct (test_discovery.DiscoverySafetyTests.test_alternatives_are_distinct) ... ok
+test_api_spend_and_action_disabled (test_discovery.DiscoverySafetyTests.test_api_spend_and_action_disabled) ... ok
+test_critic_always_challenges_initial_assumption (test_discovery.DiscoverySafetyTests.test_critic_always_challenges_initial_assumption) ... ok
+test_empty_title_fails_closed (test_discovery.DiscoverySafetyTests.test_empty_title_fails_closed) ... ok
+test_fixture_is_explicitly_synthetic (test_discovery.DiscoverySafetyTests.test_fixture_is_explicitly_synthetic) ... ok
+test_no_false_benchmark_claim (test_discovery.DiscoverySafetyTests.test_no_false_benchmark_claim) ... ok
+test_normal_cycle_blocked_without_evidence (test_discovery.DiscoverySafetyTests.test_normal_cycle_blocked_without_evidence) ... ok
+test_observation_not_implicitly_publication (test_discovery.DiscoverySafetyTests.test_observation_not_implicitly_publication) ... ok
+test_reject_foreign_link_and_credentials (test_discovery.DiscoverySafetyTests.test_reject_foreign_link_and_credentials) ... ok
+test_title_injection_is_inert (test_discovery.DiscoverySafetyTests.test_title_injection_is_inert) ... ok
+test_interval_bounds_include_cash_and_time (test_domains.OpportunityTests.test_interval_bounds_include_cash_and_time) ... ok
+test_invalid_amounts_are_rejected (test_domains.OpportunityTests.test_invalid_amounts_are_rejected) ... ok
+test_positive_scenario_is_not_income_or_authorization (test_domains.OpportunityTests.test_positive_scenario_is_not_income_or_authorization) ... ok
+test_probability_above_one_and_missing_assumptions_rejected (test_domains.OpportunityTests.test_probability_above_one_and_missing_assumptions_rejected) ... ok
+test_zero_probability_does_not_remove_downside (test_domains.OpportunityTests.test_zero_probability_does_not_remove_downside) ... ok
+test_granted_consent_only_creates_a_draft_plan (test_domains.PersonalPlannerTests.test_granted_consent_only_creates_a_draft_plan) ... ok
+test_injected_text_is_inert_and_zero_time_is_valid (test_domains.PersonalPlannerTests.test_injected_text_is_inert_and_zero_time_is_valid) ... ok
+test_invalid_and_duplicate_tasks_fail_closed (test_domains.PersonalPlannerTests.test_invalid_and_duplicate_tasks_fail_closed) ... ok
+test_low_energy_is_respected (test_domains.PersonalPlannerTests.test_low_energy_is_respected) ... ok
+test_time_budget_and_priority (test_domains.PersonalPlannerTests.test_time_budget_and_priority) ... ok
+test_withdrawn_or_unknown_consent_blocks_contact (test_domains.PersonalPlannerTests.test_withdrawn_or_unknown_consent_blocks_contact) ... ok
+test_attested_rights_cannot_substitute_for_actual_file (test_domains.StudioTests.test_attested_rights_cannot_substitute_for_actual_file) ... ok
+test_invalid_timeline_and_duplicate_ids_rejected (test_domains.StudioTests.test_invalid_timeline_and_duplicate_ids_rejected) ... ok
+test_missing_media_blocks_without_faking_a_film (test_domains.StudioTests.test_missing_media_blocks_without_faking_a_film) ... ok
+test_path_escape_and_symlink_rejected (test_domains.StudioTests.test_path_escape_and_symlink_rejected) ... ok
+test_regular_file_is_only_intake_not_media_verification (test_domains.StudioTests.test_regular_file_is_only_intake_not_media_verification) ... ok
+test_rights_and_owner_approval_required (test_domains.StudioTests.test_rights_and_owner_approval_required) ... ok
+test_append_only_and_tamper_detection (test_kernel.KernelTests.test_append_only_and_tamper_detection) ... ok
+test_cross_domain_source_denied (test_kernel.KernelTests.test_cross_domain_source_denied) ... ok
+test_denied_action_does_not_mutate_journal (test_kernel.KernelTests.test_denied_action_does_not_mutate_journal) ... ok
+test_duplicate_alternatives (test_kernel.KernelTests.test_duplicate_alternatives) ... ok
+test_duplicate_ids_rejected (test_kernel.KernelTests.test_duplicate_ids_rejected) ... ok
+test_duplicate_json_keys_and_nonfinite (test_kernel.KernelTests.test_duplicate_json_keys_and_nonfinite) ... ok
+test_fabricated_citation (test_kernel.KernelTests.test_fabricated_citation) ... ok
+test_fifo_and_large_file_rejected (test_kernel.KernelTests.test_fifo_and_large_file_rejected) ... ok
+test_injection_is_data (test_kernel.KernelTests.test_injection_is_data) ... ok
+test_kill_states (test_kernel.KernelTests.test_kill_states) ... ok
+test_lab_leakage_and_nonrepeatability (test_kernel.KernelTests.test_lab_leakage_and_nonrepeatability) ... ok
+test_lab_promote_reject_rollback_and_restart (test_kernel.KernelTests.test_lab_promote_reject_rollback_and_restart) ... ok
+test_missing_alternatives_and_assumptions (test_kernel.KernelTests.test_missing_alternatives_and_assumptions) ... ok
+test_model_agreement_not_independent (test_kernel.KernelTests.test_model_agreement_not_independent) ... ok
+test_naive_time_rejected (test_kernel.KernelTests.test_naive_time_rejected) ... ok
+test_path_traversal_and_symlink_rejected (test_kernel.KernelTests.test_path_traversal_and_symlink_rejected) ... ok
+test_persistence_restart_idempotency_and_domain_filter (test_kernel.KernelTests.test_persistence_restart_idempotency_and_domain_filter) ... ok
+test_policy_budget_and_unknown_actions (test_kernel.KernelTests.test_policy_budget_and_unknown_actions) ... ok
+test_policy_domains_and_privacy (test_kernel.KernelTests.test_policy_domains_and_privacy) ... ok
+test_private_or_malformed_uri (test_kernel.KernelTests.test_private_or_malformed_uri) ... ok
+test_private_source_rejected_before_processing (test_kernel.KernelTests.test_private_source_rejected_before_processing) ... ok
+test_promotion_cannot_bypass_champion_or_metrics (test_kernel.KernelTests.test_promotion_cannot_bypass_champion_or_metrics) ... ok
+test_refutation_preserved (test_kernel.KernelTests.test_refutation_preserved) ... ok
+test_reviewable_is_not_truth (test_kernel.KernelTests.test_reviewable_is_not_truth) ... ok
+test_runtime_symlink_denied (test_kernel.KernelTests.test_runtime_symlink_denied) ... ok
+test_stale_and_future_sources (test_kernel.KernelTests.test_stale_and_future_sources) ... ok
+test_string_boolean_rejected (test_kernel.KernelTests.test_string_boolean_rejected) ... ok
+test_synthetic_data_never_verifies_demand (test_kernel.KernelTests.test_synthetic_data_never_verifies_demand) ... ok
+test_tampered_artifact (test_kernel.KernelTests.test_tampered_artifact) ... ok
+test_two_labels_do_not_prove_independence (test_kernel.KernelTests.test_two_labels_do_not_prove_independence) ... ok
+test_wrong_claim_citation (test_kernel.KernelTests.test_wrong_claim_citation) ... ok
+test_frozen_policy_decisions_and_measured_baseline (test_kernel_holdout.FrozenPolicyTests.test_frozen_policy_decisions_and_measured_baseline) ... ok
+test_frozen_synthetic_evidence_cases (test_kernel_holdout.FrozenPolicyTests.test_frozen_synthetic_evidence_cases) ... ok
+test_atom_normalization_and_rss_filtering_still_work (test_legacy_security.FeedSafetyTests.test_atom_normalization_and_rss_filtering_still_work) ... ok
+test_failed_fetch_never_writes_or_logs_response_content (test_legacy_security.FeedSafetyTests.test_failed_fetch_never_writes_or_logs_response_content) ... ok
+test_fetch_uses_timeout_and_bounded_chunk_reads (test_legacy_security.FeedSafetyTests.test_fetch_uses_timeout_and_bounded_chunk_reads) ... ok
+test_foreign_source_rejected_without_opening (test_legacy_security.FeedSafetyTests.test_foreign_source_rejected_without_opening) ... ok
+test_oversized_response_rejected_and_closed (test_legacy_security.FeedSafetyTests.test_oversized_response_rejected_and_closed) ... ok
+test_redirects_are_rejected_before_any_followup_request (test_legacy_security.FeedSafetyTests.test_redirects_are_rejected_before_any_followup_request) ... ok
+test_slow_response_rejected_between_reads (test_legacy_security.FeedSafetyTests.test_slow_response_rejected_between_reads) ... ok
+test_url_control_characters_and_empty_credentials_rejected (test_legacy_security.FeedSafetyTests.test_url_control_characters_and_empty_credentials_rejected) ... ok
+test_xml_rejects_entities_oversize_and_invalid_limits (test_legacy_security.FeedSafetyTests.test_xml_rejects_entities_oversize_and_invalid_limits) ... ok
+test_fifo_is_rejected_without_blocking (test_legacy_security.OfflineInputSafetyTests.test_fifo_is_rejected_without_blocking) ... ok
+test_invalid_types_and_unknown_fields_rejected (test_legacy_security.OfflineInputSafetyTests.test_invalid_types_and_unknown_fields_rejected) ... ok
+test_outside_workspace_and_parent_traversal_rejected_before_open (test_legacy_security.OfflineInputSafetyTests.test_outside_workspace_and_parent_traversal_rejected_before_open) ... ok
+test_oversized_file_rejected (test_legacy_security.OfflineInputSafetyTests.test_oversized_file_rejected) ... ok
+test_symlink_file_and_parent_rejected (test_legacy_security.OfflineInputSafetyTests.test_symlink_file_and_parent_rejected) ... ok
+test_valid_regular_file_is_accepted (test_legacy_security.OfflineInputSafetyTests.test_valid_regular_file_is_accepted) ... ok
+test_connection_has_connect_and_statement_timeouts (test_legacy_security.StorageSafetyTests.test_connection_has_connect_and_statement_timeouts) ... ok
+test_failed_readiness_is_not_reported_ready (test_legacy_security.StorageSafetyTests.test_failed_readiness_is_not_reported_ready) ... ok
+test_health_route_delegates_to_readiness_and_hides_errors (test_legacy_security.StorageSafetyTests.test_health_route_delegates_to_readiness_and_hides_errors) ... ok
+test_readiness_is_read_only_and_never_creates_schema (test_legacy_security.StorageSafetyTests.test_readiness_is_read_only_and_never_creates_schema) ... ok
+test_corruption_blocks_proposals (test_night_discovery.NightDiscoveryTests.test_corruption_blocks_proposals) ... ok
+test_mismatched_scenario_rejected (test_night_discovery.NightDiscoveryTests.test_mismatched_scenario_rejected) ... ok
+test_no_support_abstains (test_night_discovery.NightDiscoveryTests.test_no_support_abstains) ... ok
+test_proposals_retain_source_and_different_falsifiers (test_night_discovery.NightDiscoveryTests.test_proposals_retain_source_and_different_falsifiers) ... ok
+test_rank_is_order_independent_and_does_not_call_validated_demand (test_night_discovery.NightDiscoveryTests.test_rank_is_order_independent_and_does_not_call_validated_demand) ... ok
+test_ranking_enforces_evidence_and_zero_funding (test_night_discovery.NightDiscoveryTests.test_ranking_enforces_evidence_and_zero_funding) ... ok
+test_receipt_requires_case_observations_and_detects_tampering (test_night_discovery.NightDiscoveryTests.test_receipt_requires_case_observations_and_detects_tampering) ... ok
+test_refutation_retained_not_silently_omitted (test_night_discovery.NightDiscoveryTests.test_refutation_retained_not_silently_omitted) ... ok
+test_synthetic_observations_do_not_generate_evidence_backed_claims (test_night_discovery.NightDiscoveryTests.test_synthetic_observations_do_not_generate_evidence_backed_claims) ... ok
+test_caption_export_is_reproducible_and_not_film (test_night_operations.OperationalTests.test_caption_export_is_reproducible_and_not_film) ... ok
+test_denies_future_paid_private_and_unknown (test_night_operations.OperationalTests.test_denies_future_paid_private_and_unknown) ... ok
+test_health_no_mutation_and_redacted_failure (test_night_operations.OperationalTests.test_health_no_mutation_and_redacted_failure) ... ok
+test_schedule_time_budget_and_stable_order (test_night_operations.OperationalTests.test_schedule_time_budget_and_stable_order) ... ok
+test_stop_and_duplicate (test_night_operations.OperationalTests.test_stop_and_duplicate) ... ok
+test_timeline_gaps_and_caption_injection_fail (test_night_operations.OperationalTests.test_timeline_gaps_and_caption_injection_fail) ... ok
+unittest.case.FunctionTestCase (test_valid_source) ... ok
+unittest.case.FunctionTestCase (test_reject_injected_or_foreign) ... ok
+unittest.case.FunctionTestCase (test_rss_basic) ... ok
+test_actual_source_mutation_fails_without_changing_original (test_traceability.TraceabilityTests.test_actual_source_mutation_fails_without_changing_original) ... ok
+test_all_sections_roles_social_clauses_appendices_and_gates_have_entries (test_traceability.TraceabilityTests.test_all_sections_roles_social_clauses_appendices_and_gates_have_entries) ... ok
+test_dropping_one_source_line_fails (test_traceability.TraceabilityTests.test_dropping_one_source_line_fails) ... ok
+test_dropping_role_or_appendix_fails (test_traceability.TraceabilityTests.test_dropping_role_or_appendix_fails) ... ok
+test_duplicate_requirement_id_fails (test_traceability.TraceabilityTests.test_duplicate_requirement_id_fails) ... ok
+test_forged_source_line_hash_fails (test_traceability.TraceabilityTests.test_forged_source_line_hash_fails) ... ok
+test_immutable_sources_and_every_nonblank_line_are_retained (test_traceability.TraceabilityTests.test_immutable_sources_and_every_nonblank_line_are_retained) ... ok
+test_mapped_paths_cannot_escape_workspace (test_traceability.TraceabilityTests.test_mapped_paths_cannot_escape_workspace) ... ok
+test_missing_implemented_file_is_not_accepted_as_evidence (test_traceability.TraceabilityTests.test_missing_implemented_file_is_not_accepted_as_evidence) ... ok
+test_registry_does_not_duplicate_private_source_text (test_traceability.TraceabilityTests.test_registry_does_not_duplicate_private_source_text) ... ok
+test_retargeting_source_anchor_fails (test_traceability.TraceabilityTests.test_retargeting_source_anchor_fails) ... ok
+test_source_gap_cannot_be_erased (test_traceability.TraceabilityTests.test_source_gap_cannot_be_erased) ... ok
+test_tested_status_requires_evidence (test_traceability.TraceabilityTests.test_tested_status_requires_evidence) ... ok
+test_unsupported_completion_and_deployment_fail (test_traceability.TraceabilityTests.test_unsupported_completion_and_deployment_fail) ... ok
+test_exception_rolls_back_and_retry_is_explicit (test_workflow.WorkflowTests.test_exception_rolls_back_and_retry_is_explicit) ... ok
+test_expiry_and_source_limit_logged_before_reads (test_workflow.WorkflowTests.test_expiry_and_source_limit_logged_before_reads) ... ERROR
+test_integrity_eligible_fixture_still_cannot_promote (test_workflow.WorkflowTests.test_integrity_eligible_fixture_still_cannot_promote) ... ok
+test_invalid_budget_types (test_workflow.WorkflowTests.test_invalid_budget_types) ... ok
+test_key_conflict (test_workflow.WorkflowTests.test_key_conflict) ... ok
+test_malicious_ssrf_metadata_is_not_fetched (test_workflow.WorkflowTests.test_malicious_ssrf_metadata_is_not_fetched) ... ok
+test_read_only_does_not_create_store (test_workflow.WorkflowTests.test_read_only_does_not_create_store) ... ok
+test_slice_blocked_and_replay_survives_restart (test_workflow.WorkflowTests.test_slice_blocked_and_replay_survives_restart) ... FAIL
+test_stop_denies_before_record (test_workflow.WorkflowTests.test_stop_denies_before_record) ... ok
+test_time_budget_fails_closed_no_proposals_published (test_workflow.WorkflowTests.test_time_budget_fails_closed_no_proposals_published) ... ok
+
+======================================================================
+ERROR: test_expiry_and_source_limit_logged_before_reads (test_workflow.WorkflowTests.test_expiry_and_source_limit_logged_before_reads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/apexdev/apex-work/tests/test_workflow.py", line 34, in test_expiry_and_source_limit_logged_before_reads
+    r=self.execute(replace(task,task_id='task'+str(len(self.doc['evidence']))))
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/apexdev/apex-work/tests/test_workflow.py", line 20, in execute
+    return run(task or self.task,Case.parse(self.doc),self.root,ledger,Policy('opportunity'),NOW,**kwargs)
+                                 ^^^^^^^^^^^^^^^^^^^^
+  File "/home/apexdev/apex-work/core/apex/kernel/schema.py", line 156, in parse
+    raise ValueError("Duplicate identifier")
+ValueError: Duplicate identifier
+
+======================================================================
+FAIL: test_slice_blocked_and_replay_survives_restart (test_workflow.WorkflowTests.test_slice_blocked_and_replay_survives_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/apexdev/apex-work/tests/test_workflow.py", line 27, in test_slice_blocked_and_replay_survives_restart
+    self.assertEqual(read_report(ledger,'opportunity','task1')['report'],first['report'])
+AssertionError: {'actions_executed': [], 'created_at': '202[4276 chars]sk1'} != {'schema_version': 'apex.workflow.v1', 'tas[4278 chars]: 0}}
+Diff is 14276 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 123 tests in 5.802s
+
+FAILED (failures=1, errors=1, skipped=2)
+{"tests_run": 123, "passed": 119, "skipped": 2, "failures": 1, "errors": 1, "scope": "OFFLINE_TESTS_NOT_DEPLOYMENT_OR_REAL_WORLD_VALIDATION"}

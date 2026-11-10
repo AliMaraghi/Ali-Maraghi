@@ -22,14 +22,38 @@ def main(argv=None):
     review.add_argument("--kill-state", choices=[x.value for x in KillState], default="RUNNING")
     proposal = sub.add_parser('propose')
     proposal.add_argument('input', help='Relative evidence case JSON')
+    workflow = sub.add_parser('workflow')
+    workflow.add_argument('input', help='Relative JSON containing task and case')
+    workflow.add_argument('--kill-state', choices=[x.value for x in KillState], default='RUNNING')
+    report = sub.add_parser('report')
+    report.add_argument('--domain', choices=['opportunity','studio','personal'], required=True)
+    report.add_argument('--task-id', required=True)
     history = sub.add_parser("history")
     history.add_argument("--domain", choices=["opportunity", "studio", "personal"], required=True)
     args = parser.parse_args(argv)
     # Determined by installed source, never by a research document or environment variable.
     root = Path(__file__).resolve().parents[3]
     try:
-        if args.command == "history":
+        if args.command == 'report':
+            from .workflow import read_report
+            with Ledger.read_only(root) as ledger:
+                print(json.dumps(read_report(ledger,args.domain,args.task_id),indent=2))
+            return 0
+        if args.command == 'workflow':
+            from .workflow import Task, run
+            from .schema import fields
+            packet = fields(strict_json(read_local(root,args.input,262144).decode()), {'task','case'})
+            task = Task.parse(packet['task'])
+            case = Case.parse(packet['case'])
+            policy = Policy(task.domain, KillState(args.kill_state))
+            if not policy.authorize(Action('wf-'+task.task_id,'record_decision',task.domain))[0]:
+                raise PermissionError('Workflow denied by operator policy')
             with Ledger(root) as ledger:
+                result = run(task,case,root,ledger,policy)
+            print(json.dumps(result,indent=2))
+            return 0 if result['report']['status']=='REVIEW_COMPLETED' else 2
+        if args.command == "history":
+            with Ledger.read_only(root) as ledger:
                 print(json.dumps(ledger.records(args.domain), indent=2, ensure_ascii=True))
             return 0
         case = Case.parse(strict_json(read_local(root, args.input, 262144).decode("utf-8")))

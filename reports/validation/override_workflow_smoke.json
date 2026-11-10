@@ -1,0 +1,330 @@
+{
+  "runs": [
+    {
+      "report": {
+        "actions_executed": [],
+        "created_at": "2026-11-10T07:01:36.801058+00:00",
+        "discovery": {
+          "actions_executed": [],
+          "baseline": "Manual review",
+          "case_id": "workflow-review-synthetic-v1",
+          "domain": "opportunity",
+          "empirical_superiority_proven": false,
+          "excluded_claims": [
+            "c1"
+          ],
+          "hypotheses": [],
+          "limits": "Source integrity is not truth. Causal families are templates, not discoveries or proof of novelty.",
+          "negative_space": [
+            {
+              "claim_id": "c1",
+              "question": "Which affected group or missing measurement would distinguish competing explanations?",
+              "second_order_test": "Measure correction effort and displaced work as well as the headline outcome"
+            }
+          ],
+          "source_review": {
+            "actions_executed": [],
+            "additional_paid_ai_gbp": 0,
+            "additional_paid_ai_usd": 0,
+            "api_calls": 0,
+            "case_id": "workflow-review-synthetic-v1",
+            "claims": [
+              {
+                "evidence_ids": [
+                  "e1"
+                ],
+                "id": "c1",
+                "kind": "observation",
+                "statement": "A recorded duration is 12 minutes"
+              }
+            ],
+            "critic": {
+              "findings": [
+                {
+                  "code": "UNSUPPORTED_CLAIM",
+                  "detail": "No eligible source artifact supports review of this claim.",
+                  "status": "OPEN",
+                  "target": "c1"
+                },
+                {
+                  "code": "SYNTHETIC_NOT_REAL_WORLD_EVIDENCE",
+                  "detail": "Evidence cannot be used as a verified finding.",
+                  "status": "OPEN",
+                  "target": "e1"
+                }
+              ],
+              "kind": "DETERMINISTIC_CHECKLIST",
+              "unresolved_review": [
+                "Check source authenticity and claim entailment manually.",
+                "Check total cost, opportunity cost, rights and failure scenarios."
+              ]
+            },
+            "diversity_limit": "Lexical checks cannot establish substantive causal independence.",
+            "domain": "opportunity",
+            "empirical_superiority_proven": false,
+            "engine_code_sha256": "82e6a931fbfe7243a5d5ffef28bd6cc64880ca46d8da6e75690e48c21f6ea31b",
+            "engine_version": "apex-kernel-0.1",
+            "evaluated_at": "2026-11-10T07:01:36.801058+00:00",
+            "evidence_checks": [
+              {
+                "eligible_for_review": false,
+                "id": "e1",
+                "issues": [
+                  "SYNTHETIC_NOT_REAL_WORLD_EVIDENCE"
+                ],
+                "retrieved_at": "2026-11-09T10:00:00Z",
+                "sha256": "67f589ff3ce3c23d7aee9699ca49f15f4250b45775fa47339c25f6daefba520c",
+                "source_uri": "https://example.org/study",
+                "truth_verified": false
+              }
+            ],
+            "experiment": {
+              "baseline": "Manual review",
+              "executed": false,
+              "smallest_test": "Measure manual and assisted review on unseen public documents"
+            },
+            "hypotheses": [
+              {
+                "falsifier": "No reduction on fresh documents",
+                "id": "h1",
+                "mechanism": "Repeated document matching dominates review effort",
+                "prediction": "Matching automation reduces minutes"
+              },
+              {
+                "falsifier": "Matching alone removes most delay",
+                "id": "h2",
+                "mechanism": "Human judgement about ambiguity dominates effort",
+                "prediction": "Faster retrieval leaves total duration unchanged"
+              }
+            ],
+            "hypothesis_origin": "OPERATOR_SUPPLIED_NOT_AUTONOMOUS_DISCOVERY",
+            "input_sha256": "8c030fe177c2e47b2707026d85d62885967879ca101d23af42c42a0de063658b",
+            "negative_space": {
+              "neglected_need": "Who cannot use the existing review process?",
+              "second_order_effect": "Time saved could be lost in correcting automation errors",
+              "status": "UNTESTED_QUESTIONS"
+            },
+            "problem_discovery": {
+              "assumptions": [
+                "The recorded duration is representative"
+              ],
+              "missing_evidence": [
+                "SYNTHETIC_NOT_REAL_WORLD_EVIDENCE",
+                "UNSUPPORTED_CLAIM"
+              ],
+              "question": "Can a repeatable process reduce review time?"
+            },
+            "provenance": [
+              {
+                "artifact": "examples/source_fixture.txt",
+                "claim_id": "c1",
+                "domain": "opportunity",
+                "excerpt": "Observed duration: 12 minutes.",
+                "expires_at": "2026-11-20T10:00:00Z",
+                "id": "e1",
+                "independence_group": "group1",
+                "method": "observation",
+                "publisher": "Fixture publisher",
+                "retrieved_at": "2026-11-09T10:00:00Z",
+                "sensitivity": "synthetic",
+                "sha256": "67f589ff3ce3c23d7aee9699ca49f15f4250b45775fa47339c25f6daefba520c",
+                "source_uri": "https://example.org/study",
+                "stance": "supports",
+                "synthetic": true
+              }
+            ],
+            "status": "BLOCKED_PENDING_EVIDENCE",
+            "verified_demand": false
+          },
+          "status": "BLOCKED_NO_ELIGIBLE_OBSERVATIONS"
+        },
+        "domain": "opportunity",
+        "elapsed_ms": 6.209101993590593,
+        "evaluation_status": "NO_EMPIRICAL_EXPERIMENT_RUN",
+        "limits": {
+          "automatic_retries": 0,
+          "bytes_per_artifact": 1048576,
+          "external_calls": 0,
+          "source_count": 2,
+          "time_enforcement": "COOPERATIVE_POST_STAGE_NOT_PREEMPTIVE",
+          "time_ms": 10000
+        },
+        "paid_spend_pence": 0,
+        "production_status": "NOT_DEPLOYED",
+        "promotion": "REJECT_NO_INDEPENDENT_EVALUATION",
+        "reason": null,
+        "request_sha256": "93de746c32dcb6d28ff2f5f67b7cf27c1c4422e740018d1792efcdd077e8f0f5",
+        "schema_version": "apex.workflow.v1",
+        "status": "BLOCKED_PENDING_EVIDENCE",
+        "task_id": "override-flow-20261110"
+      },
+      "replayed": false,
+      "evidence_rechecked": true,
+      "ledger_seq": 4
+    },
+    {
+      "report": {
+        "actions_executed": [],
+        "created_at": "2026-11-10T07:01:36.801058+00:00",
+        "discovery": {
+          "actions_executed": [],
+          "baseline": "Manual review",
+          "case_id": "workflow-review-synthetic-v1",
+          "domain": "opportunity",
+          "empirical_superiority_proven": false,
+          "excluded_claims": [
+            "c1"
+          ],
+          "hypotheses": [],
+          "limits": "Source integrity is not truth. Causal families are templates, not discoveries or proof of novelty.",
+          "negative_space": [
+            {
+              "claim_id": "c1",
+              "question": "Which affected group or missing measurement would distinguish competing explanations?",
+              "second_order_test": "Measure correction effort and displaced work as well as the headline outcome"
+            }
+          ],
+          "source_review": {
+            "actions_executed": [],
+            "additional_paid_ai_gbp": 0,
+            "additional_paid_ai_usd": 0,
+            "api_calls": 0,
+            "case_id": "workflow-review-synthetic-v1",
+            "claims": [
+              {
+                "evidence_ids": [
+                  "e1"
+                ],
+                "id": "c1",
+                "kind": "observation",
+                "statement": "A recorded duration is 12 minutes"
+              }
+            ],
+            "critic": {
+              "findings": [
+                {
+                  "code": "UNSUPPORTED_CLAIM",
+                  "detail": "No eligible source artifact supports review of this claim.",
+                  "status": "OPEN",
+                  "target": "c1"
+                },
+                {
+                  "code": "SYNTHETIC_NOT_REAL_WORLD_EVIDENCE",
+                  "detail": "Evidence cannot be used as a verified finding.",
+                  "status": "OPEN",
+                  "target": "e1"
+                }
+              ],
+              "kind": "DETERMINISTIC_CHECKLIST",
+              "unresolved_review": [
+                "Check source authenticity and claim entailment manually.",
+                "Check total cost, opportunity cost, rights and failure scenarios."
+              ]
+            },
+            "diversity_limit": "Lexical checks cannot establish substantive causal independence.",
+            "domain": "opportunity",
+            "empirical_superiority_proven": false,
+            "engine_code_sha256": "82e6a931fbfe7243a5d5ffef28bd6cc64880ca46d8da6e75690e48c21f6ea31b",
+            "engine_version": "apex-kernel-0.1",
+            "evaluated_at": "2026-11-10T07:01:36.801058+00:00",
+            "evidence_checks": [
+              {
+                "eligible_for_review": false,
+                "id": "e1",
+                "issues": [
+                  "SYNTHETIC_NOT_REAL_WORLD_EVIDENCE"
+                ],
+                "retrieved_at": "2026-11-09T10:00:00Z",
+                "sha256": "67f589ff3ce3c23d7aee9699ca49f15f4250b45775fa47339c25f6daefba520c",
+                "source_uri": "https://example.org/study",
+                "truth_verified": false
+              }
+            ],
+            "experiment": {
+              "baseline": "Manual review",
+              "executed": false,
+              "smallest_test": "Measure manual and assisted review on unseen public documents"
+            },
+            "hypotheses": [
+              {
+                "falsifier": "No reduction on fresh documents",
+                "id": "h1",
+                "mechanism": "Repeated document matching dominates review effort",
+                "prediction": "Matching automation reduces minutes"
+              },
+              {
+                "falsifier": "Matching alone removes most delay",
+                "id": "h2",
+                "mechanism": "Human judgement about ambiguity dominates effort",
+                "prediction": "Faster retrieval leaves total duration unchanged"
+              }
+            ],
+            "hypothesis_origin": "OPERATOR_SUPPLIED_NOT_AUTONOMOUS_DISCOVERY",
+            "input_sha256": "8c030fe177c2e47b2707026d85d62885967879ca101d23af42c42a0de063658b",
+            "negative_space": {
+              "neglected_need": "Who cannot use the existing review process?",
+              "second_order_effect": "Time saved could be lost in correcting automation errors",
+              "status": "UNTESTED_QUESTIONS"
+            },
+            "problem_discovery": {
+              "assumptions": [
+                "The recorded duration is representative"
+              ],
+              "missing_evidence": [
+                "SYNTHETIC_NOT_REAL_WORLD_EVIDENCE",
+                "UNSUPPORTED_CLAIM"
+              ],
+              "question": "Can a repeatable process reduce review time?"
+            },
+            "provenance": [
+              {
+                "artifact": "examples/source_fixture.txt",
+                "claim_id": "c1",
+                "domain": "opportunity",
+                "excerpt": "Observed duration: 12 minutes.",
+                "expires_at": "2026-11-20T10:00:00Z",
+                "id": "e1",
+                "independence_group": "group1",
+                "method": "observation",
+                "publisher": "Fixture publisher",
+                "retrieved_at": "2026-11-09T10:00:00Z",
+                "sensitivity": "synthetic",
+                "sha256": "67f589ff3ce3c23d7aee9699ca49f15f4250b45775fa47339c25f6daefba520c",
+                "source_uri": "https://example.org/study",
+                "stance": "supports",
+                "synthetic": true
+              }
+            ],
+            "status": "BLOCKED_PENDING_EVIDENCE",
+            "verified_demand": false
+          },
+          "status": "BLOCKED_NO_ELIGIBLE_OBSERVATIONS"
+        },
+        "domain": "opportunity",
+        "elapsed_ms": 6.209101993590593,
+        "evaluation_status": "NO_EMPIRICAL_EXPERIMENT_RUN",
+        "limits": {
+          "automatic_retries": 0,
+          "bytes_per_artifact": 1048576,
+          "external_calls": 0,
+          "source_count": 2,
+          "time_enforcement": "COOPERATIVE_POST_STAGE_NOT_PREEMPTIVE",
+          "time_ms": 10000
+        },
+        "paid_spend_pence": 0,
+        "production_status": "NOT_DEPLOYED",
+        "promotion": "REJECT_NO_INDEPENDENT_EVALUATION",
+        "reason": null,
+        "request_sha256": "93de746c32dcb6d28ff2f5f67b7cf27c1c4422e740018d1792efcdd077e8f0f5",
+        "schema_version": "apex.workflow.v1",
+        "status": "BLOCKED_PENDING_EVIDENCE",
+        "task_id": "override-flow-20261110"
+      },
+      "replayed": true,
+      "evidence_rechecked": false,
+      "ledger_seq": 4
+    }
+  ],
+  "read_only_report_database_unchanged": true,
+  "scope": "SYNTHETIC_LOCAL_PROCESS_INTEGRATION"
+}

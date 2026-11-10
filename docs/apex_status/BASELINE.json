@@ -1,0 +1,252 @@
+{
+  "captured_at": "2026-11-10T06:58:41.573380+00:00",
+  "head": "bcde451521f2e894e0add9a72c6d4f7d102838a9",
+  "branch": "apex-development",
+  "entry_worktree": "clean",
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "coverage_percent": null,
+  "code_coverage_status": "NOT_MEASURED",
+  "tests": {
+    "tests_run": 113,
+    "passed": 111,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "scope": "OFFLINE_TESTS_NOT_DEPLOYMENT_OR_REAL_WORLD_VALIDATION"
+  },
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/test_offline.py",
+  "test_log": "reports/validation/override_baseline_tests.txt",
+  "source_sha256": "3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd",
+  "code_inventory": [
+    {
+      "path": "core/apex/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": []
+    },
+    {
+      "path": "core/apex/app.py",
+      "sha256": "5c10fb9cd091d309b93f85836c6788c95847f429209abd6c216ac2a36953a3ae",
+      "functions": [
+        "healthz",
+        "status",
+        "observations",
+        "index",
+        "manifest"
+      ]
+    },
+    {
+      "path": "core/apex/discovery/__init__.py",
+      "sha256": "37bd86e60cc3be09817c8397c3cd6455dd7212567a9c2e0f93db01645a6c78c2",
+      "functions": []
+    },
+    {
+      "path": "core/apex/discovery/cli.py",
+      "sha256": "71ecfa743679f21c364bf6fbf0e845e9d33e7e8921ed9acf127b3e6276152daa",
+      "functions": [
+        "read_offline_input",
+        "latest_signal_from_db",
+        "main"
+      ]
+    },
+    {
+      "path": "core/apex/discovery/engine.py",
+      "sha256": "82630916bb81a4347f7cd7ff539768e4fd7ecbddfaaab08f332a28c1e973ca8d",
+      "functions": [
+        "allowed_public_source",
+        "_normalized_title",
+        "blocked",
+        "run_cycle"
+      ]
+    },
+    {
+      "path": "core/apex/domains.py",
+      "sha256": "99f67c2709dca73e1cf70fb0b7ea9901cb70ad99eedcdec976473a79bb7d7b35",
+      "functions": [
+        "_number",
+        "_text",
+        "_integer",
+        "evaluate_opportunity",
+        "plan_day",
+        "build_production_manifest",
+        "__post_init__",
+        "json"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/__init__.py",
+      "sha256": "02dec62dce81016cc4e6f1e24e95f4c8a7cedd20848c41e1c90efab02c5e39ab",
+      "functions": []
+    },
+    {
+      "path": "core/apex/kernel/cli.py",
+      "sha256": "32e773a625ad162df7a1ab256e7ae7416bb86fc4bab77bbde75a471046c4a318",
+      "functions": [
+        "main"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/critic.py",
+      "sha256": "be329f06c36c029ebee294c783b9699598e680d698bb718a05030dfcd2445644",
+      "functions": [
+        "tokens",
+        "critique",
+        "add"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/discovery.py",
+      "sha256": "47f23a3ae96667c3b8fac55e8ec3d57747b1f18cce0e63066bb86473e91ccf85",
+      "functions": [
+        "propose"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/engine.py",
+      "sha256": "ca601346690a85819eac44fa0020edfffa7d46e0c2a898d84e87a66553c7b63a",
+      "functions": [
+        "canonical",
+        "code_digest",
+        "evaluate"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/evidence.py",
+      "sha256": "a740d336b8e2fc648e538f51f5e7c48732f05a2510fc93909876a3b63d99d24b",
+      "functions": [
+        "read_local",
+        "public_uri",
+        "inspect_evidence"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/lab.py",
+      "sha256": "11e12bbd5d0d5032b3d3e3834106f448e42f89dddfb303fa0de97976a2489910",
+      "functions": [
+        "compare",
+        "to_dict",
+        "validate",
+        "run"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/memory.py",
+      "sha256": "7f5e6b8fa992d59ac8d1f4e6eecae6aace53521775f10922a6df7630debab0b4",
+      "functions": [
+        "__init__",
+        "close",
+        "__enter__",
+        "__exit__",
+        "transaction",
+        "digest",
+        "verify",
+        "_append",
+        "append",
+        "records",
+        "champion",
+        "consider",
+        "rollback"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/operations.py",
+      "sha256": "12e8eff99dd6a3ea5e8d63101afb195f1b90f32193e5d1dc7d9d42b2bfd75f42",
+      "functions": [
+        "health",
+        "plan_due_jobs"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/opportunities.py",
+      "sha256": "e7ec06bacf521e35303ad8040adf5e5379d76f362f5fdc213f8b25c4a8727fcc",
+      "functions": [
+        "rank_opportunities"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/policy.py",
+      "sha256": "8dbca21e3b01f7cb4b7ab158dae7b20c3129807c211958c8053b06b9bf981476",
+      "functions": [
+        "__post_init__",
+        "authorize",
+        "record"
+      ]
+    },
+    {
+      "path": "core/apex/kernel/schema.py",
+      "sha256": "4de21dfd8d71e074ba472e48d9db5aad8cf781cd1fa155ace57c68974cc6868a",
+      "functions": [
+        "text",
+        "identifier",
+        "timestamp",
+        "fields",
+        "items",
+        "strict_json",
+        "pairs",
+        "nonfinite",
+        "parse",
+        "parse",
+        "parse",
+        "parse"
+      ]
+    },
+    {
+      "path": "core/apex/monitor.py",
+      "sha256": "5d891a6f8ae326b4f2e798a5201c0cd92b5752e7c8559c04d75d7ce879ff45ae",
+      "functions": [
+        "fetch_feed",
+        "poll_once",
+        "main",
+        "redirect_request"
+      ]
+    },
+    {
+      "path": "core/apex/rss.py",
+      "sha256": "d0e291d6770df75b65aeaf31fc620b1730abe9d3cc3c2448c5ba55d5fb5b4dff",
+      "functions": [
+        "allowed_link",
+        "_canonical_atom_url",
+        "extract_items"
+      ]
+    },
+    {
+      "path": "core/apex/storage.py",
+      "sha256": "f9dba629fd035a213944b43e408731aba425e30c3988b8beedde0d092bea97c1",
+      "functions": [
+        "connection",
+        "database_ready",
+        "ensure_schema",
+        "list_items",
+        "upsert"
+      ]
+    },
+    {
+      "path": "core/apex/studio.py",
+      "sha256": "baeccaa929aab35ad52ea887e013110909aaab1dd2b42c858594a39466d998cc",
+      "functions": [
+        "edit_package",
+        "stamp"
+      ]
+    }
+  ],
+  "optional_dependencies": {
+    "fastapi": false,
+    "httpx": false,
+    "psycopg": false,
+    "pytest": false,
+    "uvicorn": false
+  },
+  "state_stores": [
+    "ignored runtime/kernel.sqlite3: SQLite events/hash-chain",
+    "Postgres public_observations: not connected"
+  ],
+  "integration": "NOT_RUN",
+  "field_validation": "NOT_RUN",
+  "production_accessed": false,
+  "review_kit": "BLOCKED_NOT_PROVIDED",
+  "known_gaps": [
+    "No joined bounded workflow",
+    "No durable workers/leases/global stop",
+    "No authenticated private mobile deployment",
+    "No real-source semantic verification"
+  ]
+}

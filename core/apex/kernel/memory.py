@@ -17,6 +17,22 @@ from .schema import DOMAINS, identifier, strict_json
 
 
 class Ledger:
+    @classmethod
+    def read_only(cls, workspace: Path):
+        root = Path(workspace).resolve(strict=True)
+        directory = root / 'runtime'
+        path = directory / 'kernel.sqlite3'
+        if directory.is_symlink() or path.is_symlink() or not path.is_file():
+            raise ValueError('Existing regular local journal required')
+        instance = cls.__new__(cls)
+        instance.db = sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, isolation_level=None, timeout=5)
+        try:
+            instance.verify()
+        except Exception:
+            instance.close()
+            raise
+        return instance
+
     def __init__(self, workspace: Path):
         root = Path(workspace).resolve(strict=True)
         directory = root / "runtime"
