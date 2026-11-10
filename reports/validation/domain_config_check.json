@@ -1,0 +1,8 @@
+{
+  "status": "VERIFIED_OFFLINE_DENY_ALL",
+  "public_routes_created": 0,
+  "deployment": "BLOCKED_AUTHORIZATION_AND_UPSTREAM_ACCEPTANCE",
+  "zone_active": "UNVERIFIED",
+  "universal_ssl_active": "UNVERIFIED",
+  "working_urls": []
+}

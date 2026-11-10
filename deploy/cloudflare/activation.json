@@ -1,0 +1,30 @@
+{
+  "domain": "apexcorelab.uk",
+  "tunnel_name": "apex-production",
+  "management": "remote",
+  "routes": {
+    "console.apexcorelab.uk": {
+      "enabled": false,
+      "upstream": null,
+      "blocker": "No persistent authenticated owner service verified"
+    },
+    "api.apexcorelab.uk": {
+      "enabled": false,
+      "upstream": null,
+      "blocker": "Existing bootstrap API lacks verified application authorization"
+    },
+    "auth.apexcorelab.uk": {
+      "enabled": false,
+      "upstream": null,
+      "blocker": "OAuth callback/state/token validation service absent"
+    },
+    "hooks.apexcorelab.uk": {
+      "enabled": false,
+      "upstream": null,
+      "blocker": "Signature verification and replay rejection receiver absent"
+    }
+  },
+  "zone_status": "UNVERIFIED_API_AUTH_MISSING",
+  "universal_ssl": "UNVERIFIED_API_AUTH_MISSING",
+  "owner_access_identity": null
+}

@@ -1,4 +1,4 @@
-# Resume
-python3 -B scripts/apex missions status ted-research-20261110
+# Domain activation continuation
+python3 -B scripts/check_domain_activation.py
 
-Read MISSION_RUNTIME_REPORT.md and current Git HEAD. Next implement detailed public requirement retrieval and actual dependency-result fusion; independently verify deadlines and supplier fit before qualification. No independent model/human baseline exists. No approved secret-store binding or staging deployment permission. Preserve original sources and existing receipts; use new mission identity after code changes. No background activity.
+Read DOMAIN_ACTIVATION_REPORT.md. Bind scoped Cloudflare API access securely and obtain a valid VPS administration path; no tokens in chat/Git. Four upstreams remain blocked/unverified, all public routes disabled. Existing runtime continuation remains in MISSION_RUNTIME_REPORT.md.

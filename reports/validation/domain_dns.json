@@ -1,0 +1,125 @@
+{
+  "observed_at": "2026-11-10T20:49:16.697056+00:00",
+  "queries": [
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@alina.ns.cloudflare.com",
+        "apexcorelab.uk",
+        "SOA"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @alina.ns.cloudflare.com apexcorelab.uk SOA\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21558\n;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;apexcorelab.uk.\t\t\tIN\tSOA\n\n;; ANSWER SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 9 msec\n;; SERVER: 173.245.58.61#53(alina.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 106\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@alina.ns.cloudflare.com",
+        "console.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @alina.ns.cloudflare.com console.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 42307\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;console.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 8 msec\n;; SERVER: 173.245.58.61#53(alina.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 114\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@alina.ns.cloudflare.com",
+        "api.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @alina.ns.cloudflare.com api.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 33840\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;api.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 8 msec\n;; SERVER: 172.64.32.61#53(alina.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 110\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@alina.ns.cloudflare.com",
+        "auth.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @alina.ns.cloudflare.com auth.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 9052\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;auth.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 11 msec\n;; SERVER: 108.162.192.61#53(alina.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 111\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@alina.ns.cloudflare.com",
+        "hooks.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @alina.ns.cloudflare.com hooks.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 15177\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;hooks.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 10 msec\n;; SERVER: 173.245.58.61#53(alina.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 112\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@skip.ns.cloudflare.com",
+        "apexcorelab.uk",
+        "SOA"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @skip.ns.cloudflare.com apexcorelab.uk SOA\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 54804\n;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;apexcorelab.uk.\t\t\tIN\tSOA\n\n;; ANSWER SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 10 msec\n;; SERVER: 173.245.59.233#53(skip.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 106\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@skip.ns.cloudflare.com",
+        "console.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @skip.ns.cloudflare.com console.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 45739\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;console.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 9 msec\n;; SERVER: 108.162.193.233#53(skip.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 114\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@skip.ns.cloudflare.com",
+        "api.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @skip.ns.cloudflare.com api.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 6976\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;api.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 9 msec\n;; SERVER: 172.64.33.233#53(skip.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 110\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@skip.ns.cloudflare.com",
+        "auth.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @skip.ns.cloudflare.com auth.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 34872\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;auth.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 8 msec\n;; SERVER: 172.64.33.233#53(skip.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 111\n\n"
+    },
+    {
+      "command": [
+        "dig",
+        "+time=3",
+        "+tries=1",
+        "@skip.ns.cloudflare.com",
+        "hooks.apexcorelab.uk",
+        "A"
+      ],
+      "returncode": 0,
+      "output": "\n; <<>> DiG 9.18.39-0ubuntu0.24.04.9-Ubuntu <<>> +time=3 +tries=1 @skip.ns.cloudflare.com hooks.apexcorelab.uk A\n; (6 servers found)\n;; global options: +cmd\n;; Got answer:\n;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 47781\n;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1\n;; WARNING: recursion requested but not available\n\n;; OPT PSEUDOSECTION:\n; EDNS: version: 0, flags:; udp: 1232\n;; QUESTION SECTION:\n;hooks.apexcorelab.uk.\t\tIN\tA\n\n;; AUTHORITY SECTION:\napexcorelab.uk.\t\t1800\tIN\tSOA\talina.ns.cloudflare.com. dns.cloudflare.com. 2419829405 10000 2400 604800 1800\n\n;; Query time: 9 msec\n;; SERVER: 173.245.59.233#53(skip.ns.cloudflare.com) (UDP)\n;; WHEN: Tue Nov 10 20:49:16 UTC 2026\n;; MSG SIZE  rcvd: 112\n\n"
+    }
+  ]
+}

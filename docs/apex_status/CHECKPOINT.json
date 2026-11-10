@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-11-10T20:40:14.194660+00:00",
+  "recorded_at": "2026-11-10T20:50:13.023567+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
   "verified_implementation_commit": "Following local mission runtime commit; use git log",
@@ -114,5 +114,15 @@
     "excluded": 2
   },
   "mission_trace": "ted-research-20261110",
-  "mission_nodes_complete": 6
+  "mission_nodes_complete": 6,
+  "domain_activation": {
+    "domain": "apexcorelab.uk",
+    "authoritative_dns": "VERIFIED_LIVE",
+    "zone_api_active": "UNVERIFIED",
+    "universal_ssl": "UNVERIFIED",
+    "working_urls": [],
+    "tunnel": "BLOCKED_API_AUTHORIZATION",
+    "vps_inspection": "DOCKER_SOCKET_PERMISSION_DENIED",
+    "report": "docs/apex_status/DOMAIN_ACTIVATION_REPORT.md"
+  }
 }
