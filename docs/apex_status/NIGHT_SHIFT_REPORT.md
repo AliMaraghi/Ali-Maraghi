@@ -27,3 +27,6 @@ See WORKER_OPERATIONS_REPORT.md and WORKER_OPERATIONS_STATE.json.210 passed/2 sk
 
 ## Live research provider increment
 PROVIDER_FRAMEWORK_REPORT.md: Crossref HTTP200,3 metadata records persisted; journal79 verified events.215 tests passed/2 skipped. No production deployment, independent utility claim or paid spend.
+
+## Corrected host boundary
+Read HOST_DEPLOYMENT_BOUNDARY.md/json. Isolated Codex PID1, host system bus accessible; PolicyKit explicitly denies current caller all3 management actions pending authentication. This supersedes the inference that visible host IP proved host administration. No deployment performed.

@@ -103,7 +103,7 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "python3 -B scripts/apex connectors verify",
+  "next_action": "Authenticate approved host administrative executor/PolicyKit session; deploy only after production-origin and Cloudflare gates verified",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
   "field_excluded": 3,
@@ -136,5 +136,6 @@
   "access_origin_report": "docs/apex_status/ACCESS_ORIGIN_REPORT.md",
   "worker_operations_report": "docs/apex_status/WORKER_OPERATIONS_REPORT.md",
   "provider_live_trace": "crossref-20261110-v1",
-  "provider_framework_report": "docs/apex_status/PROVIDER_FRAMEWORK_REPORT.md"
+  "provider_framework_report": "docs/apex_status/PROVIDER_FRAMEWORK_REPORT.md",
+  "host_deployment_boundary": "docs/apex_status/HOST_DEPLOYMENT_BOUNDARY.json"
 }

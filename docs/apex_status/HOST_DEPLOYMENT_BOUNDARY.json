@@ -1,0 +1,63 @@
+{
+  "observed_at": "2026-11-10T22:57:50.966375+00:00",
+  "entry_commit": "c880f48a6079a3c94443f1847a5745b39bf28d94",
+  "hostname": "ubuntu",
+  "euid": 1000,
+  "pid1": "codex",
+  "pid1_is_systemd": false,
+  "namespaces": {
+    "mnt": "4026532515",
+    "pid": "4026532518",
+    "net": "4026531840",
+    "user": "4026532513"
+  },
+  "restrictions": {
+    "CapEff": "0000000000000000",
+    "NoNewPrivs": 1,
+    "Seccomp": 2
+  },
+  "host_cloudflared_pid": 419609,
+  "host_pid_visible_in_proc": false,
+  "system_bus_accessible": true,
+  "host_administration_authorized": false,
+  "polkit": {
+    "org.freedesktop.systemd1.manage-units": {
+      "authorized": false,
+      "challenge_available": true
+    },
+    "org.freedesktop.systemd1.manage-unit-files": {
+      "authorized": false,
+      "challenge_available": true
+    },
+    "org.freedesktop.systemd1.reload-daemon": {
+      "authorized": false,
+      "challenge_available": true
+    }
+  },
+  "cloudflared": {
+    "active": "active",
+    "substate": "running",
+    "enabled": true,
+    "restarts": 0,
+    "active_since": "2026-11-10 22:06:17 UTC",
+    "binary": "/usr/local/bin/cloudflared",
+    "tunnel_remote_health": "NOT_VERIFIED"
+  },
+  "deployment_paths": {
+    "/etc/systemd/system": "NOT_WRITABLE",
+    "/opt": "NOT_WRITABLE",
+    "/srv": "NOT_WRITABLE",
+    "/home/apexdev/apex-work": "WRITABLE"
+  },
+  "user_systemd": "Failed to connect to bus: No data available",
+  "supported_path": "Host system D-Bus/systemd through PolicyKit; administrator authentication required, no authorized challenge session exposed to this executor",
+  "actions_not_taken": [
+    "self SSH",
+    "namespace entry",
+    "sudo retry",
+    "service mutation",
+    "DNS change",
+    "deployment"
+  ],
+  "conclusion": "Isolated Codex process/user/mount environment with visibility of host networking and system bus; exact container implementation not established. Host address does not imply host administration."
+}

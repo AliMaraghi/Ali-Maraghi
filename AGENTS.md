@@ -83,3 +83,5 @@ Access origin continuation: read ACCESS_ORIGIN_REPORT.md. owner-view --access-co
 Worker operations: WORKER_OPERATIONS_REPORT.md;210 passed/2 skipped. worker_health observations are not deployment proof. Exit78 after3 consecutive failures requires explicit recovery; unit template must retain RestartPreventExitStatus=78. No persistent installation performed.
 
 Provider framework: read PROVIDER_FRAMEWORK_REPORT.md. Crossref live trace crossref-20261110-v1 has3 metadata records; not scientific truth.217 run/215 pass/2 skips. Existing FTS/TED preserved. Catalog not authoritative130 inventory. No arbitrary host or OAuth authority; ambiguous provider attempts never auto-retried.
+
+Host boundary correction: HOST_DEPLOYMENT_BOUNDARY.json. PID1=codex, host cloudflared PID invisible, host bus readable. PolicyKit manage-units/manage-unit-files/reload-daemon returns false with challenge available. Use approved host authentication, never self-SSH/namespace escape. Do not repeat unchanged sudo attempts.
