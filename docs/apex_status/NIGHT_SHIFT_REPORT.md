@@ -1,90 +1,26 @@
-# Operational checkpoint — 2026-11-10
+# Field outcome — 10 November 2026
 
-Branch apex/four-layer-owp-integration; entry HEAD9f2a920. Latest verified code
-commit is in CHECKPOINT.json and local Git history. The uploaded ZIP remains
-untracked/unchanged. Original documents and all four-plane requirements retained.
-Previous report preserved as NIGHT_SHIFT_REPORT_20261110_epoch.md.
+Actual command: python3 -B scripts/apex pilot examples/field_public_pilot.json --source live --read-only
+Trace field-20261110-v1, terminal ledger sequence 24, existing development SQLite.
+Seven official UK notices observed: four candidates awaiting validation, three excluded.
+Two candidates are founder-supplied seeds; two arose from a bounded API date scan.
+No independently corroborated opportunity, submitted bid, owner approval or income.
 
-## What now runs
+- Town Hall Wayfinding 101089-2026: official API reports GBP50000 and 16 November 2026 11:00 UTC. Portal still unchecked.
+- ROG First Light 093337-2026: GBP220000, API deadline absent. Conflicting 12/13 November references remain unresolved; do not infer a deadline.
+- 106452-2026 strategic partner contract: GBP8000000; 7 December 2026 15:00 UTC in notice. Founder eligibility unknown.
+- 106450-2026 due diligence EOI: amount unknown; 14 December 2026 12:00 UTC in notice. Further research only.
+- Space Technology Solutions, temporary hall and Network Rail notices excluded for stage/status flags.
 
-The existing evidence workflow now has a persistent local queue: submit a typed
-Task/Case, claim one attempt, enforce durable stop, run the fixed workflow, commit
-its result and the matching job/audit atomically, then read the historical report.
-No arbitrary handlers or network tools are available to queued input. No daemon,
-production deployment, mobile endpoint, paid service or account integration ran.
+All source URLs, timestamps, response hashes and minimized fields are in INTEGRATION_TRACE_REAL_WORLD.json.
+TED returned HTTP200 but schema validation rejected the response. Exact schema mismatch still needs diagnosis; no fabricated EU record.
+Supplier entity, insurance, delivery experience, capacity, travel, subcontractors, capital, margin and effort remain UNKNOWN.
+Independent corroboration, manual comparison, time saved and owner usefulness NOT MEASURED. No promotion authorized.
 
-Three missing operational controls were implemented in existing kernel modules:
-STOP_EXECUTION enforcement at dispatch, attempt-token lease fencing (including
-same-worker reuse), and transactional job/workflow/audit completion. Existing strict
-finite integer cost and exact snapshot-count checks were preserved and retested.
-The immutable reference still reproduces five defects; it remains excluded.
+IMPLEMENTED AND TESTED: bounded transport, official request builders, local field pipeline, existing queue integration, atomic terminal audit, crash ambiguity denial, scoped local owner decision and authenticated loopback read-only view.
+PARTIAL: deterministic research/criticism and ranking, four-plane integration, data contracts and owner interface.
+BLOCKED: TED schema compatibility, independent portal checks, private iPhone/TLS access, service deployment, provider/account credentials and any paid calls.
+NOT IMPLEMENTED: full autonomous multi-agent runtime, production scheduler, offsite recovery, banking, final rendered film and complete domain acceptance.
 
-New code: kernel/jobs.py; nested savepoints in kernel/memory.py; four jobs-* CLI
-commands. Additive job_meta(v1)/jobs tables; existing event schema/data retained
-with new job event kind. Actual dev journal backed up before initialization under
-ignored work/pre-jobs-20261110/. This is not a production backup or migration.
-
-A separate explicit Contracts Finder source adapter implements fixed host/path,
-validated DNS/IP-pinned TLS, redirect revalidation, response/time/request caps and
-no retries. It is NOT wired to the worker. Two authorized public diagnostic calls
-ran. The current endpoint returned more releases than the requested size5; the
-client rejected it. No usable procurement packet or raw contact data was retained.
-Current endpoint licence/request encoding verification remains pending. See
-PUBLIC_SOURCE_ADAPTER.md for exact blocker and next integration requirements.
-
-## Actual end-to-end execution
-
-The real source failure receipt was made into a dated diagnostic evidence packet,
-not synthetic market data. Eight separate CLI processes submitted/stopped/denied/
-resumed/processed/read it. Result: job COMPLETE, workflow BLOCKED_PENDING_EVIDENCE;
-unsupported upstream-fault inference was not accepted. Second worker run EMPTY;
-readonly report linked the same durable result. Evidence:
-reports/validation/operational_cli_e2e.json and the saved blocker case.
-
-COMPLETE means job processing completed, never that evidence, demand or the full
-mission was validated. The receipt timestamp is local capture-file mtime, not
-upstream publication time. No market candidate or income was invented.
-
-## Tests and comparative evidence
-
-- Baseline rerun135 passed /2 optional web skips.
-- Final full suite162 passed /2 optional FastAPI/httpx integration skips; no failures.
-- Includes stop denial before handler, stale/foreign/expired lease denial, exact
-  boundary expiry, retry cap/backoff/dead-letter recovery, two-process claims,
-  actual os._exit during workflow completion, restart with rollback/no duplicate,
-  submit/claim/control/completion audit failure and queue bounds.
-- Source tests cover mixed DNS, redirect rebinding, peer pinning, hostname-verified
-  TLS context, response limits/status/encoding, no implicit authority and killing
-  a hung subprocess. Fixtures are synthetic; live compatibility remains BLOCKED.
-- Frozen policy benchmark unchanged:24/24 kernel,13/24 weak rule,24/24 full checklist.
-- Reference's five adverse cases still reproduce. These are regression cases,
-  not independently defined holdouts or evidence of intelligence superiority.
-- Original13 listed hashes match; trace178 groups/968 units retained. Canonical
-  and historical six §5 sublayers,18 roles,0–18,appendices,A01–A09 remain.
-
-TEST_EVIDENCE.csv records exact commands/logs/hashes. OPERATIONAL_INCREMENT_REVIEW.md
-maps every defect to current control and test. CLI timings are observations of one
-run, not a utility benchmark. Independent manual/model baseline utility, correction
-minutes and real economic value are NOT MEASURED. No independent reviewer was
-available; this was implementer self-review, not independent semantic acceptance.
-
-## Remaining limits and next decision
-
-Durable stop is local to this queue and graceful. In-flight transaction finishes
-before concurrent stop commits; lock timeout is a failed stop, not success. Local
-operator resume is not remote owner authentication. Source transport is separate;
-queue stop does not cancel unrelated processes or credentials. Ledger remains
-unencrypted/same-user trusted, with no protected external audit sink.
-
-Next: verify current authoritative API parameter encoding and licence, preserve
-strict caps, then accept one genuine bounded packet before market analysis. Obtain
-an independent reviewer/fresh same-input baseline before value claims. Add staging
-service lifecycle and authenticated private control only after separate security
-and integration evidence. Film remains blocked by footage/rights/rendering/review.
-All full manifesto acceptance remains open; nothing is reclassified as complete.
-
-Additional paid API spendGBP0/USD0. Two public retrieval invocations; actual HTTP
-hop counts were not retained on rejection (each bounded to2), so no exact hop count
-is asserted. Hosting/subscription/human effort not separately metered. No production,
-employer data, purchases, publication or irreversible external changes. Continue
-bounded validation; Nov30 remains continue/pivot/stop review, not a delivery promise.
+No services deployed or background worker installed. GBP0 paid API spend. Existing compose has unpinned dependencies and no n8n; up/down commands explicitly refuse lifecycle changes.
+Rollback: stop development field work, preserve ledger and public-evidence files, revert code commit on a new branch. Migration adds field_runs only; never delete audit records. Pre-migration development backup is work/pre-field-20261110/kernel.sqlite3.

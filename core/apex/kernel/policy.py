@@ -13,6 +13,18 @@ class KillState(str, Enum):
     REVOKE_CREDENTIALS = "REVOKE_CREDENTIALS"
 
 
+def enforce_durable_stop(ledger):
+    """Shared development stop, checked under the caller's write transaction.
+
+Legacy isolated journals without job_meta retain their offline behavior. An
+unknown or corrupt existing control fails closed; no process-local override.
+"""
+    if ledger.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='job_meta'").fetchone():
+        row = ledger.db.execute('SELECT stop FROM job_meta WHERE id=1').fetchone()
+        if row is None or KillState(row[0]) is not KillState.RUNNING:
+            raise PermissionError('Durable development stop is active')
+
+
 @dataclass(frozen=True)
 class Action:
     idempotency_key: str
@@ -62,4 +74,6 @@ class Policy:
         if result.get("domain") != self.domain or result.get("actions_executed") != []:
             raise PermissionError("REPORT_CONTRACT_MISMATCH")
         # No arbitrary callbacks, shell, SQL, file paths or network adapters.
-        return ledger.append(action.idempotency_key, "decision", self.domain, result)
+        with ledger.transaction():
+            enforce_durable_stop(ledger)
+            return ledger.append(action.idempotency_key, "decision", self.domain, result)

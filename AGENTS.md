@@ -64,3 +64,6 @@ more than requested size5. Verify current request/licence before further retriev
 Never broaden caps to pass a source test. Stop is queue-local/graceful, not global
 revocation. Current local task cf-diagnostic-20261110-v1 reports blocked evidence,
 not verified demand. The unmodified reference still has its five known defects.
+
+## Unified field continuation
+Current branch apex/unified-field-integration. Read FIELD_OUTCOME_REPORT.md and NEXT_ACTION.md. Seven real UK notices observed, four unverified candidates (two founder seeds), three excluded; TED schema rejected. Unified entrypoint scripts/apex. No production or paid authority. Preserve original sources and runtime evidence.

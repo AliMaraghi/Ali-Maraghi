@@ -1,0 +1,18 @@
+{
+  "recorded_at": "2026-11-10T20:29:01.915275+00:00",
+  "entry_head": "6bb2a9785791e4c19a65fc1728af031d64b4b7d3",
+  "branch": "apex/unified-field-integration",
+  "original_sha256": "3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd",
+  "baseline_tests": {
+    "passed": 162,
+    "skipped": 2
+  },
+  "production_inspected": false,
+  "production_modified": false,
+  "network": "Explicit sandbox grant; public official reads only",
+  "staging_services_started": false,
+  "existing_database": "runtime/kernel.sqlite3",
+  "backup": "work/pre-field-20261110/kernel.sqlite3",
+  "source_documents": "Original hashes unchanged; new mandate stored separately",
+  "attachment_note": "Both pasted attachments alter formatting; latest Part II normalized words match canonical, not bytes. Part III truncated. Canonical original remains authoritative."
+}

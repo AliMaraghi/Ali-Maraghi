@@ -1,17 +1,18 @@
 {
   "recorded_at": "2026-11-10T07:51:22.313827+00:00",
   "workspace": "/home/apexdev/apex-work",
-  "branch": "apex/four-layer-owp-integration",
-  "verified_implementation_commit": "59d37f6a9f319b6955026ad785d5a3efe2e57ae9",
-  "entry_commit": "9f2a920",
+  "branch": "apex/unified-field-integration",
+  "verified_implementation_commit": "See following local Git commit; previous implementation 59d37f6",
+  "entry_commit": "6bb2a97",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "passed": 162,
+    "tests_run": 182,
+    "passed": 180,
     "skipped": 2,
-    "failed": 0,
-    "baseline_passed": 135,
-    "reference_defects_reproduced": 5
+    "failures": 0,
+    "errors": 0,
+    "scope": "OFFLINE_TESTS_NOT_DEPLOYMENT_OR_REAL_WORLD_VALIDATION"
   },
   "implemented_controls": [
     "Durable queue-local stop before fixed handler",
@@ -105,5 +106,8 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "Read NEXT_ACTION.md and PUBLIC_SOURCE_ADAPTER.md; resolve source contract blocker, obtain independent review/fresh utility baseline; no production or paid authority."
+  "next_action": "Read NEXT_ACTION.md; diagnose TED schema rejection, primary portal corroboration and independent baseline remain open",
+  "field_trace": "field-20261110-v1",
+  "field_candidates_unverified": 4,
+  "field_excluded": 3
 }

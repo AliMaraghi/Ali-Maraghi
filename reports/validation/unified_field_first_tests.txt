@@ -1,0 +1,23 @@
+test_finite_money_and_budget_fail_closed (test_field.AdapterContractTests.test_finite_money_and_budget_fail_closed) ... ok
+test_fts_wrong_identity_licence_future_duplicate_and_limit_rejected (test_field.AdapterContractTests.test_fts_wrong_identity_licence_future_duplicate_and_limit_rejected) ... ok
+test_http_failure_retains_status_never_creates_records (test_field.AdapterContractTests.test_http_failure_retains_status_never_creates_records) ... ok
+test_official_path_query_and_fixed_ted_fields (test_field.AdapterContractTests.test_official_path_query_and_fixed_ted_fields) ... ok
+test_public_metadata_preserves_negative_evidence_and_drops_contact_instructions (test_field.AdapterContractTests.test_public_metadata_preserves_negative_evidence_and_drops_contact_instructions) ... ok
+test_ted_exact_counts_no_future_or_duplicate (test_field.AdapterContractTests.test_ted_exact_counts_no_future_or_duplicate) ... ok
+test_actual_process_crash_ambiguous_fetch_not_retried (test_field.FieldTests.test_actual_process_crash_ambiguous_fetch_not_retried) ... ok
+test_all_stops_block_network_and_old_workflow_and_gateway (test_field.FieldTests.test_all_stops_block_network_and_old_workflow_and_gateway) ... ok
+test_completion_audit_failure_rolls_back_job_and_terminal_state (test_field.FieldTests.test_completion_audit_failure_rolls_back_job_and_terminal_state) ... ok
+test_evidence_symlink_and_ledger_tampering_denied (test_field.FieldTests.test_evidence_symlink_and_ledger_tampering_denied) ... ok
+test_no_network_authority_or_changed_identity_or_private_scope (test_field.FieldTests.test_no_network_authority_or_changed_identity_or_private_scope) ... ok
+test_owner_decision_scoped_idempotent_and_wrong_identity_denied (test_field.FieldTests.test_owner_decision_scoped_idempotent_and_wrong_identity_denied) ... ok
+test_owner_view_actual_http_auth_expiry_no_write_and_no_injection (test_field.FieldTests.test_owner_view_actual_http_auth_expiry_no_write_and_no_injection) ... ok
+test_real_components_pipeline_replay_no_duplicate_retrieval (test_field.FieldTests.test_real_components_pipeline_replay_no_duplicate_retrieval) ... ok
+test_pinned_host_tls_and_actual_hard_timeout (test_field.TransportTests.test_pinned_host_tls_and_actual_hard_timeout) ... ok
+test_redirect_rebinding_denied_before_second_connection (test_field.TransportTests.test_redirect_rebinding_denied_before_second_connection) ... ok
+test_size_encoding_truncation_and_error_body_not_retained (test_field.TransportTests.test_size_encoding_truncation_and_error_body_not_retained) ... ok
+test_ssrf_ports_credentials_methods_and_path_allowlist (test_field.TransportTests.test_ssrf_ports_credentials_methods_and_path_allowlist) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 1.485s
+
+OK

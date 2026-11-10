@@ -11,7 +11,7 @@ import json
 from .schema import Case, fields, identifier, timestamp, DOMAINS
 from .engine import canonical, code_digest
 from .discovery import propose
-from .policy import Action
+from .policy import Action, enforce_durable_stop
 
 
 @dataclass(frozen=True)
@@ -55,6 +55,7 @@ def run(task: Task, case: Case, workspace, ledger, policy, now=None, clock=time.
         raise PermissionError(reason)
     start = clock()
     with ledger.transaction():
+        enforce_durable_stop(ledger)
         for event in ledger.records(task.domain):
             if event['key'] == key:
                 saved = event['payload']

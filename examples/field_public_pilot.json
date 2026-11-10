@@ -1,0 +1,25 @@
+{
+  "trace_id": "field-20261110-v1",
+  "objective": "Verify founder-supplied tender seeds and probe unrelated public opportunities without contact or bidding",
+  "deadline": "2026-11-11T08:09:05.467659+00:00",
+  "sources": [
+    {
+      "source": "fts",
+      "notice": "101089-2026"
+    },
+    {
+      "source": "fts",
+      "notice": "093337-2026"
+    },
+    {
+      "source": "fts",
+      "date": "2026-11-09"
+    },
+    {
+      "source": "ted",
+      "query": "classification-cpv IN (72000000) AND publication-date >= 20261101"
+    }
+  ],
+  "maximum_spend_pence": 0,
+  "privacy_class": "public"
+}
