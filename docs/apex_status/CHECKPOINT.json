@@ -1,14 +1,14 @@
 {
-  "recorded_at": "2026-11-10T20:33:01.607276+00:00",
+  "recorded_at": "2026-11-10T20:40:14.194660+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
-  "verified_implementation_commit": "Following local connector commit; use git log",
-  "entry_commit": "822205d",
+  "verified_implementation_commit": "Following local mission runtime commit; use git log",
+  "entry_commit": "d19b291",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "tests_run": 183,
-    "passed": 181,
+    "tests_run": 186,
+    "passed": 184,
     "skipped": 2,
     "failures": 0,
     "errors": 0,
@@ -49,7 +49,7 @@
     "full_checklist": 24,
     "independent_real_utility": "NOT MEASURED"
   },
-  "independent_review": "NOT AVAILABLE; implementer self-review only",
+  "independent_review": "NOT_PERFORMED; deterministic same-evidence checks only",
   "paid_api_spend_gbp": 0,
   "production_modified": false,
   "deployment_performed": false,
@@ -103,7 +103,7 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "Read CONNECTOR_INCREMENT_REPORT.md and run scripts/apex report --trace ted-field-20261110-v2",
+  "next_action": "Read MISSION_RUNTIME_REPORT.md; run scripts/apex missions status ted-research-20261110",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
   "field_excluded": 3,
@@ -112,5 +112,7 @@
     "observed": 5,
     "candidate_unverified": 3,
     "excluded": 2
-  }
+  },
+  "mission_trace": "ted-research-20261110",
+  "mission_nodes_complete": 6
 }

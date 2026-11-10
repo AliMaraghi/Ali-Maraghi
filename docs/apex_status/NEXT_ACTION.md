@@ -1,5 +1,4 @@
 # Resume
-python3 -B scripts/apex report --trace ted-field-20261110-v2
+python3 -B scripts/apex missions status ted-research-20261110
 
-Then python3 -B scripts/apex connectors verify and python3 -B scripts/apex audit.
-Read CONNECTOR_INCREMENT_REPORT.md. Next: independently verify buyer portal deadlines and eligibility; owner authorization facts remain unknown. Do not refetch old mission IDs after code changes. No paid API, account, production or background service authority. Missing124-provider registry and package searches recorded in PACKAGE_DISCOVERY_20261110.json.
+Read MISSION_RUNTIME_REPORT.md and current Git HEAD. Next implement detailed public requirement retrieval and actual dependency-result fusion; independently verify deadlines and supplier fit before qualification. No independent model/human baseline exists. No approved secret-store binding or staging deployment permission. Preserve original sources and existing receipts; use new mission identity after code changes. No background activity.

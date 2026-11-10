@@ -90,8 +90,9 @@ class Jobs:
             self.audit(job_id, task.domain, 'SUBMITTED', fingerprint=fingerprint)
         return job_id
 
-    def claim(self, worker, *, now=None, lease_seconds=30):
+    def claim(self, worker, *, now=None, lease_seconds=30, job_id=None):
         identifier(worker)
+        if job_id is not None: identifier(job_id)
         now = integer(int(time.time()) if now is None else now, 0, 2**53)
         integer(lease_seconds, 15, 300)
         with self.ledger.transaction():
@@ -101,9 +102,10 @@ class Jobs:
                 self.db.execute("UPDATE jobs SET state='DEAD',token=NULL,worker=NULL,lease_until=NULL WHERE id=?", (jid,))
                 self.audit(jid, domain, 'DEAD_LEASE_EXHAUSTED')
             row = self.db.execute("""SELECT id,domain,attempts FROM jobs WHERE
-                (state='QUEUED' AND available_at<=?) OR
-                (state='RUNNING' AND lease_until<=? AND attempts<max_attempts)
-                ORDER BY available_at,id LIMIT 1""", (now, now)).fetchone()
+                ((state='QUEUED' AND available_at<=?) OR
+                (state='RUNNING' AND lease_until<=? AND attempts<max_attempts))
+                AND (? IS NULL OR id=?)
+                ORDER BY available_at,id LIMIT 1""", (now, now, job_id, job_id)).fetchone()
             if row is None:
                 return None
             token = uuid.uuid4().hex

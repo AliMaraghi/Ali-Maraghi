@@ -1,0 +1,467 @@
+{
+  "trace_id": "ted-research-20261110",
+  "nodes": [
+    {
+      "id": "research1",
+      "depends_on": [],
+      "role": "8-12",
+      "task": {
+        "task_id": "ted-research-20261110-research1",
+        "domain": "opportunity",
+        "expires_at": "2026-11-11T02:39:27.450761+00:00",
+        "max_sources": 4,
+        "max_runtime_ms": 10000,
+        "paid_budget_pence": 0
+      },
+      "case": {
+        "id": "ted-research-20261110-research1",
+        "domain": "opportunity",
+        "problem": "Assess evidence gaps and feasibility for 756398-2026: Latvia \u2013 Research and development services and related consultancy services \u2013 Publisko t\u012bmek\u013cviet\u0146u un mobilo lietot\u0146u piek\u013c\u016bstam\u012bbas izv\u0113rt\u0113jums",
+        "assumptions": [
+          "Headline contract value is not margin or founder income.",
+          "Mirrors of the same buyer statement are not independent evidence.",
+          "Source fields do not establish supplier eligibility, delivery cost or buyer portal deadline."
+        ],
+        "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+        "hypotheses": [
+          {
+            "id": "deliver",
+            "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+            "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+            "falsifier": "Mandatory qualifications or working capital cannot be met."
+          },
+          {
+            "id": "exclude",
+            "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+            "prediction": "Portal or supplier evidence invalidates a viable bid.",
+            "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+          }
+        ],
+        "claims": [
+          {
+            "id": "observation-0",
+            "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+            "kind": "observation",
+            "evidence_ids": [
+              "source-0"
+            ]
+          },
+          {
+            "id": "fit",
+            "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+            "kind": "hypothesis",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "id": "source-0",
+            "claim_id": "observation-0",
+            "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+            "publisher": "EU Publications Office",
+            "independence_group": "ted",
+            "retrieved_at": "2026-11-10T20:32:16.850485+00:00",
+            "expires_at": "2026-11-11T20:32:16.850485+00:00",
+            "artifact": "runtime/public-evidence/6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e.json",
+            "sha256": "6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e",
+            "excerpt": "OBSERVED_UNCORROBORATED",
+            "method": "observation",
+            "synthetic": false,
+            "stance": "supports",
+            "domain": "opportunity",
+            "sensitivity": "public"
+          }
+        ],
+        "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+        "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+        "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+      }
+    },
+    {
+      "id": "research2",
+      "depends_on": [],
+      "role": "8-12",
+      "task": {
+        "task_id": "ted-research-20261110-research2",
+        "domain": "opportunity",
+        "expires_at": "2026-11-11T02:39:27.450761+00:00",
+        "max_sources": 4,
+        "max_runtime_ms": 10000,
+        "paid_budget_pence": 0
+      },
+      "case": {
+        "id": "ted-research-20261110-research2",
+        "domain": "opportunity",
+        "problem": "Assess evidence gaps and feasibility for 756453-2026: Sweden \u2013 Information systems or technology strategic review and planning services \u2013 Omv\u00e4rldsanalys IT",
+        "assumptions": [
+          "Headline contract value is not margin or founder income.",
+          "Mirrors of the same buyer statement are not independent evidence.",
+          "Source fields do not establish supplier eligibility, delivery cost or buyer portal deadline."
+        ],
+        "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+        "hypotheses": [
+          {
+            "id": "deliver",
+            "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+            "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+            "falsifier": "Mandatory qualifications or working capital cannot be met."
+          },
+          {
+            "id": "exclude",
+            "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+            "prediction": "Portal or supplier evidence invalidates a viable bid.",
+            "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+          }
+        ],
+        "claims": [
+          {
+            "id": "observation-0",
+            "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+            "kind": "observation",
+            "evidence_ids": [
+              "source-0"
+            ]
+          },
+          {
+            "id": "fit",
+            "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+            "kind": "hypothesis",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "id": "source-0",
+            "claim_id": "observation-0",
+            "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+            "publisher": "EU Publications Office",
+            "independence_group": "ted",
+            "retrieved_at": "2026-11-10T20:32:16.850485+00:00",
+            "expires_at": "2026-11-11T20:32:16.850485+00:00",
+            "artifact": "runtime/public-evidence/6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e.json",
+            "sha256": "6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e",
+            "excerpt": "OBSERVED_UNCORROBORATED",
+            "method": "observation",
+            "synthetic": false,
+            "stance": "supports",
+            "domain": "opportunity",
+            "sensitivity": "public"
+          }
+        ],
+        "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+        "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+        "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+      }
+    },
+    {
+      "id": "research3",
+      "depends_on": [],
+      "role": "8-12",
+      "task": {
+        "task_id": "ted-research-20261110-research3",
+        "domain": "opportunity",
+        "expires_at": "2026-11-11T02:39:27.450761+00:00",
+        "max_sources": 4,
+        "max_runtime_ms": 10000,
+        "paid_budget_pence": 0
+      },
+      "case": {
+        "id": "ted-research-20261110-research3",
+        "domain": "opportunity",
+        "problem": "Assess evidence gaps and feasibility for 756468-2026: Spain \u2013 IT services: consulting, software development, Internet and support \u2013 Digitalizaci\u00f3n a trav\u00e9s de Inteligencia Artificial aplicada a la gesti\u00f3n de los servicios municipales del Ilmo. Ayuntamiento de Don Benito. Este proyecto podr\u00e1 ser cofinanciado por la Uni\u00f3n Europea a trav\u00e9s del Fondo Europ",
+        "assumptions": [
+          "Headline contract value is not margin or founder income.",
+          "Mirrors of the same buyer statement are not independent evidence.",
+          "Source fields do not establish supplier eligibility, delivery cost or buyer portal deadline."
+        ],
+        "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+        "hypotheses": [
+          {
+            "id": "deliver",
+            "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+            "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+            "falsifier": "Mandatory qualifications or working capital cannot be met."
+          },
+          {
+            "id": "exclude",
+            "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+            "prediction": "Portal or supplier evidence invalidates a viable bid.",
+            "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+          }
+        ],
+        "claims": [
+          {
+            "id": "observation-0",
+            "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+            "kind": "observation",
+            "evidence_ids": [
+              "source-0"
+            ]
+          },
+          {
+            "id": "fit",
+            "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+            "kind": "hypothesis",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "id": "source-0",
+            "claim_id": "observation-0",
+            "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+            "publisher": "EU Publications Office",
+            "independence_group": "ted",
+            "retrieved_at": "2026-11-10T20:32:16.850485+00:00",
+            "expires_at": "2026-11-11T20:32:16.850485+00:00",
+            "artifact": "runtime/public-evidence/6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e.json",
+            "sha256": "6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e",
+            "excerpt": "OBSERVED_UNCORROBORATED",
+            "method": "observation",
+            "synthetic": false,
+            "stance": "supports",
+            "domain": "opportunity",
+            "sensitivity": "public"
+          }
+        ],
+        "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+        "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+        "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+      }
+    },
+    {
+      "id": "research4",
+      "depends_on": [],
+      "role": "8-12",
+      "task": {
+        "task_id": "ted-research-20261110-research4",
+        "domain": "opportunity",
+        "expires_at": "2026-11-11T02:39:27.450761+00:00",
+        "max_sources": 4,
+        "max_runtime_ms": 10000,
+        "paid_budget_pence": 0
+      },
+      "case": {
+        "id": "ted-research-20261110-research4",
+        "domain": "opportunity",
+        "problem": "Assess evidence gaps and feasibility for 756472-2026: Ireland \u2013 Dressings \u2013 HSE 29798 Dynamic Purchasing System Invitation for Wound Care, Tissue Viability and Associated Products",
+        "assumptions": [
+          "Headline contract value is not margin or founder income.",
+          "Mirrors of the same buyer statement are not independent evidence.",
+          "Source fields do not establish supplier eligibility, delivery cost or buyer portal deadline."
+        ],
+        "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+        "hypotheses": [
+          {
+            "id": "deliver",
+            "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+            "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+            "falsifier": "Mandatory qualifications or working capital cannot be met."
+          },
+          {
+            "id": "exclude",
+            "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+            "prediction": "Portal or supplier evidence invalidates a viable bid.",
+            "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+          }
+        ],
+        "claims": [
+          {
+            "id": "observation-0",
+            "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+            "kind": "observation",
+            "evidence_ids": [
+              "source-0"
+            ]
+          },
+          {
+            "id": "fit",
+            "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+            "kind": "hypothesis",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "id": "source-0",
+            "claim_id": "observation-0",
+            "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+            "publisher": "EU Publications Office",
+            "independence_group": "ted",
+            "retrieved_at": "2026-11-10T20:32:16.850485+00:00",
+            "expires_at": "2026-11-11T20:32:16.850485+00:00",
+            "artifact": "runtime/public-evidence/6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e.json",
+            "sha256": "6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e",
+            "excerpt": "OBSERVED_UNCORROBORATED",
+            "method": "observation",
+            "synthetic": false,
+            "stance": "supports",
+            "domain": "opportunity",
+            "sensitivity": "public"
+          }
+        ],
+        "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+        "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+        "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+      }
+    },
+    {
+      "id": "research5",
+      "depends_on": [],
+      "role": "8-12",
+      "task": {
+        "task_id": "ted-research-20261110-research5",
+        "domain": "opportunity",
+        "expires_at": "2026-11-11T02:39:27.450761+00:00",
+        "max_sources": 4,
+        "max_runtime_ms": 10000,
+        "paid_budget_pence": 0
+      },
+      "case": {
+        "id": "ted-research-20261110-research5",
+        "domain": "opportunity",
+        "problem": "Assess evidence gaps and feasibility for 756478-2026: Portugal \u2013 Systems and technical consultancy services \u2013 Concurso P\u00fablico com Publicidade Internacional para a Presta\u00e7\u00e3o de Servi\u00e7os de Desenvolvimento de Software",
+        "assumptions": [
+          "Headline contract value is not margin or founder income.",
+          "Mirrors of the same buyer statement are not independent evidence.",
+          "Source fields do not establish supplier eligibility, delivery cost or buyer portal deadline."
+        ],
+        "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+        "hypotheses": [
+          {
+            "id": "deliver",
+            "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+            "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+            "falsifier": "Mandatory qualifications or working capital cannot be met."
+          },
+          {
+            "id": "exclude",
+            "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+            "prediction": "Portal or supplier evidence invalidates a viable bid.",
+            "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+          }
+        ],
+        "claims": [
+          {
+            "id": "observation-0",
+            "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+            "kind": "observation",
+            "evidence_ids": [
+              "source-0"
+            ]
+          },
+          {
+            "id": "fit",
+            "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+            "kind": "hypothesis",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "id": "source-0",
+            "claim_id": "observation-0",
+            "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+            "publisher": "EU Publications Office",
+            "independence_group": "ted",
+            "retrieved_at": "2026-11-10T20:32:16.850485+00:00",
+            "expires_at": "2026-11-11T20:32:16.850485+00:00",
+            "artifact": "runtime/public-evidence/6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e.json",
+            "sha256": "6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e",
+            "excerpt": "OBSERVED_UNCORROBORATED",
+            "method": "observation",
+            "synthetic": false,
+            "stance": "supports",
+            "domain": "opportunity",
+            "sensitivity": "public"
+          }
+        ],
+        "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+        "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+        "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+      }
+    },
+    {
+      "id": "critique",
+      "depends_on": [
+        "research1",
+        "research2",
+        "research3",
+        "research4",
+        "research5"
+      ],
+      "role": "8-12",
+      "task": {
+        "task_id": "ted-research-20261110-critique",
+        "domain": "opportunity",
+        "expires_at": "2026-11-11T02:39:27.450761+00:00",
+        "max_sources": 4,
+        "max_runtime_ms": 10000,
+        "paid_budget_pence": 0
+      },
+      "case": {
+        "id": "ted-research-20261110-critique",
+        "domain": "opportunity",
+        "problem": "Challenge all five TED cases: distinguish actual tender requirements from missing eligibility and unknown economic inputs.",
+        "assumptions": [
+          "Headline contract value is not margin or founder income.",
+          "Mirrors of the same buyer statement are not independent evidence."
+        ],
+        "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+        "hypotheses": [
+          {
+            "id": "deliver",
+            "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+            "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+            "falsifier": "Mandatory qualifications or working capital cannot be met."
+          },
+          {
+            "id": "exclude",
+            "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+            "prediction": "Portal or supplier evidence invalidates a viable bid.",
+            "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+          }
+        ],
+        "claims": [
+          {
+            "id": "observation-0",
+            "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+            "kind": "observation",
+            "evidence_ids": [
+              "source-0"
+            ]
+          },
+          {
+            "id": "fit",
+            "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+            "kind": "hypothesis",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "id": "source-0",
+            "claim_id": "observation-0",
+            "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+            "publisher": "EU Publications Office",
+            "independence_group": "ted",
+            "retrieved_at": "2026-11-10T20:32:16.850485+00:00",
+            "expires_at": "2026-11-11T20:32:16.850485+00:00",
+            "artifact": "runtime/public-evidence/6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e.json",
+            "sha256": "6e86722811d77c254a145ca6eeb5e834e8f6f228b85dd0e792b591b6d136b08e",
+            "excerpt": "OBSERVED_UNCORROBORATED",
+            "method": "observation",
+            "synthetic": false,
+            "stance": "supports",
+            "domain": "opportunity",
+            "sensitivity": "public"
+          }
+        ],
+        "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+        "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+        "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+      }
+    }
+  ],
+  "paid_budget_pence": 0
+}

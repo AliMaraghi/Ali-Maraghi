@@ -41,6 +41,13 @@ def handler(root, trace, token, expires_at):
                 try:
                     with Ledger.read_only(root) as ledger:
                         result = report(ledger, trace)
+                        from ..connectors import verify
+                        from .jobs import Jobs
+                        result['runtime']={'providers':verify(ledger),'queue':Jobs.read_only(ledger).status(),
+                                           'verified_audit_events':ledger.verify()}
+                        if ledger.db.execute("SELECT 1 FROM sqlite_master WHERE name='mission_graphs'").fetchone():
+                            from .missions import Missions
+                            result['runtime']['missions']=[Missions.read_only(ledger).status(r[0]) for r in ledger.db.execute('SELECT id FROM mission_graphs ORDER BY id')]
                     encoded = json.dumps(result, indent=2, ensure_ascii=True)
                     if self.path == '/trace.json': data = encoded.encode()
                     else:

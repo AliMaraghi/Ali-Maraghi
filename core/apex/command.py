@@ -24,6 +24,7 @@ def main(argv=None):
     connectors=s.add_parser('connectors');connectors.add_argument('operation',choices=['verify'])
     s.add_parser('audit')
     s.add_parser('costs')
+    mi=s.add_parser('missions');mi.add_argument('operation',choices=['submit','tick','status']);mi.add_argument('target');mi.add_argument('--worker',default='local-mission-worker')
     st=s.add_parser('status');st.add_argument('--json',action='store_true')
     pi=s.add_parser('pilot');pi.add_argument('mission');pi.add_argument('--source',choices=['live'],required=True);pi.add_argument('--read-only',action='store_true',required=True)
     re=s.add_parser('report');re.add_argument('--trace',required=True)
@@ -40,7 +41,16 @@ def main(argv=None):
             return kernel(args.args)
         if args.command=='test-all':
             return subprocess.run([sys.executable,'-B',str(ROOT/'scripts/test_offline.py')],cwd=ROOT).returncode
-        if args.command in {'connectors','audit','costs'}:
+        if args.command=='missions':
+            from .kernel.missions import Missions
+            if args.operation=='status':
+                with Ledger.read_only(ROOT) as ledger:result=Missions.read_only(ledger).status(args.target)
+            else:
+                with Ledger(ROOT) as ledger:
+                    scheduler=Missions(ledger)
+                    result=({'trace_id':scheduler.submit(strict_json(read_local(ROOT,args.target,524288).decode()))}
+                            if args.operation=='submit' else scheduler.tick(args.target,ROOT,args.worker))
+        elif args.command in {'connectors','audit','costs'}:
             with Ledger.read_only(ROOT) as ledger:
                 if args.command=='connectors':
                     from .connectors import verify
