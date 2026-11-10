@@ -77,3 +77,5 @@ Recurring schedules: SCHEDULE_INCREMENT_REPORT.md. schedules add/poll/status per
 Activation continuation: read ACTIVATION_INCREMENT_REPORT.md. /console and /reports are authenticated local database projections; worker CLI executable but no persistent service installed. Production authentication/staging credentials unavailable.193 tests passed/2 skipped.
 
 Worker fairness continuation: WORKER_FAIRNESS_REPORT.md;198 passed/2 skipped. worker_dispatch is an additive audited rotating cursor, not a second job queue. cloudflared system service active; origin/Access/TLS and supervised APEX deployment unverified. Preserve old code-fingerprint blocks.
+
+Access origin continuation: read ACCESS_ORIGIN_REPORT.md. owner-view --access-config rejects Basic fallback and validates RS256 owner identity against reviewed expiring JWKS. No live Access binding or production-ready HTTP deployment. Never use fixture keys in production.206 passed/2 optional skips.

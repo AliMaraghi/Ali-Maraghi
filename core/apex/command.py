@@ -31,7 +31,7 @@ def main(argv=None):
     pi=s.add_parser('pilot');pi.add_argument('mission');pi.add_argument('--source',choices=['live'],required=True);pi.add_argument('--read-only',action='store_true',required=True)
     re=s.add_parser('report');re.add_argument('--trace',required=True)
     stop=s.add_parser('stop');stop.add_argument('--level',choices=[k.value for k in KillState if k is not KillState.RUNNING],required=True)
-    view=s.add_parser('owner-view');view.add_argument('--trace',required=True);view.add_argument('--port',type=int,default=8765)
+    view=s.add_parser('owner-view');view.add_argument('--trace',required=True);view.add_argument('--port',type=int,default=8765);view.add_argument('--access-config')
     dec=s.add_parser('decide');dec.add_argument('--trace',required=True);dec.add_argument('--decision',choices=['approve-internal','reject-internal'],required=True)
     for name in ['up','down']:
         q=s.add_parser(name);q.add_argument('--dry-run',action='store_true')
@@ -112,7 +112,7 @@ def main(argv=None):
             result={'ledger_seq':seq,'external_actions_executed':[]}
         else:
             from .kernel.owner_view import serve
-            serve(ROOT,args.trace,args.port);return 0
+            serve(ROOT,args.trace,args.port,args.access_config);return 0
         print(json.dumps(result,indent=2,ensure_ascii=True,allow_nan=False))
         return 2 if result.get('status')=='BLOCKED_EXTERNAL_FETCH' else 0
     except (ValueError,KeyError,TypeError,OSError,sqlite3.Error) as error:

@@ -15,10 +15,10 @@ from .memory import Ledger
 from .field import report
 
 
-def handler(root, trace, token, expires_at):
-    if not isinstance(token, str) or len(token) < 32 or len(token) > 128 or not token.isascii():
+def handler(root, trace, token, expires_at, access_verifier=None):
+    if access_verifier is None and (not isinstance(token, str) or len(token) < 32 or len(token) > 128 or not token.isascii()):
         raise ValueError('A 32-128 character ephemeral development token is required')
-    authorization = 'Basic '+base64.b64encode(('owner:'+token).encode()).decode()
+    authorization = 'Basic '+base64.b64encode(('owner:'+token).encode()).decode() if access_verifier is None else ''
 
     class View(BaseHTTPRequestHandler):
         def log_message(self, *_): pass  # Never log Authorization or URLs.
@@ -31,9 +31,13 @@ def handler(root, trace, token, expires_at):
             value = self.headers.get('Authorization', '')
             valid = (time.time() < expires_at and value.isascii()
                      and hmac.compare_digest(value, authorization))
+            if access_verifier is not None:
+                assertions = self.headers.get_all('Cf-Access-Jwt-Assertion', [])
+                valid = len(assertions) == 1 and access_verifier.valid(assertions[0])
             if not valid:
                 self.send_response(401)
-                self.send_header('WWW-Authenticate','Basic realm="APEX local owner", charset="UTF-8"')
+                if access_verifier is None:
+                    self.send_header('WWW-Authenticate','Basic realm="APEX local owner", charset="UTF-8"')
                 data = b'Owner authentication required'
             elif self.path not in {'/', '/trace.json','/console','/reports','/status.json','/reports.json'}:
                 self.send_response(404); data = b'Not found'
@@ -77,13 +81,24 @@ def handler(root, trace, token, expires_at):
     return View
 
 
-def serve(root, trace, port=8765):
+def serve(root, trace, port=8765, access_config=None):
     if type(port) is not int or not 1024 <= port <= 65535: raise ValueError('Invalid loopback port')
     if os.geteuid() != root.stat().st_uid: raise PermissionError('Workspace owner required')
-    token = os.environ.get('APEX_LOCAL_VIEW_TOKEN')
+    verifier = None
+    if access_config is not None:
+        from .access_auth import AccessVerifier
+        verifier = AccessVerifier.load(access_config)
+    token = os.environ.get('APEX_LOCAL_VIEW_TOKEN') if verifier is None else None
     end = time.time()+600
-    with HTTPServer(('127.0.0.1',port),handler(root,trace,token,end)) as server:
+    import threading
+    import signal
+    stopped = threading.Event()
+    if verifier is not None:
+        signal.signal(signal.SIGTERM, lambda *_: stopped.set())
+        signal.signal(signal.SIGINT, lambda *_: stopped.set())
+    with HTTPServer(('127.0.0.1',port),handler(root,trace,token,end,verifier)) as server:
         server.timeout=1
         print(json.dumps({'view':'http://127.0.0.1:'+str(port), 'username':'owner',
-                          'token':'SUPPLIED_IN_ENV_NOT_LOGGED', 'expires_in_seconds':600}),flush=True)
-        while time.time()<end: server.handle_request()
+                          'token':'SUPPLIED_IN_ENV_NOT_LOGGED', 'expires_in_seconds':600 if verifier is None else None, 'auth_mode':'CLOUDFLARE_ACCESS' if verifier else 'DEVELOPMENT_BASIC'}),flush=True)
+        while not stopped.is_set() and (verifier is not None or time.time()<end):
+            server.handle_request()

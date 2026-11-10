@@ -1,0 +1,45 @@
+{
+  "recorded_at": "2026-11-10T22:48:51.932095+00:00",
+  "entry_commit": "4ae94b2cbdcd500d73f136ed74042609b747a6a4",
+  "network_observations": {
+    "www.find-tender.service.gov.uk": {
+      "dns": true,
+      "https": 200
+    },
+    "pypi.org": {
+      "dns": true,
+      "https": 200
+    },
+    "api.cloudflare.com": {
+      "dns": true,
+      "https": 403,
+      "management_authorization_verified": false
+    }
+  },
+  "git_remote": "NONE_CONFIGURED",
+  "cloudflared_service": "active/running",
+  "credential_binding_checks": {
+    "CLOUDFLARE_API_TOKEN": "ABSENT",
+    "CF_API_TOKEN": "ABSENT",
+    "/home/apexdev/.cloudflared": "MISSING",
+    "/etc/apex": "MISSING"
+  },
+  "implemented": "RS256 Access origin validation and authenticated existing owner-view routing",
+  "deployment": "NOT_DEPLOYED",
+  "live_access_test": "BLOCKED_MISSING_TEAM_ISSUER_APP_AUD_OWNER_AND_VERIFIED_JWKS",
+  "paid_api_spend_gbp": 0,
+  "new_live_provider_connections": 0,
+  "tests": {
+    "run": 208,
+    "passed": 206,
+    "skipped": 2,
+    "failures": 0
+  },
+  "remaining_engineering": [
+    "Full provider inventory and connector implementations",
+    "18 executable specialist roles",
+    "Production runtime packaging and dependency audit",
+    "Parallel execution and independent research/evaluation",
+    "Live owner Access and tunnel verification"
+  ]
+}

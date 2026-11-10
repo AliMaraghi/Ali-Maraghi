@@ -18,3 +18,6 @@ Next executable check: python3 -B scripts/apex worker --once. This may report BL
 
 ## Superseding infrastructure and fairness update
 See WORKER_FAIRNESS_REPORT.md and INFRASTRUCTURE_RECHECK.json. cloudflared is active; remote tunnel health remains unverified. Persistent admission fairness now tested:198 passed,2 skipped. No deployment.
+
+## Access origin increment
+See ACCESS_ORIGIN_REPORT.md and ACCESS_ORIGIN_STATE.json.206 tests pass/2 skip. Real outbound HTTPS verified; signed owner Access validation implemented offline; no deployment or live Access verification.
