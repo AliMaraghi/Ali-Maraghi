@@ -21,7 +21,7 @@ def main(argv=None):
     s=p.add_subparsers(dest='command',required=True)
     s.add_parser('doctor')
     s.add_parser('test-all')
-    connectors=s.add_parser('connectors');connectors.add_argument('operation',choices=['verify'])
+    connectors=s.add_parser('connectors');connectors.add_argument('operation',choices=['verify','probe']);connectors.add_argument('--provider');connectors.add_argument('--query');connectors.add_argument('--trace')
     s.add_parser('audit')
     s.add_parser('costs')
     wo=s.add_parser('worker');wo.add_argument('--once',action='store_true');wo.add_argument('--interval',type=int,default=60)
@@ -65,6 +65,9 @@ def main(argv=None):
                     scheduler=Missions(ledger)
                     result=({'trace_id':scheduler.submit(strict_json(read_local(ROOT,args.target,524288).decode()))}
                             if args.operation=='submit' else scheduler.tick(args.target,ROOT,args.worker))
+        elif args.command=='connectors' and args.operation=='probe':
+            from .providers import probe
+            with Ledger(ROOT) as ledger:result=probe(ledger,args.provider,args.query,args.trace)
         elif args.command in {'connectors','audit','costs'}:
             with Ledger.read_only(ROOT) as ledger:
                 if args.command=='connectors':

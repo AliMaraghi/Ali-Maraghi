@@ -24,6 +24,7 @@ from apex.kernel.schema import strict_json
 LIMIT = 1_048_576
 TIMEOUT = 20
 ROUTES = {
+    'api.crossref.org': {'/works'},
     'www.find-tender.service.gov.uk': {
         '/Developer/Documentation', '/apidocumentation/1.0/GET-ocdsReleasePackages',
         '/api/1.0/ocdsReleasePackages', '/Home/TermsAndConditions',

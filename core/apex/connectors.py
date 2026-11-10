@@ -28,7 +28,8 @@ def verify(ledger):
             'cost_limit':{'currency':'GBP','pence':0},'last_verified':captured if valid else None,
             'health_check':'Historical receipt inspection only; no new network request',
             'error_details':last.get('error'),'receipt_fresh':fresh})
-    return {'providers':providers,'registered_adapter_count':len(providers),
+    from .providers import directory
+    return {'additional_adapters':directory(ledger),'providers':providers,'registered_adapter_count':len(providers),
             'requested_master_register':'PROVIDERS_MASTER_REGISTER.csv',
             'master_register_status':'MISSING_NOT_FABRICATED',
             'credential_discovery':'BLOCKED_AUTHORIZATION: no approved secret-store binding supplied; private stores not scanned',

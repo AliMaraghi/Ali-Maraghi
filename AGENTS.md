@@ -81,3 +81,5 @@ Worker fairness continuation: WORKER_FAIRNESS_REPORT.md;198 passed/2 skipped. wo
 Access origin continuation: read ACCESS_ORIGIN_REPORT.md. owner-view --access-config rejects Basic fallback and validates RS256 owner identity against reviewed expiring JWKS. No live Access binding or production-ready HTTP deployment. Never use fixture keys in production.206 passed/2 optional skips.
 
 Worker operations: WORKER_OPERATIONS_REPORT.md;210 passed/2 skipped. worker_health observations are not deployment proof. Exit78 after3 consecutive failures requires explicit recovery; unit template must retain RestartPreventExitStatus=78. No persistent installation performed.
+
+Provider framework: read PROVIDER_FRAMEWORK_REPORT.md. Crossref live trace crossref-20261110-v1 has3 metadata records; not scientific truth.217 run/215 pass/2 skips. Existing FTS/TED preserved. Catalog not authoritative130 inventory. No arbitrary host or OAuth authority; ambiguous provider attempts never auto-retried.

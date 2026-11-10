@@ -2,13 +2,13 @@
   "recorded_at": "2026-11-10T21:03:00.477009+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
-  "verified_implementation_commit": "Following worker operational health commit; resolve git log",
-  "entry_commit": "b8390d0",
+  "verified_implementation_commit": "Following provider framework commit; resolve git log",
+  "entry_commit": "d694959",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "tests_run": 212,
-    "passed": 210,
+    "tests_run": 217,
+    "passed": 215,
     "skipped": 2,
     "failures": 0,
     "errors": 0,
@@ -103,7 +103,7 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "python3 -B scripts/apex worker --once; see WORKER_OPERATIONS_REPORT.md",
+  "next_action": "python3 -B scripts/apex connectors verify",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
   "field_excluded": 3,
@@ -134,5 +134,7 @@
   "activation_report": "docs/apex_status/INFRASTRUCTURE_ACTIVATION.json",
   "infrastructure_recheck": "docs/apex_status/INFRASTRUCTURE_RECHECK.json",
   "access_origin_report": "docs/apex_status/ACCESS_ORIGIN_REPORT.md",
-  "worker_operations_report": "docs/apex_status/WORKER_OPERATIONS_REPORT.md"
+  "worker_operations_report": "docs/apex_status/WORKER_OPERATIONS_REPORT.md",
+  "provider_live_trace": "crossref-20261110-v1",
+  "provider_framework_report": "docs/apex_status/PROVIDER_FRAMEWORK_REPORT.md"
 }

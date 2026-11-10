@@ -24,3 +24,6 @@ See ACCESS_ORIGIN_REPORT.md and ACCESS_ORIGIN_STATE.json.206 tests pass/2 skip. 
 
 ## Worker operations continuation
 See WORKER_OPERATIONS_REPORT.md and WORKER_OPERATIONS_STATE.json.210 passed/2 skipped. Durable observations and retry exhaustion connected to dashboard; no production deployment. Current session is on VPS; SSH agent unavailable.
+
+## Live research provider increment
+PROVIDER_FRAMEWORK_REPORT.md: Crossref HTTP200,3 metadata records persisted; journal79 verified events.215 tests passed/2 skipped. No production deployment, independent utility claim or paid spend.

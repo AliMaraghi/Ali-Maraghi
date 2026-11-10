@@ -1,0 +1,79 @@
+{
+  "additional_adapters": [
+    {
+      "provider_id": "crossref",
+      "category": "research",
+      "official_api": "https://api.crossref.org/works",
+      "developer_portal": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+      "authentication": "PUBLIC_NO_ACCOUNT",
+      "capability": "bounded_bibliographic_search",
+      "adapter_version": "1",
+      "implementation_state": "IMPLEMENTED",
+      "last_observed_state": "LIVE_VERIFIED",
+      "receipt_seq": 79,
+      "retrieved_at": "2026-11-10T22:54:53.357996+00:00",
+      "health": "HISTORICAL_RECEIPT_NOT_CONTINUOUS_MONITORING",
+      "credential_reference": null,
+      "cost_limit_pence": 0,
+      "pagination": "ONE_PAGE_MAX_3",
+      "retries": 0
+    }
+  ],
+  "providers": [
+    {
+      "provider_id": "fts",
+      "category": "public_procurement",
+      "official_api": "https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages",
+      "authentication_method": "public",
+      "required_scopes": [
+        "public_read"
+      ],
+      "capabilities": [
+        "bounded_notice_search"
+      ],
+      "account_status": "NOT_REQUIRED",
+      "credential_status": "NOT_REQUIRED",
+      "permission_status": "EXPLICIT_LOCAL_COMMAND_REQUIRED",
+      "connection_status": "VERIFIED_LIVE",
+      "rate_limit": "One page/request; max4 requests/mission; zero retries",
+      "cost_limit": {
+        "currency": "GBP",
+        "pence": 0
+      },
+      "last_verified": "2026-11-10T08:09:09.812998+00:00",
+      "health_check": "Historical receipt inspection only; no new network request",
+      "error_details": null,
+      "receipt_fresh": true
+    },
+    {
+      "provider_id": "ted",
+      "category": "public_procurement",
+      "official_api": "https://api.ted.europa.eu/v3/notices/search",
+      "authentication_method": "public",
+      "required_scopes": [
+        "public_read"
+      ],
+      "capabilities": [
+        "bounded_notice_search"
+      ],
+      "account_status": "NOT_REQUIRED",
+      "credential_status": "NOT_REQUIRED",
+      "permission_status": "EXPLICIT_LOCAL_COMMAND_REQUIRED",
+      "connection_status": "VERIFIED_LIVE",
+      "rate_limit": "One page/request; max4 requests/mission; zero retries",
+      "cost_limit": {
+        "currency": "GBP",
+        "pence": 0
+      },
+      "last_verified": "2026-11-10T20:55:21.810119+00:00",
+      "health_check": "Historical receipt inspection only; no new network request",
+      "error_details": null,
+      "receipt_fresh": true
+    }
+  ],
+  "registered_adapter_count": 2,
+  "requested_master_register": "PROVIDERS_MASTER_REGISTER.csv",
+  "master_register_status": "MISSING_NOT_FABRICATED",
+  "credential_discovery": "BLOCKED_AUTHORIZATION: no approved secret-store binding supplied; private stores not scanned",
+  "other_requested_services": "NOT_IMPLEMENTED or BLOCKED_AUTHORIZATION; no connections inferred"
+}

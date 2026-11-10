@@ -1,0 +1,51 @@
+{
+  "trace_id": "crossref-20261110-v1",
+  "provider_id": "crossref",
+  "request_url": "https://api.crossref.org/works?query=evidence+based+decision+making&rows=3&select=DOI%2Ctitle%2Cpublisher%2Ctype%2CURL",
+  "state": "LIVE_VERIFIED",
+  "paid_api_spend_pence": 0,
+  "records": [
+    {
+      "DOI": "10.1007/978-3-319-45733-8_2",
+      "title": [
+        "Principles of Evidence-Based Decision-Making"
+      ],
+      "publisher": "Springer International Publishing",
+      "type": "book-chapter",
+      "URL": "https://doi.org/10.1007/978-3-319-45733-8_2"
+    },
+    {
+      "DOI": "10.1007/978-3-319-45733-8_5",
+      "title": [
+        "Evidence-Based Decision-Making in Restoration of the Natural Dentition"
+      ],
+      "publisher": "Springer International Publishing",
+      "type": "book-chapter",
+      "URL": "https://doi.org/10.1007/978-3-319-45733-8_5"
+    },
+    {
+      "DOI": "10.1007/978-3-319-45733-8_3",
+      "title": [
+        "Evidence-Based Decision Making in Dentistry: The Endodontic Perspective"
+      ],
+      "publisher": "Springer International Publishing",
+      "type": "book-chapter",
+      "URL": "https://doi.org/10.1007/978-3-319-45733-8_3"
+    }
+  ],
+  "retrieved_at": "2026-11-10T22:54:53.357996+00:00",
+  "http_status": 200,
+  "hops": [
+    {
+      "url": "https://api.crossref.org/works?query=evidence+based+decision+making&rows=3&select=DOI%2Ctitle%2Cpublisher%2Ctype%2CURL",
+      "peer_ip": "100.51.192.124",
+      "status": 200
+    }
+  ],
+  "error": null,
+  "capability": "bounded_bibliographic_search",
+  "independent_truth_verified": false,
+  "terms_url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+  "raw_response": "{\"status\":\"ok\",\"message-type\":\"work-list\",\"message-version\":\"1.0.0\",\"message\":{\"facets\":{},\"total-results\":8883045,\"items\":[{\"DOI\":\"10.1007\\/978-3-319-45733-8_2\",\"title\":[\"Principles of Evidence-Based Decision-Making\"],\"publisher\":\"Springer International Publishing\",\"type\":\"book-chapter\",\"URL\":\"https:\\/\\/doi.org\\/10.1007\\/978-3-319-45733-8_2\"},{\"DOI\":\"10.1007\\/978-3-319-45733-8_5\",\"title\":[\"Evidence-Based Decision-Making in Restoration of the Natural Dentition\"],\"publisher\":\"Springer International Publishing\",\"type\":\"book-chapter\",\"URL\":\"https:\\/\\/doi.org\\/10.1007\\/978-3-319-45733-8_5\"},{\"DOI\":\"10.1007\\/978-3-319-45733-8_3\",\"title\":[\"Evidence-Based Decision Making in Dentistry: The Endodontic Perspective\"],\"publisher\":\"Springer International Publishing\",\"type\":\"book-chapter\",\"URL\":\"https:\\/\\/doi.org\\/10.1007\\/978-3-319-45733-8_3\"}],\"items-per-page\":3,\"query\":{\"start-index\":0,\"search-terms\":\"evidence based decision making\"}}}",
+  "sha256": "34cd6fd6aede491345a469fb85ce5292aeb43a08baa2d0b104ba37a68c26b91d"
+}
