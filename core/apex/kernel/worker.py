@@ -1,7 +1,6 @@
 """Supervisable local scheduler loop, fixed handlers and no implicit networking."""
 import json
 import signal
-import time
 from .memory import Ledger
 from .schedules import Schedules
 from .policy import enforce_durable_stop
@@ -16,11 +15,34 @@ def cycle(root):
         outcomes=[]
         try:released=scheduler.poll()['released']
         except ValueError:released=[];outcomes.append({'stage':'schedule','state':'BLOCKED_INPUT_OR_CODE'})
-        # Each cycle has a strict admission cap; historical complete graphs skipped.
-        for (trace,) in ledger.db.execute('SELECT id FROM mission_graphs ORDER BY id').fetchall():
-            state=scheduler.missions.status(trace)
-            if all(n['state'] in {'COMPLETE','DEAD'} for n in state['nodes']):continue
-            if len(outcomes)>=4:break
+        # Persist admission before executing. A crash may defer an admitted graph
+        # by one rotation, but cannot repeatedly pin the head of the queue.
+        # Job leases, not this cursor, fence actual execution attempts.
+        with ledger.transaction():
+            enforce_durable_stop(ledger)
+            ledger.db.execute("""CREATE TABLE IF NOT EXISTS worker_dispatch (
+                singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+                last_trace TEXT NOT NULL, generation INTEGER NOT NULL)""")
+            ledger.db.execute("INSERT OR IGNORE INTO worker_dispatch VALUES(1,'',0)")
+            last,generation=ledger.db.execute(
+                'SELECT last_trace,generation FROM worker_dispatch WHERE singleton=1').fetchone()
+            traces=[r[0] for r in ledger.db.execute(
+                'SELECT id FROM mission_graphs ORDER BY id')]
+            ordered=[t for t in traces if t>last]+[t for t in traces if t<=last]
+            admitted=[]
+            for trace in ordered:
+                state=scheduler.missions.status(trace)
+                if all(n['state'] in {'COMPLETE','DEAD'} for n in state['nodes']):
+                    continue
+                admitted.append(trace)
+                if len(admitted)==4:break
+            if admitted:
+                ledger.db.execute('UPDATE worker_dispatch SET last_trace=?,generation=? WHERE singleton=1',
+                                  (admitted[-1],generation+1))
+                ledger._append('dispatch-'+str(generation+1),'decision','opportunity',
+                               {'admitted':admitted,'previous_cursor':last,
+                                'status':'ADMITTED_NOT_EXECUTED'})
+        for trace in admitted:
             try:
                 result=scheduler.missions.tick(trace,root,'managed-local-worker')
                 outcomes.append({'trace_id':trace,'state':'TICK_COMPLETED','nodes':result['nodes']})

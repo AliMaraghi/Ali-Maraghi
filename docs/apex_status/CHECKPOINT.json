@@ -2,13 +2,13 @@
   "recorded_at": "2026-11-10T21:03:00.477009+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
-  "verified_implementation_commit": "Following local activation increment commit; use git log",
-  "entry_commit": "4b8a685",
+  "verified_implementation_commit": "Following worker fairness commit; resolve with git log",
+  "entry_commit": "ad6bd94",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "tests_run": 195,
-    "passed": 193,
+    "tests_run": 200,
+    "passed": 198,
     "skipped": 2,
     "failures": 0,
     "errors": 0,
@@ -103,7 +103,7 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "Read ACTIVATION_INCREMENT_REPORT.md; scripts/apex worker --once",
+  "next_action": "Read WORKER_FAIRNESS_REPORT.md; python3 -B scripts/apex worker --once",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
   "field_excluded": 3,
@@ -131,5 +131,6 @@
     "remaining_occurrences": 1,
     "background_service": false
   },
-  "activation_report": "docs/apex_status/INFRASTRUCTURE_ACTIVATION.json"
+  "activation_report": "docs/apex_status/INFRASTRUCTURE_ACTIVATION.json",
+  "infrastructure_recheck": "docs/apex_status/INFRASTRUCTURE_RECHECK.json"
 }

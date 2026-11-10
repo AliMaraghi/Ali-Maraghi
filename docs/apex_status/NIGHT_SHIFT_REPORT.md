@@ -15,3 +15,6 @@ Exact blockers: no scoped Cloudflare API/token binding, no cloudflared binary, D
 130-provider source inventory is not available in the authorized project sources. Previous124-package searches remain in PACKAGE_DISCOVERY_20261110.json. Two procurement adapters exist; no private service was activated. Browser/account registration is not delegated API authority. Do not scan unrelated secret stores or invent missing provider rows.
 
 Next executable check: python3 -B scripts/apex worker --once. This may report BLOCKED_INPUT_OR_CODE for historical schedules, correctly. Re-review and create a new identity before resuming a changed schedule. Managed installation requires a verified staging administrator path; no background execution continues after this session. Rollback reverts code/unit template only, retaining database/audit/evidence.
+
+## Superseding infrastructure and fairness update
+See WORKER_FAIRNESS_REPORT.md and INFRASTRUCTURE_RECHECK.json. cloudflared is active; remote tunnel health remains unverified. Persistent admission fairness now tested:198 passed,2 skipped. No deployment.

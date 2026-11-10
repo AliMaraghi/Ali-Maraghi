@@ -1,0 +1,21 @@
+{
+  "observed_at": "2026-11-10T22:42:06.829845+00:00",
+  "entry_commit": "ad6bd9492add11048624faf19673cba6e166d462",
+  "branch": "apex/unified-field-integration",
+  "cloudflared_service": {
+    "LoadState": "loaded",
+    "ActiveState": "active",
+    "SubState": "running"
+  },
+  "console_dns": "NXDOMAIN",
+  "tunnel_remote_health": "NOT_VERIFIED",
+  "universal_ssl": "NOT_VERIFIED",
+  "access_owner_policy": "NOT_VERIFIED",
+  "management_credential": "NO_ROTATED_APPROVED_BINDING_FOUND",
+  "user_systemd": "Failed to connect to bus: No data available",
+  "system_install": "BLOCKED: sudo no-new-privileges; no approved privileged tool available",
+  "deployment_performed": false,
+  "paid_api_spend_gbp": 0,
+  "live_api_probes_this_increment": 0,
+  "scope": "Service active does not prove tunnel connectivity; DNS observation is local resolver result."
+}

@@ -75,3 +75,5 @@ Mission runtime continuation: read MISSION_RUNTIME_REPORT.md. missions CLI sched
 Recurring schedules: SCHEDULE_INCREMENT_REPORT.md. schedules add/poll/status persists bounded recurrence; no daemon. Evidence expiry is never refreshed by scheduling. Six old mission jobs preserved.191 tests passed/2 skipped.
 
 Activation continuation: read ACTIVATION_INCREMENT_REPORT.md. /console and /reports are authenticated local database projections; worker CLI executable but no persistent service installed. Production authentication/staging credentials unavailable.193 tests passed/2 skipped.
+
+Worker fairness continuation: WORKER_FAIRNESS_REPORT.md;198 passed/2 skipped. worker_dispatch is an additive audited rotating cursor, not a second job queue. cloudflared system service active; origin/Access/TLS and supervised APEX deployment unverified. Preserve old code-fingerprint blocks.
