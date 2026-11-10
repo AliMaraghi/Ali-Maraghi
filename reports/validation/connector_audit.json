@@ -1,0 +1,5 @@
+{
+  "verified_events": 32,
+  "status": "VERIFIED_OFFLINE",
+  "scope": "Local hash chain; not protected against privileged owner rewrite"
+}

@@ -1,0 +1,13 @@
+{
+  "searched_root": "/home/apexdev/apex-work",
+  "requested_paths": [
+    "/home/apexdev/apex-work/APEX_ALL_RECOVERED_PROJECT_ARCHIVE_2026-11-10.zip",
+    "/home/apexdev/apex-work/APEX_ACCESS_FOUNDATION_FULL_2026-11-10.zip",
+    "/home/apexdev/apex-work/APEX_UNIFIED_REAL_WORLD_KIT_2026-11-10.zip",
+    "/home/apexdev/apex-work/APEX_CODEX_SINGLE_HANDOFF_2026-11-10.zip",
+    "/home/apexdev/apex-work/PROVIDERS_MASTER_REGISTER.csv"
+  ],
+  "matching_files": [],
+  "matching_archive_members": [],
+  "outside_workspace": "Not searched: no authorization to inspect private stores or production"
+}

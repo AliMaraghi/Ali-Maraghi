@@ -157,7 +157,9 @@ def run(mission, root, ledger, *, network_authorized=False):
     now = datetime.now(timezone.utc)
     if timestamp(mission.deadline) <= now: raise ValueError('Mission expired; historical reports remain readable')
     payload = canonical(asdict(mission))
-    fingerprint = hashlib.sha256((payload + code_digest()).encode()).hexdigest()
+    adapter_digest = hashlib.sha256(b''.join(p.read_bytes() for p in sorted(
+        (Path(__file__).parents[1]/'sources').glob('*.py')))).hexdigest()
+    fingerprint = hashlib.sha256((payload + code_digest() + adapter_digest).encode()).hexdigest()
     with ledger.transaction():
         ensure_running(queue)
         ledger.db.execute((Path(__file__).parent/'migrations/002_field_runs.sql').read_text())

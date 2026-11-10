@@ -1,0 +1,33 @@
+{
+  "transport": {
+    "retrieved_at": "2026-11-10T20:31:25.525578+00:00",
+    "hops": [
+      {
+        "url": "https://api.ted.europa.eu/v3/notices/search",
+        "peer_ip": "18.66.147.101",
+        "status": 200
+      }
+    ],
+    "http_status": 200,
+    "content_type": "application/json",
+    "sha256": "e9b9f397c7d77a0b2eadcfcde2c852d48a9e74a4d6536a073421b9c98ce64af0",
+    "bytes": 51182
+  },
+  "top_level_types": {
+    "notices": "list",
+    "totalNoticeCount": "int",
+    "iterationNextToken": "NoneType",
+    "timedOut": "bool"
+  },
+  "notice_field_types": [
+    {
+      "notice-type": "str",
+      "publication-number": "str",
+      "classification-cpv": "list",
+      "publication-date": "str",
+      "links": "dict",
+      "notice-title": "dict",
+      "buyer-country": "list"
+    }
+  ]
+}

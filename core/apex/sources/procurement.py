@@ -133,10 +133,11 @@ def parse_ted(data, captured):
         pd = date.fromisoformat(published[:10])
         if pd > captured.date(): raise SourceError('Future TED publication')
         fields = {}
-        for key in ['buyer-country','classification-cpv','notice-type','deadline-receipt-tender-date-lot']:
+        for key in ['buyer-country','classification-cpv','deadline-receipt-tender-date-lot']:
             values = r.get(key, [])
             if not isinstance(values, list) or len(values) > 100: raise SourceError('Invalid TED array')
             fields[key] = [text(v, 100) for v in values]
+        fields['notice-type'] = [text(r.get('notice-type', 'unknown'), 100)]
         flags = ['PORTAL_DEADLINE_UNVERIFIED', 'ELIGIBILITY_UNKNOWN']
         if any(v.startswith(('can-', 'veat')) for v in fields['notice-type']): flags.append('AWARD_OR_CONTRACT_STAGE')
         result.append({'record_id': rid, 'title': text(title), 'buyer': 'UNKNOWN_NOT_REQUESTED',

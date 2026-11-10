@@ -1,26 +1,18 @@
-# Field outcome — 10 November 2026
+# Connector continuation — 10 November 2026
 
-Actual command: python3 -B scripts/apex pilot examples/field_public_pilot.json --source live --read-only
-Trace field-20261110-v1, terminal ledger sequence 24, existing development SQLite.
-Seven official UK notices observed: four candidates awaiting validation, three excluded.
-Two candidates are founder-supplied seeds; two arose from a bounded API date scan.
-No independently corroborated opportunity, submitted bid, owner approval or income.
+Entry commit822205d; existing integration branch retained. Original manifesto SHA256 remains 3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd.
 
-- Town Hall Wayfinding 101089-2026: official API reports GBP50000 and 16 November 2026 11:00 UTC. Portal still unchecked.
-- ROG First Light 093337-2026: GBP220000, API deadline absent. Conflicting 12/13 November references remain unresolved; do not infer a deadline.
-- 106452-2026 strategic partner contract: GBP8000000; 7 December 2026 15:00 UTC in notice. Founder eligibility unknown.
-- 106450-2026 due diligence EOI: amount unknown; 14 December 2026 12:00 UTC in notice. Further research only.
-- Space Technology Solutions, temporary hall and Network Rail notices excluded for stage/status flags.
+Fixed TED notice-type parsing: official OpenAPI and live response specify string, previous parser incorrectly required list. Five real TED notices now persist through field trace ted-field-20261110-v2: three candidates awaiting validation, two excluded. No independent verification, bid, income or owner approval claimed. Previous UK trace preserved.
 
-All source URLs, timestamps, response hashes and minimized fields are in INTEGRATION_TRACE_REAL_WORLD.json.
-TED returned HTTP200 but schema validation rejected the response. Exact schema mismatch still needs diagnosis; no fabricated EU record.
-Supplier entity, insurance, delivery experience, capacity, travel, subcontractors, capital, margin and effort remain UNKNOWN.
-Independent corroboration, manual comparison, time saved and owner usefulness NOT MEASURED. No promotion authorized.
+New executable commands: python3 -B scripts/apex connectors verify; audit; costs. Connector status inspects timestamped durable receipts without silently making network calls. Two installed procurement adapters, not 124 verified services. Credential store binding absent; no private secrets scanned. Missing packages/register search is recorded in PACKAGE_DISCOVERY_20261110.json.
 
-IMPLEMENTED AND TESTED: bounded transport, official request builders, local field pipeline, existing queue integration, atomic terminal audit, crash ambiguity denial, scoped local owner decision and authenticated loopback read-only view.
-PARTIAL: deterministic research/criticism and ranking, four-plane integration, data contracts and owner interface.
-BLOCKED: TED schema compatibility, independent portal checks, private iPhone/TLS access, service deployment, provider/account credentials and any paid calls.
-NOT IMPLEMENTED: full autonomous multi-agent runtime, production scheduler, offsite recovery, banking, final rendered film and complete domain acceptance.
+Field identity now binds source adapter code as well as kernel code. Existing missions remain historical; changed code must use new IDs. No source limits or safety checks relaxed.
 
-No services deployed or background worker installed. GBP0 paid API spend. Existing compose has unpinned dependencies and no n8n; up/down commands explicitly refuse lifecycle changes.
-Rollback: stop development field work, preserve ledger and public-evidence files, revert code commit on a new branch. Migration adds field_runs only; never delete audit records. Pre-migration development backup is work/pre-field-20261110/kernel.sqlite3.
+VERIFIED_LIVE: bounded TED read and persistent local workflow; earlier FTS read.
+VERIFIED_OFFLINE: regression, fenced queue, audit integrity, stop, typed zero budget, authenticated loopback tests.
+IMPLEMENTED_UNVERIFIED: full independent commercial qualification and current remote service health.
+BLOCKED_AUTHORIZATION: private providers, banking, paid AI, deployment, accounts and consequential actions.
+BLOCKED_INFRASTRUCTURE: approved staging stack, secure remote iPhone interface, offsite backup and persistent VPS scheduler.
+NOT_IMPLEMENTED: complete 18-role autonomous runtime and full-domain acceptance. No background workers installed.
+
+Baseline comparison remains NOT MEASURED independently; no superiority or time-saving claim. API spend GBP0. Audit/cost receipts are in reports/validation/connector_*.json. Rollback: revert this code increment without deleting existing ledger/evidence; old mission reports remain readable.

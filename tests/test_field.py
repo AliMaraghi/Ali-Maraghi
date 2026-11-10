@@ -82,7 +82,7 @@ class AdapterContractTests(unittest.TestCase):
     def test_ted_exact_counts_no_future_or_duplicate(self):
         row={'publication-number':'123-2026','notice-title':{'eng':'Synthetic IT'},
              'publication-date':NOW.date().isoformat(),'buyer-country':['IRL'],
-             'classification-cpv':['72000000'],'notice-type':['can-standard']}
+             'classification-cpv':['72000000'],'notice-type':'can-standard'}
         data={'notices':[row],'totalNoticeCount':10,'timedOut':False}
         rows,total=p.parse_ted(data,NOW)
         self.assertEqual(total,10);self.assertIn('AWARD_OR_CONTRACT_STAGE',rows[0]['disconfirming_flags'])
@@ -164,6 +164,17 @@ class FieldTests(unittest.TestCase):
     def execute(self):
         with patch.object(p,'retrieve',return_value=envelope()):
             return run(mission(),self.root,self.ledger,network_authorized=True)
+
+    def test_connector_inventory_never_invents_live_connection(self):
+        from apex.connectors import verify
+        before=verify(self.ledger)
+        self.assertEqual(before['registered_adapter_count'],2)
+        self.assertTrue(all(p['connection_status']=='IMPLEMENTED_UNVERIFIED' for p in before['providers']))
+        self.execute()
+        after=verify(self.ledger)
+        self.assertEqual(after['providers'][0]['connection_status'],'VERIFIED_LIVE')
+        self.assertEqual(after['providers'][1]['connection_status'],'IMPLEMENTED_UNVERIFIED')
+        self.assertEqual(after['master_register_status'],'MISSING_NOT_FABRICATED')
 
     def test_real_components_pipeline_replay_no_duplicate_retrieval(self):
         result=self.execute()

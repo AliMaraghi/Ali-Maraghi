@@ -67,3 +67,5 @@ not verified demand. The unmodified reference still has its five known defects.
 
 ## Unified field continuation
 Current branch apex/unified-field-integration. Read FIELD_OUTCOME_REPORT.md and NEXT_ACTION.md. Seven real UK notices observed, four unverified candidates (two founder seeds), three excluded; TED schema rejected. Unified entrypoint scripts/apex. No production or paid authority. Preserve original sources and runtime evidence.
+
+TED continuation: read CONNECTOR_INCREMENT_REPORT.md. Trace ted-field-20261110-v2 contains five real notices, three unverified candidates and two exclusions. Latest suite181 passed/2 skipped. No124-provider registry found; no credential storage approved.

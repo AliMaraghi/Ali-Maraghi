@@ -21,6 +21,9 @@ def main(argv=None):
     s=p.add_subparsers(dest='command',required=True)
     s.add_parser('doctor')
     s.add_parser('test-all')
+    connectors=s.add_parser('connectors');connectors.add_argument('operation',choices=['verify'])
+    s.add_parser('audit')
+    s.add_parser('costs')
     st=s.add_parser('status');st.add_argument('--json',action='store_true')
     pi=s.add_parser('pilot');pi.add_argument('mission');pi.add_argument('--source',choices=['live'],required=True);pi.add_argument('--read-only',action='store_true',required=True)
     re=s.add_parser('report');re.add_argument('--trace',required=True)
@@ -37,7 +40,20 @@ def main(argv=None):
             return kernel(args.args)
         if args.command=='test-all':
             return subprocess.run([sys.executable,'-B',str(ROOT/'scripts/test_offline.py')],cwd=ROOT).returncode
-        if args.command=='doctor':
+        if args.command in {'connectors','audit','costs'}:
+            with Ledger.read_only(ROOT) as ledger:
+                if args.command=='connectors':
+                    from .connectors import verify
+                    result=verify(ledger)
+                elif args.command=='audit':
+                    result={'verified_events':ledger.verify(),'status':'VERIFIED_OFFLINE',
+                            'scope':'Local hash chain; not protected against privileged owner rewrite'}
+                else:
+                    events=ledger.records('opportunity')
+                    runs=[e['payload'] for e in events if e['key'].startswith('field-result-')]
+                    result={'recorded_field_runs':len(runs),'paid_api_spend_pence':sum(r['paid_api_spend_pence'] for r in runs),
+                            'currency':'GBP','budget_pence':0,'scope':'Recorded field runs only; hosting/human costs NOT_MEASURED'}
+        elif args.command=='doctor':
             result={'workspace':str(ROOT),'mode':'DEVELOPMENT_ONLY','database':'runtime/kernel.sqlite3',
                 'dependencies':{name:importlib.util.find_spec(name) is not None for name in ['fastapi','httpx','psycopg','uvicorn']},
                 'service_state':'NOT_INSPECTED_NO_DOCKER_OR_PRODUCTION_ACCESS',

@@ -1,14 +1,14 @@
 {
-  "recorded_at": "2026-11-10T07:51:22.313827+00:00",
+  "recorded_at": "2026-11-10T20:33:01.607276+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
-  "verified_implementation_commit": "See following local Git commit; previous implementation 59d37f6",
-  "entry_commit": "6bb2a97",
+  "verified_implementation_commit": "Following local connector commit; use git log",
+  "entry_commit": "822205d",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "tests_run": 182,
-    "passed": 180,
+    "tests_run": 183,
+    "passed": 181,
     "skipped": 2,
     "failures": 0,
     "errors": 0,
@@ -22,12 +22,9 @@
     "Retained exact snapshot count/membership validation"
   ],
   "source_adapter": {
-    "status": "TESTED_OFFLINE_LIVE_COMPATIBILITY_BLOCKED",
-    "manual_live_invocations": 2,
-    "usable_notice_packets": 0,
-    "blocker": "Server exceeded requested page size",
-    "current_endpoint_licence_verified": false,
-    "next_requirement": "Verify authoritative current GET parameter/body contract and licence; preserve caps before one authorized bounded request"
+    "fts": "VERIFIED_LIVE historical bounded read",
+    "ted": "VERIFIED_LIVE bounded read; no independent truth validation",
+    "contracts_finder": "BLOCKED request compatibility"
   },
   "actual_local_job": {
     "id": "cf-diagnostic-job-20261110",
@@ -106,8 +103,14 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "Read NEXT_ACTION.md; diagnose TED schema rejection, primary portal corroboration and independent baseline remain open",
+  "next_action": "Read CONNECTOR_INCREMENT_REPORT.md and run scripts/apex report --trace ted-field-20261110-v2",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
-  "field_excluded": 3
+  "field_excluded": 3,
+  "latest_field_trace": "ted-field-20261110-v2",
+  "latest_field_counts": {
+    "observed": 5,
+    "candidate_unverified": 3,
+    "excluded": 2
+  }
 }
