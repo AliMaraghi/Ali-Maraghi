@@ -22,6 +22,11 @@ def main(argv=None):
     review.add_argument("--kill-state", choices=[x.value for x in KillState], default="RUNNING")
     proposal = sub.add_parser('propose')
     proposal.add_argument('input', help='Relative evidence case JSON')
+    owp = sub.add_parser('owp-plan')
+    owp.add_argument('input', help='Relative bounded search request JSON')
+    owp.add_argument('--kill-state', choices=[x.value for x in KillState], default='RUNNING')
+    coverage = sub.add_parser('owp-coverage')
+    coverage.add_argument('input', help='Relative snapshot coverage record JSON')
     workflow = sub.add_parser('workflow')
     workflow.add_argument('input', help='Relative JSON containing task and case')
     workflow.add_argument('--kill-state', choices=[x.value for x in KillState], default='RUNNING')
@@ -34,6 +39,13 @@ def main(argv=None):
     # Determined by installed source, never by a research document or environment variable.
     root = Path(__file__).resolve().parents[3]
     try:
+        if args.command in {'owp-plan', 'owp-coverage'}:
+            from .owp import plan_search, inspect_coverage
+            packet = strict_json(read_local(root, args.input, 262144).decode())
+            result = (plan_search(packet, Policy('opportunity', KillState(args.kill_state)))
+                      if args.command == 'owp-plan' else inspect_coverage(packet, root))
+            print(json.dumps(result, indent=2, ensure_ascii=True, allow_nan=False))
+            return 0  # Preparation/inspection completed; no retrieval or value claim.
         if args.command == 'report':
             from .workflow import read_report
             with Ledger.read_only(root) as ledger:

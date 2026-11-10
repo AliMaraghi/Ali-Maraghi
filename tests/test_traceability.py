@@ -38,7 +38,26 @@ class TraceabilityTests(unittest.TestCase):
         required |= {"APP-" + key for key in ("HEALTH", "KERNEL", "PWA", "ML", "ORIGINALITY", "PRESERVATION", "ACCEPTANCE", "BLOCKERS", "SIGNATURE", "ARCHIVE", "ARCHIVED-GATE")}
         required |= {f"A{i:02}" for i in range(1, 10)} | {f"G{i}" for i in range(8)}
         required |= {f"HISTORICAL-12-{i}" for i in range(1, 11)} | {f"HISTORICAL-18-{i}" for i in range(3, 7)}
+        required |= {f"CLAUSE-5-{i}" for i in range(1, 7)} | {f"ARCHIVED-5-{i}" for i in range(1, 7)}
         self.assertTrue(required <= ids)
+
+    def test_export_preserves_all_ids_and_both_six_sublayer_sets(self):
+        import csv
+        import io
+        import sys
+        from unittest.mock import patch
+        spec = importlib.util.spec_from_file_location('export_ledger', ROOT/'scripts/export_requirement_ledger.py')
+        module = importlib.util.module_from_spec(spec)
+        with patch.dict(sys.modules, {'traceability': trace}):
+            spec.loader.exec_module(module)
+        output = module.export(self.registry)
+        rows = list(csv.DictReader(io.StringIO(output)))
+        self.assertEqual(len(rows), len(self.registry['requirements']))
+        self.assertEqual({r['requirement_id'] for r in rows},
+                         {r['requirement_id'] for r in self.registry['requirements']})
+        self.assertTrue(all(r['macroplanes'] and r['acceptance_status'] != 'PASS' for r in rows))
+        for name in ('TRACEABILITY.csv', 'REQUIREMENT_LEDGER.csv'):
+            self.assertEqual((ROOT/'docs/apex_status'/name).read_text(), output)
 
     def test_dropping_one_source_line_fails(self):
         data = copy.deepcopy(self.registry)

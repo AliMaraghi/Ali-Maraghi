@@ -1,60 +1,53 @@
-# Resume here — verified first increment
+# Resume here — 2026-11-10
 
-Updated 2026-11-09. Inspect `git status`, latest local log and reports before
-editing. Do not restart or regenerate original documents. Pre-increment snapshot:
-`61adae7`; latest local implementation commit records the verified work.
+Workspace /home/apexdev/apex-work; branch apex/four-layer-owp-integration.
+Read CHECKPOINT.json, NIGHT_SHIFT_REPORT.md, REVIEW_KIT_DECISIONS.md and
+ARCHITECTURE_DECISIONS.md. Inspect `git status --short --branch` and `git log -5`.
+Entry bcde451; workflow checkpoint0cb89f8; later implementation commit in checkpoint.
+Do not restart, regenerate originals or import the reference runtime wholesale.
+The uploaded ZIP is deliberately untracked and unchanged; ignored extraction is
+work/review-kit/APEX_EPOCH_ENGINEERING_V1. No production work or spending permitted.
 
-## Completed and reproduced
+## Verified state
 
-- Full authoritative-source/prior-run audit; 14/14 packaged hashes match.
-- Manifesto SHA-256: `3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd`.
-- Local kernel, deterministic critic/gateway, journal, evaluator and rollback.
-- Legacy health/feed/input/backup repairs and offline regression tests.
-- Opportunity calculator, personal planner and 75-second film production kit.
-- 178 requirement groups/clauses and 968 immutable source-line references.
-- 96 tests passed; 2 web integration tests skipped; no test failures.
-- Policy:24/24 versus weak rule13/24 and conventional checklist24/24.
-- CLI restart/idempotency/domain-filter smoke passed.
+135 current tests passed; 2 optional web integrations skipped. Reference69 passed
+but five security/reliability defects reproduced and excluded. Original13 listed hashes
+match. All178 trace groups/968 source units retained, both six-sublayer sets,
+18 role slots, 0–18, appendices and A01–A09. None is fully accepted.
 
-## Next atomic tasks, in order
+Working: evidence/replay/report workflow, strict zero-cost local policy, persistent
+journal, per-case lab receipts, domain utilities, pre-production studio exports,
+OWP bounded dynamic preparation and hashed local coverage, synthetic restore drill.
+No live sources/models/worker/PWA/film/customer demand. No background activity.
 
-1. Independently review semantic decomposition and code. Source-line retention
-   does not prove every compound obligation has been atomized.
-2. Create a real public-source evidence packet with dates, rights/provenance,
-   contrary evidence and reproducible retrieval; compare a manual checklist.
-   Current artifacts are synthetic, not verified market/customer demand.
-3. Implement a bounded hypothesis proposal interface using that packet. Candidates
-   are currently operator supplied; lexical diversity is insufficient. Keep
-   deterministic policy outside any model output.
-4. Prepare an isolated dependency-locked FastAPI/Postgres test environment without
-   production access. Dependencies are absent; respect network permissions for
-   downloads. No Docker or service launch is authorized by this record.
-5. Follow 21_DAY_SCORECARD.md: ten opportunities/three independent checks, then
-   lawful footage and founder style review. Final film remains BLOCKED.
+## Next bounded increments, in order
 
-Unproven: semantic truth, intelligent discovery, economic value, comparative model
-performance, encrypted memory, global kill/revocation, live integration, production
-recovery, real film and all full manifesto acceptance criteria.
+1. Independent code/semantic review of this branch. Use exact 48-file inventory;
+   do not overwrite verified kernel with reference database/gateway/worker. Read
+   SECURITY_FINDINGS.md and reproduce adverse reference probes if needed.
+2. Design one lawful public-source adapter against the actual source license and
+   current endpoint. Before fetching, obtain any required sandbox network grant;
+   enforce allowlisted hosts, every DNS address/redirect, size/time/retry limits.
+   Do not use existing monitor/service scripts or accounts as a shortcut. Produce
+   a dated public packet with disconfirming evidence and exact coverage limits.
+3. With independent fresh cases, compare APEX to a complete manual checklist at
+   equal time/access. Measure unsupported claims, correction minutes and usefulness.
+   Current frozen24 cases are regression only. No three real opportunity records
+   may be invented from the synthetic examples.
+4. If durable workers are justified, implement attempt fencing and transactional
+   state/audit plus stop checks BEFORE handlers; test competing processes, crash,
+   lease expiry, retries/dead letters. Do not import the known-broken reference.
+5. Isolate/lock missing web dependencies before service integration; no production
+   service launch is authorized. Film remains blocked until lawful actual footage,
+   renderer, QC and founder/independent style review are available.
 
-Read RDE_ARCHITECTURE.md, SECURITY_AND_ROLLBACK.md, REALITY_BASELINE.md,
-DECISION_LOG.md and CONSTITUTION_COVERAGE.md. Run `python3 -B scripts/test_offline.py`
-for available tests; do not repeat broad tests absent changes/failures/new concerns.
-Runtime is ignored runtime/; scratch is ignored work/. No public push, production,
-paid APIs or personal/employer accounts. Budget GBP0/USD0; GBP20 is only proposed.
+## Reproduce
 
-## Night-shift continuation (supersedes earlier implementation counts)
+PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/test_offline.py
+python3 -B scripts/traceability.py
+python3 -B scripts/audit_review_kit.py --probe-reference
+PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/smoke_local_recovery.py
 
-Read NIGHT_SHIFT_REPORT.md and `git log` first. Night tests:111 passed, two skipped.
-Rule-based hypothesis proposal now exists (`python -m apex.kernel.cli propose
-examples/evidence_review_synthetic.json` with PYTHONPATH=core). That example
-correctly abstains: synthetic sources cannot support evidence-backed proposals.
-Opportunity ranking, per-case evolution receipts, dry-run scheduling, local journal
-health and pre-production SRT export are implemented/tested. No new subagents ran.
-
-Next: obtain a real public-source packet and independently review claim entailment;
-measure proposal usefulness against a manual causal checklist on fresh cases.
-Add authorized retrieval only after assessing network boundaries. Isolate and lock
-web-service dependencies before integration tests. Test recovery on a local copied
-journal and bound same-user access before proposing any production work. Supply
-lawful footage and independent audiovisual/style review before film completion.
-Existing frozen benchmark cases are regression data, no longer unseen.
+See OPERATIONAL_RUNBOOK.md for CLI examples and expiry/replay semantics. Maintain
+records and local commits. Report in Persian; technical logs English. GBP0 paid
+budget; proposedGBP20 is not authority. Nov30 is continue/pivot/stop review.

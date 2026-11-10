@@ -1,0 +1,8 @@
+{
+  "schema": "apex.model-registry.v1",
+  "runtime_adapters": [],
+  "status": "NO_MODEL_ADAPTER_CONFIGURED",
+  "paid_budget_pence": 0,
+  "vendor_prices_verified": false,
+  "note": "The development coding assistant is not an installed APEX runtime model. No API identifiers or current prices are invented."
+}

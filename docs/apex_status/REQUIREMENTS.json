@@ -136,6 +136,10 @@
         {
           "path": "core/apex/kernel/evidence.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/owp.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
@@ -146,12 +150,20 @@
         {
           "path": "tests/test_legacy_security.py",
           "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_owp.py",
+          "relationship": "bounded_offline_tests_only"
         }
       ],
       "evidence": [
         {
           "path": "reports/validation/offline_tests.txt",
           "scope": "synthetic_and_mocked_software_tests_not_domain_acceptance"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -286,11 +298,19 @@
         {
           "path": "core/apex/kernel/policy.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/workflow.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
         {
           "path": "tests/test_kernel.py",
+          "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_workflow.py",
           "relationship": "bounded_offline_tests_only"
         }
       ],
@@ -298,6 +318,10 @@
         {
           "path": "reports/validation/offline_tests.txt",
           "scope": "synthetic_and_mocked_software_tests_not_domain_acceptance"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -380,6 +404,10 @@
         {
           "path": "core/apex/kernel/opportunities.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/owp.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
@@ -398,6 +426,10 @@
         {
           "path": "tests/test_night_operations.py",
           "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_owp.py",
+          "relationship": "bounded_offline_tests_only"
         }
       ],
       "evidence": [
@@ -408,6 +440,10 @@
         {
           "path": "reports/validation/night_tests_final.txt",
           "scope": "synthetic_software_tests_only"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -1595,11 +1631,19 @@
         {
           "path": "core/apex/kernel/policy.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/workflow.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
         {
           "path": "tests/test_kernel.py",
+          "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_workflow.py",
           "relationship": "bounded_offline_tests_only"
         }
       ],
@@ -1607,6 +1651,10 @@
         {
           "path": "reports/validation/offline_tests.txt",
           "scope": "synthetic_and_mocked_software_tests_not_domain_acceptance"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -4568,6 +4616,10 @@
         {
           "path": "core/apex/kernel/discovery.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/workflow.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
@@ -4582,6 +4634,10 @@
         {
           "path": "tests/test_night_operations.py",
           "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_workflow.py",
+          "relationship": "bounded_offline_tests_only"
         }
       ],
       "evidence": [
@@ -4592,6 +4648,10 @@
         {
           "path": "reports/validation/night_tests_final.txt",
           "scope": "synthetic_software_tests_only"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -4623,6 +4683,10 @@
         {
           "path": "core/apex/kernel/discovery.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/workflow.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
@@ -4637,6 +4701,10 @@
         {
           "path": "tests/test_night_operations.py",
           "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_workflow.py",
+          "relationship": "bounded_offline_tests_only"
         }
       ],
       "evidence": [
@@ -4647,6 +4715,10 @@
         {
           "path": "reports/validation/night_tests_final.txt",
           "scope": "synthetic_software_tests_only"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -4678,6 +4750,10 @@
         {
           "path": "core/apex/kernel/discovery.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/owp.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
@@ -4692,6 +4768,10 @@
         {
           "path": "tests/test_night_operations.py",
           "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_owp.py",
+          "relationship": "bounded_offline_tests_only"
         }
       ],
       "evidence": [
@@ -4702,6 +4782,10 @@
         {
           "path": "reports/validation/night_tests_final.txt",
           "scope": "synthetic_software_tests_only"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",
@@ -4823,6 +4907,10 @@
         {
           "path": "core/apex/kernel/lab.py",
           "relationship": "tested_foundation_not_full_implementation"
+        },
+        {
+          "path": "core/apex/kernel/workflow.py",
+          "relationship": "tested_foundation_not_full_implementation"
         }
       ],
       "test": [
@@ -4837,6 +4925,10 @@
         {
           "path": "tests/test_night_operations.py",
           "relationship": "bounded_offline_tests_only"
+        },
+        {
+          "path": "tests/test_workflow.py",
+          "relationship": "bounded_offline_tests_only"
         }
       ],
       "evidence": [
@@ -4847,6 +4939,10 @@
         {
           "path": "reports/validation/night_tests_final.txt",
           "scope": "synthetic_software_tests_only"
+        },
+        {
+          "path": "reports/validation/epoch_integration_tests.txt",
+          "relationship": "offline_regression_not_field_acceptance"
         }
       ],
       "implementation_status": "PROTOTYPE",

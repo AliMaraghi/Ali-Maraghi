@@ -55,3 +55,15 @@ Continue bounded day-0 validation. Do not broaden architecture or spending witho
 useful outcomes. Before Nov30, compare real decisions with manual/direct-model
 baselines and apply the continue/pivot/stop gate. Future manifesto scope remains
 preserved with explicit dependencies and acceptance scenarios.
+
+## 2026-11-10 — preserve working kernel; reconcile founder review kit
+
+Created branch apex/four-layer-owp-integration from bcde451; commit0cb89f8 saved
+tested workflow/replay/readonly reporting. Verified all48 kit files and47 checksums;
+69 reference tests pass, five newly reproduced negative cases expose unsafe runtime
+imports. Rejected reference worker, queue, gateway and database replacement.
+Adapted dynamic OWP axes and coverage with strict input bounds/integer counts,
+source snapshot membership and explicit unverified states. No new dependencies,
+DB schema, network or service. Four logical planes and both §5 six-sublayer sets
+are mapped without changing originals. Current135 tests pass; two web skips.
+Continue bounded offline validation; no superiority or field value established.

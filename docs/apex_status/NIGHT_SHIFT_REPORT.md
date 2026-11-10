@@ -1,72 +1,77 @@
-# Night engineering record
+# Night engineering checkpoint — 2026-11-10
 
-Resumed from 05c3cd5; no project restart or original-source changes.
-Baseline: 96 passed, two optional integration skips. All 14 packaged hashes match.
-No subagents, external requests, installs, paid services, accounts or production.
+Status: TESTED_OFFLINE increment; complete APEX NOT ACCEPTED. Work stayed in
+/home/apexdev/apex-work. No production, accounts, employer data, deployment,
+network retrieval, purchases or paid API calls. No new subagents used.
 
-Increment 1: evidence-linked rule-based hypothesis generation (three causal
-families with falsifiers), negative-space investigation prompts, explicit
-abstention, evidence/funding-aware opportunity ranking, and auditable evolutionary
-receipts containing per-case inputs and repeated predictions. Aggregate scores
-are recomputed before promotion. Source integrity still does not prove truth;
-Python operator code remains trusted. No operational version was promoted.
+## Code and Git
 
-Tests: reports/validation/night_tests_increment1.txt:105 passed, two skipped.
-Benchmark: night_policy_benchmark.json reruns the frozen synthetic policy set;
-compare the candidate with both weak and complete conventional checklists.
-These already-seen cases are regression data, not independent unseen evidence.
-No direct-model superiority, verified demand, income or completed film is claimed.
+Entry HEAD bcde451; branch apex/four-layer-owp-integration. Commit 0cb89f8 saved
+bounded workflow/replay and read-only report functionality before reference
+integration. Latest implementation commit is recorded in CHECKPOINT.json and
+`git log`; the local completion log references that commit without changing it.
 
-Still blocked/unproven: missing FastAPI/httpx/psycopg/pytest/uvicorn dependencies;
-no isolated integration environment; no authorized footage, rendering or viewer
-review; real public-source research and independent semantic evaluation pending.
-The current session continues with safe operational and studio foundations.
+Code added/adapted: core/apex/kernel/owp.py, CLI owp-plan and owp-coverage,
+tests/test_owp.py, traceability export and both-six-set tests. The prior workflow
+joins evidence checks, opposing template hypotheses, criticism, fail-closed
+status and durable replay in one local transaction; it cannot promote a version.
 
-## Increment 2 and final verification
+OWP accepts arbitrary bounded axes/source candidates; no fixed country/sector
+idea list. It strictly validates all inputs, caps source/probe space, reports
+omitted pairs and rejects spend/expired/stopped requests. Coverage verifies local
+snapshot hashes, integral counts and inspected/selected ID membership. It never
+claims source completeness, actual inspection, market gap or demand verification.
+The source candidate registry is metadata only; no connector is enabled.
 
-Working additions: `kernel/operations.py` implements journal integrity health and
-bounded dry-run scheduling (due times, zero budget, domain/sensitivity, stop flags,
-time reservation, duplicate rejection). It launches no worker and maintains no
-persistent queue. `apex/studio.py` exports a validated contiguous 60-90s planned
-script and escaped SRT captions; media/audio/speech alignment stays NOT TESTED.
-Studio example exports 75 seconds; missing authorized footage still blocks film.
+Recovery script backs up/reopens one synthetic journal and compares exact records.
+No DB schema changed. Existing verified evidence, economics, lab receipts, domain
+planning, scheduling specification and studio exports were retained.
 
-Final suite:113 total,111 passed,2 skipped,0 failures/errors. See
-`reports/validation/night_tests_final.txt`. The skipped original web tests need
-FastAPI/httpx; other service dependencies remain absent. No installs attempted.
-Traceability:178 requirement groups,968 source units preserved; updated bounded
-implementation/test/evidence links, no full acceptance PASS. Validation output:
-`reports/validation/night_traceability.json`.
+## Kit reconciliation
 
-Final policy benchmark: `night_policy_benchmark_final.json`; same frozen 24
-synthetic cases, repeated candidate/baseline evaluation. Candidate24/24, weak
-rule13/24, conventional checklist24/24. Per-case data now accompanies scores.
-No demonstrated advantage over the complete checklist; no candidate promoted.
-No claim of fresh held-out intelligence evaluation. RDE proposal usefulness and
-opportunity ranking calibration remain unmeasured on independently sourced cases.
+Archive SHA-256: 611ff49f1e68e33e0e1f69fafb464ae9ea382b1d03ced4c5e6add497913a4a67.
+48 files reviewed, CRC valid, 47/47 manifest checksums match. All five requested
+review docs copied unchanged into docs/. Every import/defer/reject decision and
+file hash is in REVIEW_KIT_INVENTORY.csv / REVIEW_KIT_DECISIONS.md. Original
+manifesto remains 3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd.
 
-CLI restart/idempotency smoke: `night_cli_smoke.json`. Actual pre-production
-exports: `night_studio_package.json` and `night_studio_captions.srt`; captions
-follow planned shots, not measured speech. No real audiovisual QC PASS.
+Reference's 69 tests pass, but five new synthetic probes reproduce: worker bypasses
+STOP_EXECUTION, stale attempt can finish reclaimed lease, task commits without
+audit event, NaN cost allowed, fractional counts treated as coverage. Rejected
+these runtime imports; preserved stronger existing implementation. Advertised
+APEX_EPOCH_ENGINEERING_V1/prototype/apex_reference/ is absent; actual code is in
+APEX_EPOCH_ENGINEERING_V1/apex_epoch/. Uploaded ZIP remains untracked/preserved;
+reference extraction is ignored work/review-kit/, never production or installed.
 
-Security finding addressed: aggregate-only receipts could not substantiate their
-claimed scores. New receipts require complete inputs, repeated outputs, label
-validation, duplicate rejection, dataset digest and recomputed aggregate agreement.
-An operator can still fabricate an entire internally consistent receipt; this is
-not cryptographic attestation or independence from the evaluator. Production
-promotion remains unsupported. Retain current champion unless evidence passes.
+## Observed verification
 
-Source preservation: all14 package hashes match; original documents unchanged.
-No production, secrets, credentials, private accounts, employer data, external
-requests, spending or deployment. No subagents. API spend GBP0/USD0; human/host
-cost remains unmetered. Final full-system acceptance remains NOT ACCEPTED.
+- Current suite: 135 passed, 2 optional FastAPI/httpx integration skips, 0 failures.
+- Kit suite: 69 passed. Adverse probes: five defects reproduced (not five passes).
+- Source trace: 178 groups, 968 source units, all 0–18/appendices/18 roles/A01–A09;
+  both canonical and historical six §5 sublayers remain separately addressable.
+- Original hashes: all 13 listed entries match. Syntax parsing and edited-code/generated-document whitespace pass; five original
+  Markdown hard-break lines in the copied founder directive remain byte-preserved.
+- Synthetic policy benchmark: candidate24/24, weakrule13/24, fullchecklist24/24.
+  Already seen cases, no independent holdout or model superiority; no promotion.
+- OWP CLI examples: two unexecuted probes; two snapshot IDs/one declared inspected.
+- Local synthetic backup/restore: one event reopened identically; not production
+  MTTR, encrypted/offsite recovery or service availability evidence.
 
-Commits: increment1 `73008ee`; increment2 is the next local commit containing this
-report (resolve with `git log -1`). Base `05c3cd5` remains available. Changed files
-are exactly `git diff --name-only 05c3cd5 HEAD`; each commit preserves its own
-source and test results. Recovery: inspect status, preserve new work, then review
-`git revert` of the appropriate increment; never reset or rewrite the manifesto.
+Exact commands/results/report hashes: TEST_EVIDENCE.csv. Benchmark methodology
+and timings: MEASURED_BENCHMARKS.csv and reports/validation/epoch_policy_benchmark.json.
+Original failed workflow run was preserved before fixes in override_tests_first_failure.txt.
+Full file changes: `git show --stat` and `git diff bcde451..HEAD --name-only`.
 
-Next precise tasks are in NEXT_ACTION.md. Prioritize real-source semantic review,
-fresh independent comparison, isolated dependency/integration setup and authorized
-media. Do not turn templates, synthetic cases or file counts into completion claims.
+## Honest remaining gaps and decision
+
+No real opportunity packet/customer validation/income, no authorized film assets
+or rendered movie, no direct-model/human comparison, no encrypted private memory,
+authenticated mobile command plane, operational queue/global stop or deployed
+runtime. Source-line retention is not complete independent semantic atomization.
+Workflow time limit is cooperative, not preemptive. URL validation is parse-only;
+all network adapters remain absent. All 18 full-domain acceptance gates stay open.
+
+Additional paid API spend GBP0/USD0; hosting/subscription/time not separately
+metered, total cost unknown. Continue bounded validation toward Nov30; pivot/stop
+if an independent same-input comparison cannot show useful value over a checklist.
+See NEXT_ACTION.md, ARCHITECTURE_DECISIONS.md and RECOVERY_RUNBOOK.md to resume.

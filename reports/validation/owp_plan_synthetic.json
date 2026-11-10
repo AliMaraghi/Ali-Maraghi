@@ -1,0 +1,73 @@
+{
+  "schema": "apex.owp.plan.v1",
+  "task_id": "owp-example",
+  "domain": "opportunity",
+  "status": "PREPARATION_ONLY",
+  "request_sha256": "3d250deb1817a589b3f4b9a0f113ff2fd440dd8f104cb013a2b771a23118a168",
+  "scope_sha256": "1846c2c0783a367b4969d44b976ea3534a0fdc34f36b6959999d49d7091215d6",
+  "axes": [
+    {
+      "geography": "worldwide",
+      "industry": "materials reuse",
+      "mechanism": "repair",
+      "customer_problem": "access to replacement parts"
+    },
+    {
+      "geography": "Portugal",
+      "industry": "coastal services",
+      "mechanism": "shared equipment",
+      "customer_problem": "seasonal capacity"
+    }
+  ],
+  "sources": [
+    {
+      "id": "sample",
+      "family": "custom registry",
+      "uri": "https://example.org/catalogue",
+      "access_note": "Synthetic candidate; rights not verified",
+      "adapter_status": "BLOCKED_NO_RETRIEVAL_ADAPTER",
+      "rights_verified": false,
+      "network_authorized": false
+    }
+  ],
+  "probes": [
+    {
+      "id": "owp-c2272e3094b54c40adf3ca4b4b8b1b8e",
+      "axis": {
+        "geography": "worldwide",
+        "industry": "materials reuse",
+        "mechanism": "repair",
+        "customer_problem": "access to replacement parts"
+      },
+      "source_id": "sample",
+      "source_uri": "https://example.org/catalogue",
+      "family": "custom registry",
+      "status": "UNEXECUTED_SEARCH_PROBE"
+    },
+    {
+      "id": "owp-da1a1cb789bea6e976d093206c09bb68",
+      "axis": {
+        "geography": "Portugal",
+        "industry": "coastal services",
+        "mechanism": "shared equipment",
+        "customer_problem": "seasonal capacity"
+      },
+      "source_id": "sample",
+      "source_uri": "https://example.org/catalogue",
+      "family": "custom registry",
+      "status": "UNEXECUTED_SEARCH_PROBE"
+    }
+  ],
+  "candidate_pairs": 2,
+  "omitted_pairs": 0,
+  "open_world_coverage_established": false,
+  "demand_verified": false,
+  "paid_budget_pence": 0,
+  "actions_executed": [],
+  "missing_evidence": [
+    "lawful connector and destination enforcement",
+    "dated demand and competitor observations",
+    "capture constraints and disconfirming evidence"
+  ],
+  "next_step": "Review source rights and acquire a bounded public snapshot through an authorized adapter."
+}

@@ -1,0 +1,11 @@
+{
+  "status": "PASS_LOCAL_SYNTHETIC_RESTORE",
+  "events_restored": 1,
+  "reopen_matches_source": true,
+  "restored_sha256": "112a5e1619d633a46fc90a17cb90e70452de6573206501ef04d23a7828d0c2b7",
+  "elapsed_seconds": 0.022923790995264426,
+  "production_restore_tested": false,
+  "encryption_tested": false,
+  "offsite_backup_tested": false,
+  "scope": "One isolated stdlib SQLite backup/reopen; not operational MTTR or SLO."
+}

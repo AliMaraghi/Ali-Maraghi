@@ -1,0 +1,28 @@
+{
+  "task_id": "owp-example",
+  "expires_at": "2026-11-20T00:00:00Z",
+  "axes": [
+    {
+      "geography": "worldwide",
+      "industry": "materials reuse",
+      "mechanism": "repair",
+      "customer_problem": "access to replacement parts"
+    },
+    {
+      "geography": "Portugal",
+      "industry": "coastal services",
+      "mechanism": "shared equipment",
+      "customer_problem": "seasonal capacity"
+    }
+  ],
+  "sources": [
+    {
+      "id": "sample",
+      "family": "custom registry",
+      "uri": "https://example.org/catalogue",
+      "access_note": "Synthetic candidate; rights not verified"
+    }
+  ],
+  "max_probes": 128,
+  "paid_budget_pence": 0
+}

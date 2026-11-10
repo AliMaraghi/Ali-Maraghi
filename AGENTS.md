@@ -37,3 +37,19 @@ Lab receipts now require per-case repeated observations; aggregate-only historic
 receipts cannot authorize new promotions. Scheduling is dry-run only: no daemon,
 worker, network dispatch or persistent global stop control has been enabled.
 `apex.studio.edit_package` exports planned script/captions, never a rendered film.
+
+## Four-plane / OWP checkpoint (2026-11-10)
+
+Resume on `apex/four-layer-owp-integration`; read CHECKPOINT.json and the current
+NIGHT_SHIFT_REPORT.md. All 48 review-kit files were inspected; five reproduced
+reference defects prohibit wholesale runtime import. REVIEW_KIT_DECISIONS.md
+and ARCHITECTURE_DECISIONS.md preserve four planes, both six-sublayer §5 sets and
+all 18 role slots. Original documents remain immutable. Uploaded ZIP is preserved
+untracked; reference extraction is ignored, never installed.
+
+Current tests:135 passed, two optional web integration skips. New OWP CLI commands
+prepare bounded searches and inspect hashed local snapshot coverage; they do not
+fetch sources or prove demand. Workflow replay returns historical evidence without
+freshness revalidation. `scripts/smoke_local_recovery.py` uses synthetic isolated
+journals only; no production/offsite restore is established. Do not activate
+workers, network adapters or role capabilities from reference flags/booleans.

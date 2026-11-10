@@ -1,0 +1,15 @@
+{
+  "search_id": "synthetic-coverage",
+  "source_uri": "https://example.org/catalogue",
+  "scope": "Synthetic local snapshot; no source retrieved",
+  "artifact": "examples/owp_snapshot_synthetic.json",
+  "sha256": "fafc2cd0b7b6b7d00ceb95ef35c55a14b731c67b7aa144884f753ece30f7dabd",
+  "queried_at": "2026-11-09T00:00:00Z",
+  "expires_at": "2026-11-20T00:00:00Z",
+  "observed_items": 2,
+  "inspected_ids": [
+    "fixture-a"
+  ],
+  "selected_ids": [],
+  "synthetic": true
+}

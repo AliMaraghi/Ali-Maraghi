@@ -1,0 +1,20 @@
+{
+  "schema": "apex.owp.coverage.v1",
+  "search_id": "synthetic-coverage",
+  "scope": "Synthetic local snapshot; no source retrieved",
+  "source_uri": "https://example.org/catalogue",
+  "queried_at": "2026-11-09T00:00:00Z",
+  "expires_at": "2026-11-20T00:00:00Z",
+  "snapshot_sha256": "fafc2cd0b7b6b7d00ceb95ef35c55a14b731c67b7aa144884f753ece30f7dabd",
+  "record_sha256": "6fc52c17e5b73dd687a91599fd8be6298335976ac8c2a6a039df5298390d5211",
+  "synthetic": true,
+  "observed_items": 2,
+  "inspected_items": 1,
+  "selected_items": 0,
+  "uninspected_items": 1,
+  "snapshot_fully_inspected_declared": false,
+  "inspection_independently_verified": false,
+  "market_coverage_verified": false,
+  "unmet_demand_verified": false,
+  "limitation": "Snapshot membership is checked; selection, inspection and source completeness remain unverified."
+}

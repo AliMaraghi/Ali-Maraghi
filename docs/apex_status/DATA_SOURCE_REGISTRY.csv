@@ -1,0 +1,5 @@
+source_id,kind,locator,sha256,access_status,rights_status,connector_status,retrieval
+canonical-manifesto,founder-supplied local document,docs/apex_handoff_20261109/APEX_4_4_FINAL_MASTER_MANIFESTO.md,3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd,LOCAL_READ_ONLY,Private development use; not publication,NOT_APPLICABLE,No network retrieval; supplied source
+epoch-kit,founder-supplied archive,APEX_EPOCH_ENGINEERING_V1.zip,611ff49f1e68e33e0e1f69fafb464ae9ea382b1d03ced4c5e6add497913a4a67,LOCAL_READ_ONLY,Private review and compatible integration,NOT_APPLICABLE,No network retrieval; supplied source
+sample,synthetic source candidate,https://example.org/catalogue,,NOT_FETCHED,UNVERIFIED,BLOCKED_NO_RETRIEVAL_ADAPTER,No claim of real dataset availability
+owp-snapshot,synthetic local fixture,examples/owp_snapshot_synthetic.json,fafc2cd0b7b6b7d00ceb95ef35c55a14b731c67b7aa144884f753ece30f7dabd,LOCAL_TEST_FIXTURE,Developer-authored IDs,NOT_APPLICABLE,No actual source or market retrieved

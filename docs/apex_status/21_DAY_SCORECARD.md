@@ -1,13 +1,13 @@
 # Validation programme: 9–30 November 2026
 
 Day 0 is 9 November; day 21 is 30 November (21 elapsed days, 22 inclusive dates).
-Dates use Europe/London. This session establishes day-0 evidence only. Future
+Dates use Europe/London. Day-0 and day-1 local engineering evidence is recorded. Future
 tasks are not scheduled background work and have not been retrospectively passed.
 
 | Window | Owner | Required evidence / target | Observed state | Decision |
 |---|---|---|---|---|
 | Day 0, Nov 9 | Development | Source integrity, prior-run audit, reproducible baseline, local kernel, all-section retention | Original hashes match; local snapshot; tested prototype and synthetic comparison; detailed evidence in reports/validation | CONTINUE bounded validation; no expansion justified yet |
-| Days 1–7, Nov 10–16 | Development + independent reviewer | Semantic requirement review; reproducible public source retrieval/report; permission tests; staging/restore design | NOT TESTED: no source retrieval or integration environment | Keep zero-spend; finish missing evidence before adapters |
+| Days 1–7, Nov 10–16 | Development + independent reviewer | Semantic requirement review; reproducible public source retrieval/report; permission tests; staging/restore design | PARTIAL: kit reconciliation, OWP preparation/coverage, negative tests and synthetic local restore; public retrieval, independent semantic review and live integration NOT TESTED | Keep zero-spend; finish missing evidence before adapters |
 | Days 8–14, Nov 17–23 | Founder + research reviewer | Ten concrete opportunities; independently check three; costs, eligibility, uncertainty and smallest actions; compare manual/direct-model method | NOT TESTED: no verified demand, income or customer interviews | PIVOT to a bounded useful subsystem if the broad workflow adds no value |
 | Days 15–20, Nov 24–29 | Founder/editor + independent viewers | Authorized Lagos Portugal footage; 60–90s playable export, source/rights/QC/cost record; blind style/viewer review | BLOCKED: lawful footage, style approval and renderer absent; production kit exists | Deliver/assess pre-production kit; do not claim completed film |
 | Day 21, Nov 30 | Founder + independent reviewer | Decision quality, unsupported claims, human correction/time, safety, total cost and useful outcomes against same-input baselines | FUTURE: no continue/pivot/stop result yet | STOP extensive build if no independently checkable value; PIVOT to proven subsystem; CONTINUE only with reproduced value and acceptable cost/safety |
