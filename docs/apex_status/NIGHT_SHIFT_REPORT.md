@@ -30,3 +30,6 @@ PROVIDER_FRAMEWORK_REPORT.md: Crossref HTTP200,3 metadata records persisted; jou
 
 ## Corrected host boundary
 Read HOST_DEPLOYMENT_BOUNDARY.md/json. Isolated Codex PID1, host system bus accessible; PolicyKit explicitly denies current caller all3 management actions pending authentication. This supersedes the inference that visible host IP proved host administration. No deployment performed.
+
+## Google sync engine
+GOOGLE_SYNC_REPORT.md: encrypted bounded Gmail thread/history state with Sent as first-class metadata, atomic cursor/audit, conservative outgoing review.220 tests passed/2 skipped. No Google live retrieval, OAuth or deployment.

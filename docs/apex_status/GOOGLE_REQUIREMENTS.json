@@ -1,0 +1,152 @@
+{
+  "additive": true,
+  "provider_target_preserved": 130,
+  "services": [
+    {
+      "service": "Gmail",
+      "implementation_status": "PARTIAL_OFFLINE_SYNC_ENGINE",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Drive",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Calendar",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Contacts / People",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Photos",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Maps Platform",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Tasks",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Search Console",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Analytics",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Ads",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Business Profile",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Cloud",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Meet",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Chat",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Forms",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "YouTube",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Keep",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    },
+    {
+      "service": "Google Takeout",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "live_verified": false,
+      "authorization": "NO_APEX_BINDING_VERIFIED",
+      "source": "Founder Google ecosystem directive attachment dc385446-783d-408b-8df7-f421326d9bab",
+      "next_gate": "Official API/eligibility and minimal OAuth scope review; actual owner consent where required"
+    }
+  ],
+  "private_knowledge_graph": "NOT_IMPLEMENTED",
+  "deployment": "NOT_DEPLOYED"
+}
