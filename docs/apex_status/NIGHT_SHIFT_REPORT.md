@@ -21,3 +21,6 @@ See WORKER_FAIRNESS_REPORT.md and INFRASTRUCTURE_RECHECK.json. cloudflared is ac
 
 ## Access origin increment
 See ACCESS_ORIGIN_REPORT.md and ACCESS_ORIGIN_STATE.json.206 tests pass/2 skip. Real outbound HTTPS verified; signed owner Access validation implemented offline; no deployment or live Access verification.
+
+## Worker operations continuation
+See WORKER_OPERATIONS_REPORT.md and WORKER_OPERATIONS_STATE.json.210 passed/2 skipped. Durable observations and retry exhaustion connected to dashboard; no production deployment. Current session is on VPS; SSH agent unavailable.

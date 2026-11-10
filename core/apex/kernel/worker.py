@@ -58,8 +58,20 @@ def serve(root, interval=60):
     stopped=threading.Event()
     def stop(*_):stopped.set()
     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
+    from .worker_health import record
+    failures = 0
     while not stopped.is_set():
         try:result=cycle(root)
         except Exception as error:result={'state':'CYCLE_FAILED','error_type':type(error).__name__}
+        failures = failures+1 if result['state']=='CYCLE_FAILED' else 0
+        if failures >= 3:
+            result['state']='RETRY_EXHAUSTED'
+        # If audit storage itself fails, exit immediately for supervisor diagnosis.
+        with Ledger(root) as ledger:
+            record(ledger,result['state'],interval,result.get('error_type'))
         print(json.dumps(result),flush=True)
+        if failures >= 3:
+            raise SystemExit(78)  # Supervisor must not automatically restart exhausted work.
         stopped.wait(interval)
+    with Ledger(root) as ledger:
+        record(ledger,'EXITED',interval)

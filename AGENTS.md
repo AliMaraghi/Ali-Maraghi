@@ -79,3 +79,5 @@ Activation continuation: read ACTIVATION_INCREMENT_REPORT.md. /console and /repo
 Worker fairness continuation: WORKER_FAIRNESS_REPORT.md;198 passed/2 skipped. worker_dispatch is an additive audited rotating cursor, not a second job queue. cloudflared system service active; origin/Access/TLS and supervised APEX deployment unverified. Preserve old code-fingerprint blocks.
 
 Access origin continuation: read ACCESS_ORIGIN_REPORT.md. owner-view --access-config rejects Basic fallback and validates RS256 owner identity against reviewed expiring JWKS. No live Access binding or production-ready HTTP deployment. Never use fixture keys in production.206 passed/2 optional skips.
+
+Worker operations: WORKER_OPERATIONS_REPORT.md;210 passed/2 skipped. worker_health observations are not deployment proof. Exit78 after3 consecutive failures requires explicit recovery; unit template must retain RestartPreventExitStatus=78. No persistent installation performed.

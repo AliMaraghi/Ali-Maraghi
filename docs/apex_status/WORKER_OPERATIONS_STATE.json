@@ -1,0 +1,40 @@
+{
+  "recorded_at": "2026-11-10T22:52:01.135218+00:00",
+  "entry_commit": "b8390d0",
+  "branch": "apex/unified-field-integration",
+  "host_address_observed": "31.70.173.143",
+  "ssh_agent": "Error connecting to agent: No such file or directory",
+  "management_plugin_search": {
+    "query": "Cloudflare SSH IONOS",
+    "results": 0,
+    "scope": "Available search results, not exhaustive directory"
+  },
+  "implemented": [
+    "Audited persistent worker observations",
+    "Dashboard freshness and stale observation reporting",
+    "Three consecutive cycle failures exit78",
+    "Service template prevents automatic restart on exit78"
+  ],
+  "tests": {
+    "run": 212,
+    "passed": 210,
+    "skipped": 2,
+    "failures": 0
+  },
+  "deployed_services_this_increment": [],
+  "working_public_urls_verified": [],
+  "new_live_provider_connections": 0,
+  "new_mission_traces": [],
+  "paid_api_spend_gbp": 0,
+  "blockers": [
+    "No working SSH agent or approved privileged management tool in current session",
+    "Rotated Cloudflare management binding and actual owner Access configuration absent"
+  ],
+  "pending_engineering": [
+    "Production server packaging and dependency audit",
+    "Bounded parallel workers",
+    "Full provider and specialist implementation",
+    "Independent field evaluation"
+  ],
+  "next_command": "python3 -B scripts/apex worker --once"
+}
