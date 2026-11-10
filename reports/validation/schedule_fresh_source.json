@@ -1,0 +1,494 @@
+{
+  "ledger_seq": 65,
+  "trace_id": "ted-fresh-20261110-v3",
+  "domain": "opportunity",
+  "schema": "apex.field.v1",
+  "status": "CANDIDATE_FOUND_AWAITING_VALIDATION",
+  "observations": [
+    {
+      "retrieved_at": "2026-11-10T20:55:21.810119+00:00",
+      "hops": [
+        {
+          "url": "https://api.ted.europa.eu/v3/notices/search",
+          "peer_ip": "18.66.147.101",
+          "status": 200
+        }
+      ],
+      "http_status": 200,
+      "content_type": "application/json",
+      "sha256": "ce9a78992e914bdae8ceca65b9e919216c203ef6afd51f4eec8f9017270e400a",
+      "bytes": 43232,
+      "source": "ted",
+      "source_url": "https://api.ted.europa.eu/v3/notices/search",
+      "request": {
+        "source": "ted",
+        "query": "classification-cpv IN (72000000) AND publication-date >= 20261110"
+      },
+      "publisher": "EU Publications Office",
+      "allowed_license": "https://ted.europa.eu/en/legal-notice",
+      "licence_review_date": "2026-11-10",
+      "privacy_scope": "public_procurement_metadata_only",
+      "verification_method": "DNS_all_addresses_IP_pinned_TLS_and_strict_schema",
+      "independent_corroboration": "NOT_PERFORMED",
+      "records": [
+        {
+          "record_id": "779205-2026",
+          "title": "Norway \u2013 Business development consultancy services \u2013 Framework agreement for strategic workplace development and needs analysis.",
+          "buyer": "UNKNOWN_NOT_REQUESTED",
+          "country": [
+            "NOR"
+          ],
+          "cpv": [
+            "79411100",
+            "71241000",
+            "72221000",
+            "79421000",
+            "79411100",
+            "71241000",
+            "72221000",
+            "79421000"
+          ],
+          "source_url": "https://ted.europa.eu/en/notice/-/detail/779205-2026",
+          "source_time": "2026-11-10+01:00",
+          "deadline": [
+            "2026-12-14Z"
+          ],
+          "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+          "headline_value": null,
+          "currency": "UNKNOWN",
+          "status": [
+            "cn-standard"
+          ],
+          "disconfirming_flags": [
+            "PORTAL_DEADLINE_UNVERIFIED",
+            "ELIGIBILITY_UNKNOWN"
+          ],
+          "seed_origin": "BOUNDED_API_SEARCH"
+        },
+        {
+          "record_id": "779226-2026",
+          "title": "Lithuania \u2013 Software programming and consultancy services \u2013 Nacionalin\u0117s elektronini\u0173 siunt\u0173 pristatymo, naudojant pa\u0161to tinkl\u0105, informacin\u0117s sistemos vystymas",
+          "buyer": "UNKNOWN_NOT_REQUESTED",
+          "country": [
+            "LTU"
+          ],
+          "cpv": [
+            "72200000",
+            "72200000"
+          ],
+          "source_url": "https://ted.europa.eu/en/notice/-/detail/779226-2026",
+          "source_time": "2026-11-10+01:00",
+          "deadline": [
+            "2026-12-14+02:00"
+          ],
+          "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+          "headline_value": null,
+          "currency": "UNKNOWN",
+          "status": [
+            "cn-standard"
+          ],
+          "disconfirming_flags": [
+            "PORTAL_DEADLINE_UNVERIFIED",
+            "ELIGIBILITY_UNKNOWN"
+          ],
+          "seed_origin": "BOUNDED_API_SEARCH"
+        },
+        {
+          "record_id": "779231-2026",
+          "title": "Czechia \u2013 Software support services \u2013 Technick\u00e1 podpora (maintenance) software MARIE PACS",
+          "buyer": "UNKNOWN_NOT_REQUESTED",
+          "country": [
+            "CZE"
+          ],
+          "cpv": [
+            "72261000",
+            "72261000"
+          ],
+          "source_url": "https://ted.europa.eu/en/notice/-/detail/779231-2026",
+          "source_time": "2026-11-10+01:00",
+          "deadline": [
+            "2026-12-11+01:00"
+          ],
+          "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+          "headline_value": null,
+          "currency": "UNKNOWN",
+          "status": [
+            "cn-standard"
+          ],
+          "disconfirming_flags": [
+            "PORTAL_DEADLINE_UNVERIFIED",
+            "ELIGIBILITY_UNKNOWN"
+          ],
+          "seed_origin": "BOUNDED_API_SEARCH"
+        },
+        {
+          "record_id": "779288-2026",
+          "title": "Germany \u2013 IT services: consulting, software development, Internet and support \u2013 Fortf\u00fchrung des Servicevertrages f\u00fcr das Fachverfahren SPECTRA",
+          "buyer": "UNKNOWN_NOT_REQUESTED",
+          "country": [
+            "DEU"
+          ],
+          "cpv": [
+            "72000000",
+            "72000000"
+          ],
+          "source_url": "https://ted.europa.eu/en/notice/-/detail/779288-2026",
+          "source_time": "2026-11-10+01:00",
+          "deadline": [],
+          "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+          "headline_value": null,
+          "currency": "UNKNOWN",
+          "status": [
+            "can-standard"
+          ],
+          "disconfirming_flags": [
+            "PORTAL_DEADLINE_UNVERIFIED",
+            "ELIGIBILITY_UNKNOWN",
+            "AWARD_OR_CONTRACT_STAGE"
+          ],
+          "seed_origin": "BOUNDED_API_SEARCH"
+        },
+        {
+          "record_id": "779294-2026",
+          "title": "Netherlands \u2013 IT services: consulting, software development, Internet and support \u2013 Resultaatverplichte ICT-/ IV-opdrachten Maatwerk Diensten Applicaties (RVICTO-MDA) 2026-II",
+          "buyer": "UNKNOWN_NOT_REQUESTED",
+          "country": [
+            "NLD"
+          ],
+          "cpv": [
+            "72000000",
+            "72000000"
+          ],
+          "source_url": "https://ted.europa.eu/en/notice/-/detail/779294-2026",
+          "source_time": "2026-11-10+01:00",
+          "deadline": [],
+          "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+          "headline_value": null,
+          "currency": "UNKNOWN",
+          "status": [
+            "can-standard"
+          ],
+          "disconfirming_flags": [
+            "PORTAL_DEADLINE_UNVERIFIED",
+            "ELIGIBILITY_UNKNOWN",
+            "AWARD_OR_CONTRACT_STAGE"
+          ],
+          "seed_origin": "BOUNDED_API_SEARCH"
+        }
+      ],
+      "retrieval_status": "OBSERVED_UNCORROBORATED",
+      "paid_cost_pence": 0,
+      "observed_count": 5,
+      "server_reported_total": 217,
+      "expiry": "2026-11-11T20:55:21.810119+00:00",
+      "coverage": "One bounded response; no pagination or claim of complete market coverage",
+      "trace_id": "ted-fresh-20261110-v3"
+    }
+  ],
+  "candidates": [
+    {
+      "record_id": "779205-2026",
+      "title": "Norway \u2013 Business development consultancy services \u2013 Framework agreement for strategic workplace development and needs analysis.",
+      "buyer": "UNKNOWN_NOT_REQUESTED",
+      "country": [
+        "NOR"
+      ],
+      "cpv": [
+        "79411100",
+        "71241000",
+        "72221000",
+        "79421000",
+        "79411100",
+        "71241000",
+        "72221000",
+        "79421000"
+      ],
+      "source_url": "https://ted.europa.eu/en/notice/-/detail/779205-2026",
+      "source_time": "2026-11-10+01:00",
+      "deadline": [
+        "2026-12-14Z"
+      ],
+      "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+      "headline_value": null,
+      "currency": "UNKNOWN",
+      "status": [
+        "cn-standard"
+      ],
+      "disconfirming_flags": [
+        "PORTAL_DEADLINE_UNVERIFIED",
+        "ELIGIBILITY_UNKNOWN"
+      ],
+      "seed_origin": "BOUNDED_API_SEARCH",
+      "opportunity_id": "ted-779205-2026",
+      "stage": "CANDIDATE_FOUND_AWAITING_VALIDATION",
+      "supplier_entity": "UNKNOWN",
+      "insurance": "UNKNOWN",
+      "experience": "UNKNOWN",
+      "capacity": "UNKNOWN",
+      "travel": "UNKNOWN",
+      "subcontractors": "UNKNOWN",
+      "working_capital": "UNKNOWN",
+      "eligibility": "UNKNOWN",
+      "margin_range": null,
+      "delivery_cost_range": null,
+      "effort_hours": null,
+      "margin_method": "headline value minus verified delivery, finance and risk costs; inputs absent",
+      "independent_corroboration": "NOT_PERFORMED",
+      "owner_decision": "PENDING",
+      "measured_income_pence": 0,
+      "bid_permitted": false,
+      "review_priority": 1
+    },
+    {
+      "record_id": "779226-2026",
+      "title": "Lithuania \u2013 Software programming and consultancy services \u2013 Nacionalin\u0117s elektronini\u0173 siunt\u0173 pristatymo, naudojant pa\u0161to tinkl\u0105, informacin\u0117s sistemos vystymas",
+      "buyer": "UNKNOWN_NOT_REQUESTED",
+      "country": [
+        "LTU"
+      ],
+      "cpv": [
+        "72200000",
+        "72200000"
+      ],
+      "source_url": "https://ted.europa.eu/en/notice/-/detail/779226-2026",
+      "source_time": "2026-11-10+01:00",
+      "deadline": [
+        "2026-12-14+02:00"
+      ],
+      "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+      "headline_value": null,
+      "currency": "UNKNOWN",
+      "status": [
+        "cn-standard"
+      ],
+      "disconfirming_flags": [
+        "PORTAL_DEADLINE_UNVERIFIED",
+        "ELIGIBILITY_UNKNOWN"
+      ],
+      "seed_origin": "BOUNDED_API_SEARCH",
+      "opportunity_id": "ted-779226-2026",
+      "stage": "CANDIDATE_FOUND_AWAITING_VALIDATION",
+      "supplier_entity": "UNKNOWN",
+      "insurance": "UNKNOWN",
+      "experience": "UNKNOWN",
+      "capacity": "UNKNOWN",
+      "travel": "UNKNOWN",
+      "subcontractors": "UNKNOWN",
+      "working_capital": "UNKNOWN",
+      "eligibility": "UNKNOWN",
+      "margin_range": null,
+      "delivery_cost_range": null,
+      "effort_hours": null,
+      "margin_method": "headline value minus verified delivery, finance and risk costs; inputs absent",
+      "independent_corroboration": "NOT_PERFORMED",
+      "owner_decision": "PENDING",
+      "measured_income_pence": 0,
+      "bid_permitted": false,
+      "review_priority": 2
+    },
+    {
+      "record_id": "779231-2026",
+      "title": "Czechia \u2013 Software support services \u2013 Technick\u00e1 podpora (maintenance) software MARIE PACS",
+      "buyer": "UNKNOWN_NOT_REQUESTED",
+      "country": [
+        "CZE"
+      ],
+      "cpv": [
+        "72261000",
+        "72261000"
+      ],
+      "source_url": "https://ted.europa.eu/en/notice/-/detail/779231-2026",
+      "source_time": "2026-11-10+01:00",
+      "deadline": [
+        "2026-12-11+01:00"
+      ],
+      "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+      "headline_value": null,
+      "currency": "UNKNOWN",
+      "status": [
+        "cn-standard"
+      ],
+      "disconfirming_flags": [
+        "PORTAL_DEADLINE_UNVERIFIED",
+        "ELIGIBILITY_UNKNOWN"
+      ],
+      "seed_origin": "BOUNDED_API_SEARCH",
+      "opportunity_id": "ted-779231-2026",
+      "stage": "CANDIDATE_FOUND_AWAITING_VALIDATION",
+      "supplier_entity": "UNKNOWN",
+      "insurance": "UNKNOWN",
+      "experience": "UNKNOWN",
+      "capacity": "UNKNOWN",
+      "travel": "UNKNOWN",
+      "subcontractors": "UNKNOWN",
+      "working_capital": "UNKNOWN",
+      "eligibility": "UNKNOWN",
+      "margin_range": null,
+      "delivery_cost_range": null,
+      "effort_hours": null,
+      "margin_method": "headline value minus verified delivery, finance and risk costs; inputs absent",
+      "independent_corroboration": "NOT_PERFORMED",
+      "owner_decision": "PENDING",
+      "measured_income_pence": 0,
+      "bid_permitted": false,
+      "review_priority": 3
+    }
+  ],
+  "excluded": [
+    {
+      "record_id": "779288-2026",
+      "title": "Germany \u2013 IT services: consulting, software development, Internet and support \u2013 Fortf\u00fchrung des Servicevertrages f\u00fcr das Fachverfahren SPECTRA",
+      "buyer": "UNKNOWN_NOT_REQUESTED",
+      "country": [
+        "DEU"
+      ],
+      "cpv": [
+        "72000000",
+        "72000000"
+      ],
+      "source_url": "https://ted.europa.eu/en/notice/-/detail/779288-2026",
+      "source_time": "2026-11-10+01:00",
+      "deadline": [],
+      "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+      "headline_value": null,
+      "currency": "UNKNOWN",
+      "status": [
+        "can-standard"
+      ],
+      "disconfirming_flags": [
+        "PORTAL_DEADLINE_UNVERIFIED",
+        "ELIGIBILITY_UNKNOWN",
+        "AWARD_OR_CONTRACT_STAGE"
+      ],
+      "seed_origin": "BOUNDED_API_SEARCH",
+      "opportunity_id": "ted-779288-2026",
+      "stage": "EXCLUDED_FROM_BID_REVIEW",
+      "supplier_entity": "UNKNOWN",
+      "insurance": "UNKNOWN",
+      "experience": "UNKNOWN",
+      "capacity": "UNKNOWN",
+      "travel": "UNKNOWN",
+      "subcontractors": "UNKNOWN",
+      "working_capital": "UNKNOWN",
+      "eligibility": "UNKNOWN",
+      "margin_range": null,
+      "delivery_cost_range": null,
+      "effort_hours": null,
+      "margin_method": "headline value minus verified delivery, finance and risk costs; inputs absent",
+      "independent_corroboration": "NOT_PERFORMED",
+      "owner_decision": "PENDING",
+      "measured_income_pence": 0,
+      "bid_permitted": false
+    },
+    {
+      "record_id": "779294-2026",
+      "title": "Netherlands \u2013 IT services: consulting, software development, Internet and support \u2013 Resultaatverplichte ICT-/ IV-opdrachten Maatwerk Diensten Applicaties (RVICTO-MDA) 2026-II",
+      "buyer": "UNKNOWN_NOT_REQUESTED",
+      "country": [
+        "NLD"
+      ],
+      "cpv": [
+        "72000000",
+        "72000000"
+      ],
+      "source_url": "https://ted.europa.eu/en/notice/-/detail/779294-2026",
+      "source_time": "2026-11-10+01:00",
+      "deadline": [],
+      "deadline_authority": "DATE_ONLY_PORTAL_UNCHECKED",
+      "headline_value": null,
+      "currency": "UNKNOWN",
+      "status": [
+        "can-standard"
+      ],
+      "disconfirming_flags": [
+        "PORTAL_DEADLINE_UNVERIFIED",
+        "ELIGIBILITY_UNKNOWN",
+        "AWARD_OR_CONTRACT_STAGE"
+      ],
+      "seed_origin": "BOUNDED_API_SEARCH",
+      "opportunity_id": "ted-779294-2026",
+      "stage": "EXCLUDED_FROM_BID_REVIEW",
+      "supplier_entity": "UNKNOWN",
+      "insurance": "UNKNOWN",
+      "experience": "UNKNOWN",
+      "capacity": "UNKNOWN",
+      "travel": "UNKNOWN",
+      "subcontractors": "UNKNOWN",
+      "working_capital": "UNKNOWN",
+      "eligibility": "UNKNOWN",
+      "margin_range": null,
+      "delivery_cost_range": null,
+      "effort_hours": null,
+      "margin_method": "headline value minus verified delivery, finance and risk costs; inputs absent",
+      "independent_corroboration": "NOT_PERFORMED",
+      "owner_decision": "PENDING",
+      "measured_income_pence": 0,
+      "bid_permitted": false
+    }
+  ],
+  "candidate_count": 3,
+  "excluded_count": 2,
+  "review": {
+    "state": "COMPLETE",
+    "workflow_status": "BLOCKED_PENDING_EVIDENCE",
+    "result_seq": 63,
+    "replayed": false
+  },
+  "uac_invocations": [
+    {
+      "agent_id": "8-12",
+      "role_version": "deterministic-field-v1",
+      "task_id": "ted-fresh-20261110-v3",
+      "trace_id": "ted-fresh-20261110-v3",
+      "capabilities": [
+        "local_evidence_review"
+      ],
+      "allowed_domains": [
+        "opportunity"
+      ],
+      "status": "PARTIAL",
+      "cost_used_pence": 0,
+      "uncertainties": [
+        "No independent corroboration or calibrated utility"
+      ]
+    },
+    {
+      "agent_id": "8-13",
+      "role_version": "deterministic-field-v1",
+      "task_id": "ted-fresh-20261110-v3",
+      "trace_id": "ted-fresh-20261110-v3",
+      "capabilities": [
+        "local_evidence_review"
+      ],
+      "allowed_domains": [
+        "opportunity"
+      ],
+      "status": "PARTIAL",
+      "cost_used_pence": 0,
+      "uncertainties": [
+        "No independent corroboration or calibrated utility"
+      ]
+    }
+  ],
+  "next_internal_action": {
+    "action_id": "research-ted-fresh-20261110-v3",
+    "state": "AWAITING_OWNER_DECISION",
+    "capability": "REVIEW_PUBLIC_ELIGIBILITY",
+    "expires_at": "2026-11-11T02:55:21.318545+00:00",
+    "external_writes_permitted": false
+  },
+  "actions_executed": [],
+  "paid_api_spend_pence": 0,
+  "elapsed_seconds": 0.378,
+  "baseline": {
+    "method": "Same-input complete manual checklist",
+    "independent_reviewer": null,
+    "correction_minutes": null,
+    "manual_minutes": null,
+    "time_saved_minutes": null,
+    "usefulness": null
+  },
+  "evolution_verdict": "NO_PROMOTION_MISSING_INDEPENDENT_OUTCOME",
+  "production_status": "NOT_DEPLOYED",
+  "continuous_worker": false
+}

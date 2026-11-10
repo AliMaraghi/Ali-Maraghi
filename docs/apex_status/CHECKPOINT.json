@@ -1,14 +1,14 @@
 {
-  "recorded_at": "2026-11-10T20:50:13.023567+00:00",
+  "recorded_at": "2026-11-10T20:56:19.717783+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
-  "verified_implementation_commit": "Following local mission runtime commit; use git log",
-  "entry_commit": "d19b291",
+  "verified_implementation_commit": "Following schedule increment commit; use git log",
+  "entry_commit": "e228655",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "tests_run": 186,
-    "passed": 184,
+    "tests_run": 193,
+    "passed": 191,
     "skipped": 2,
     "failures": 0,
     "errors": 0,
@@ -103,11 +103,11 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "Read MISSION_RUNTIME_REPORT.md; run scripts/apex missions status ted-research-20261110",
+  "next_action": "Read SCHEDULE_INCREMENT_REPORT.md; scripts/apex schedules status",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
   "field_excluded": 3,
-  "latest_field_trace": "ted-field-20261110-v2",
+  "latest_field_trace": "ted-fresh-20261110-v3",
   "latest_field_counts": {
     "observed": 5,
     "candidate_unverified": 3,
@@ -124,5 +124,11 @@
     "tunnel": "BLOCKED_API_AUTHORIZATION",
     "vps_inspection": "DOCKER_SOCKET_PERMISSION_DENIED",
     "report": "docs/apex_status/DOMAIN_ACTIVATION_REPORT.md"
+  },
+  "schedule": {
+    "id": "fresh-review",
+    "released_trace": "sched-fresh-review-1",
+    "remaining_occurrences": 1,
+    "background_service": false
   }
 }

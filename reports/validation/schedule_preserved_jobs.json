@@ -1,0 +1,74 @@
+{
+  "trace_id": "ted-research-20261110",
+  "nodes": [
+    {
+      "id": "mg-ted-research-20261110-research1",
+      "role": "8-12",
+      "depends_on": [],
+      "domain": "opportunity",
+      "state": "COMPLETE",
+      "attempts": 1,
+      "max_attempts": 2,
+      "result_seq": 36
+    },
+    {
+      "id": "mg-ted-research-20261110-research2",
+      "role": "8-12",
+      "depends_on": [],
+      "domain": "opportunity",
+      "state": "COMPLETE",
+      "attempts": 1,
+      "max_attempts": 2,
+      "result_seq": 40
+    },
+    {
+      "id": "mg-ted-research-20261110-research3",
+      "role": "8-12",
+      "depends_on": [],
+      "domain": "opportunity",
+      "state": "COMPLETE",
+      "attempts": 1,
+      "max_attempts": 2,
+      "result_seq": 44
+    },
+    {
+      "id": "mg-ted-research-20261110-research4",
+      "role": "8-12",
+      "depends_on": [],
+      "domain": "opportunity",
+      "state": "COMPLETE",
+      "attempts": 1,
+      "max_attempts": 2,
+      "result_seq": 48
+    },
+    {
+      "id": "mg-ted-research-20261110-research5",
+      "role": "8-12",
+      "depends_on": [],
+      "domain": "opportunity",
+      "state": "COMPLETE",
+      "attempts": 1,
+      "max_attempts": 2,
+      "result_seq": 52
+    },
+    {
+      "id": "mg-ted-research-20261110-critique",
+      "role": "8-12",
+      "depends_on": [
+        "research1",
+        "research2",
+        "research3",
+        "research4",
+        "research5"
+      ],
+      "domain": "opportunity",
+      "state": "COMPLETE",
+      "attempts": 1,
+      "max_attempts": 2,
+      "result_seq": 56
+    }
+  ],
+  "concurrency_limit": 1,
+  "independent_external_verification": "NOT_PERFORMED",
+  "scope": "Deterministic evidence review only; no autonomous external effects"
+}

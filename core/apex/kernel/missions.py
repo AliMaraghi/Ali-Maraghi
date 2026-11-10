@@ -78,7 +78,20 @@ class Missions:
                 if states[node['id']] in {'COMPLETE','DEAD'}:continue
                 if all(states[d]=='COMPLETE' for d in node['depends_on']):
                     jid='mg-'+trace+'-'+node['id']
-                    self.queue.submit(jid,Task.parse(node['task']),Case.parse(node['case']))
+                    case=strict_json(canonical(node['case']))
+                    fused=[]
+                    for dep in node['depends_on']:
+                        result=self.ledger.db.execute('SELECT e.seq,e.digest,e.payload FROM jobs j JOIN events e ON e.seq=j.result_seq WHERE j.id=?',('mg-'+trace+'-'+dep,)).fetchone()
+                        if result is None:raise ValueError('Dependency receipt missing')
+                        payload=strict_json(result[2])
+                        if payload.get('status') in {'DENIED','FAILED'}:
+                            raise ValueError('Dependency failed; downstream execution blocked')
+                        fused.append({'node':dep,'seq':result[0],'digest':result[1],'status':payload.get('status')})
+                    if fused:
+                        case['assumptions']=case['assumptions'][:29]+['Dependency receipts (not independent verification): '+canonical(fused)]
+                        self.ledger._append('fusion-'+trace+'-'+node['id'],'decision','opportunity',{
+                            'trace_id':trace,'node':node['id'],'dependencies':fused,'actions_executed':[]})
+                    self.queue.submit(jid,Task.parse(node['task']),Case.parse(case))
                     chosen=jid;break
             claim=self.queue.claim(worker,job_id=chosen) if chosen else None
         if claim:self.queue.execute(claim,root)

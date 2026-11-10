@@ -1,0 +1,13 @@
+{
+  "trace_id": "ted-fresh-20261110-v3",
+  "objective": "Verify founder-supplied tender seeds and probe unrelated public opportunities without contact or bidding",
+  "deadline": "2026-11-11T02:55:21.318545+00:00",
+  "sources": [
+    {
+      "source": "ted",
+      "query": "classification-cpv IN (72000000) AND publication-date >= 20261110"
+    }
+  ],
+  "maximum_spend_pence": 0,
+  "privacy_class": "public"
+}

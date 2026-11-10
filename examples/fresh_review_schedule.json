@@ -1,0 +1,164 @@
+{
+  "schedule_id": "fresh-review",
+  "packet": {
+    "trace_id": "fresh-template",
+    "nodes": [
+      {
+        "id": "research",
+        "depends_on": [],
+        "role": "8-12",
+        "task": {
+          "task_id": "fresh-template-research",
+          "domain": "opportunity",
+          "expires_at": "2026-11-11T02:55:37.945083+00:00",
+          "max_sources": 4,
+          "max_runtime_ms": 10000,
+          "paid_budget_pence": 0
+        },
+        "case": {
+          "id": "fresh-template",
+          "domain": "opportunity",
+          "problem": "Which public notices justify a small internal eligibility check without bidding?",
+          "assumptions": [
+            "Headline contract value is not margin or founder income.",
+            "Mirrors of the same buyer statement are not independent evidence."
+          ],
+          "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+          "hypotheses": [
+            {
+              "id": "deliver",
+              "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+              "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+              "falsifier": "Mandatory qualifications or working capital cannot be met."
+            },
+            {
+              "id": "exclude",
+              "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+              "prediction": "Portal or supplier evidence invalidates a viable bid.",
+              "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+            }
+          ],
+          "claims": [
+            {
+              "id": "observation-0",
+              "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+              "kind": "observation",
+              "evidence_ids": [
+                "source-0"
+              ]
+            },
+            {
+              "id": "fit",
+              "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+              "kind": "hypothesis",
+              "evidence_ids": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "source-0",
+              "claim_id": "observation-0",
+              "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+              "publisher": "EU Publications Office",
+              "independence_group": "ted",
+              "retrieved_at": "2026-11-10T20:55:21.810119+00:00",
+              "expires_at": "2026-11-11T20:55:21.810119+00:00",
+              "artifact": "runtime/public-evidence/af751acf0bfcc22c49a9a94535a2f914b863e537a8b90214ac2796f27941289b.json",
+              "sha256": "af751acf0bfcc22c49a9a94535a2f914b863e537a8b90214ac2796f27941289b",
+              "excerpt": "OBSERVED_UNCORROBORATED",
+              "method": "observation",
+              "synthetic": false,
+              "stance": "supports",
+              "domain": "opportunity",
+              "sensitivity": "public"
+            }
+          ],
+          "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+          "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+          "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+        }
+      },
+      {
+        "id": "critic",
+        "depends_on": [
+          "research"
+        ],
+        "role": "8-12",
+        "task": {
+          "task_id": "fresh-template-critic",
+          "domain": "opportunity",
+          "expires_at": "2026-11-11T02:55:37.945083+00:00",
+          "max_sources": 4,
+          "max_runtime_ms": 10000,
+          "paid_budget_pence": 0
+        },
+        "case": {
+          "id": "fresh-template",
+          "domain": "opportunity",
+          "problem": "Which public notices justify a small internal eligibility check without bidding?",
+          "assumptions": [
+            "Headline contract value is not margin or founder income.",
+            "Mirrors of the same buyer statement are not independent evidence."
+          ],
+          "baseline": "Same-input manual checklist; independent timing and usefulness NOT MEASURED.",
+          "hypotheses": [
+            {
+              "id": "deliver",
+              "mechanism": "Existing supplier capacity can satisfy the stated requirement.",
+              "prediction": "Verified entity, insurance and cost evidence support eligibility.",
+              "falsifier": "Mandatory qualifications or working capital cannot be met."
+            },
+            {
+              "id": "exclude",
+              "mechanism": "The notice is closed, unsuitable or requires an unavailable supplier capability.",
+              "prediction": "Portal or supplier evidence invalidates a viable bid.",
+              "falsifier": "Current primary documents and independent cost review confirm a feasible route."
+            }
+          ],
+          "claims": [
+            {
+              "id": "observation-0",
+              "statement": "The bounded official response contains 5 records; truth and supplier fit require corroboration.",
+              "kind": "observation",
+              "evidence_ids": [
+                "source-0"
+              ]
+            },
+            {
+              "id": "fit",
+              "statement": "The founder could deliver a profitable bid; capacity, costs and eligibility are unknown.",
+              "kind": "hypothesis",
+              "evidence_ids": []
+            }
+          ],
+          "evidence": [
+            {
+              "id": "source-0",
+              "claim_id": "observation-0",
+              "source_uri": "https://api.ted.europa.eu/v3/notices/search",
+              "publisher": "EU Publications Office",
+              "independence_group": "ted",
+              "retrieved_at": "2026-11-10T20:55:21.810119+00:00",
+              "expires_at": "2026-11-11T20:55:21.810119+00:00",
+              "artifact": "runtime/public-evidence/af751acf0bfcc22c49a9a94535a2f914b863e537a8b90214ac2796f27941289b.json",
+              "sha256": "af751acf0bfcc22c49a9a94535a2f914b863e537a8b90214ac2796f27941289b",
+              "excerpt": "OBSERVED_UNCORROBORATED",
+              "method": "observation",
+              "synthetic": false,
+              "stance": "supports",
+              "domain": "opportunity",
+              "sensitivity": "public"
+            }
+          ],
+          "neglected_need": "Search a different sector as a probe; absence in one page is not unmet demand.",
+          "second_order_effect": "Delivery financing, travel and subcontractor commitments can exceed headline margin.",
+          "smallest_test": "Owner reviews public portal deadline and supplies only authorized eligibility facts."
+        }
+      }
+    ],
+    "paid_budget_pence": 0
+  },
+  "interval_seconds": 3600,
+  "first_due": 1794344137,
+  "occurrences": 2
+}

@@ -25,6 +25,7 @@ def main(argv=None):
     s.add_parser('audit')
     s.add_parser('costs')
     mi=s.add_parser('missions');mi.add_argument('operation',choices=['submit','tick','status']);mi.add_argument('target');mi.add_argument('--worker',default='local-mission-worker')
+    sc=s.add_parser('schedules');sc.add_argument('operation',choices=['add','poll','status']);sc.add_argument('--input')
     st=s.add_parser('status');st.add_argument('--json',action='store_true')
     pi=s.add_parser('pilot');pi.add_argument('mission');pi.add_argument('--source',choices=['live'],required=True);pi.add_argument('--read-only',action='store_true',required=True)
     re=s.add_parser('report');re.add_argument('--trace',required=True)
@@ -41,7 +42,16 @@ def main(argv=None):
             return kernel(args.args)
         if args.command=='test-all':
             return subprocess.run([sys.executable,'-B',str(ROOT/'scripts/test_offline.py')],cwd=ROOT).returncode
-        if args.command=='missions':
+        if args.command=='schedules':
+            from .kernel.schedules import Schedules
+            with Ledger(ROOT) as ledger:
+                schedules=Schedules(ledger)
+                if args.operation=='add':
+                    packet=strict_json(read_local(ROOT,args.input,524288).decode())
+                    result={'schedule_id':schedules.add(**packet)}
+                elif args.operation=='poll':result=schedules.poll()
+                else:result={'schedules':schedules.status()}
+        elif args.command=='missions':
             from .kernel.missions import Missions
             if args.operation=='status':
                 with Ledger.read_only(ROOT) as ledger:result=Missions.read_only(ledger).status(args.target)

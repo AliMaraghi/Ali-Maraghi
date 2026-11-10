@@ -1,4 +1,4 @@
-# Domain activation continuation
-python3 -B scripts/check_domain_activation.py
+# Resume
+python3 -B scripts/apex schedules status
 
-Read DOMAIN_ACTIVATION_REPORT.md. Bind scoped Cloudflare API access securely and obtain a valid VPS administration path; no tokens in chat/Git. Four upstreams remain blocked/unverified, all public routes disabled. Existing runtime continuation remains in MISSION_RUNTIME_REPORT.md.
+Read SCHEDULE_INCREMENT_REPORT.md and actual Git HEAD. One occurrence remains pending explicit polling; no daemon. Run scripts/apex schedules poll only after due time and confirming unchanged code and valid evidence. Then scripts/apex missions tick RELEASED_TRACE once per node. Do not treat recurring review as fresh retrieval. Cloudflare/private provider/staging authorization blockers remain in DOMAIN_ACTIVATION_REPORT.md.
