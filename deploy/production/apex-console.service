@@ -1,0 +1,25 @@
+[Unit]
+Description=APEX Access-authenticated read-only command and reports origin
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+ConditionPathExists=/etc/apex/access-origin.json
+
+[Service]
+Type=simple
+User=apexdev
+WorkingDirectory=/home/apexdev/apex-work
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/apex owner-view --trace ted-fresh-20261110-v3 --port 8765 --access-config /etc/apex/access-origin.json
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=15
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+RestrictAddressFamilies=AF_INET AF_UNIX
+UMask=0077
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+[Install]
+WantedBy=multi-user.target
