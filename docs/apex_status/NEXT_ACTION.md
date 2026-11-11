@@ -10,3 +10,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/test_offline.py
 Production deployment remains independently gated as documented previously.
 
 Latest apex-google.zip has no code delta; see GOOGLE_ZIP_RECONCILIATION.md. Archive inspection complete. Continue constrained Google transport/token lifecycle work when requested; never copy reference store/OAuth wholesale.
+
+2026-11-11: Constrained transport now exists in core/apex/google_http.py; see
+GOOGLE_TRANSPORT_INCREMENT.md. Next implementation: encrypted expiring token broker
+in existing Ledger, bound to approved OAuth owner/session, with atomic refresh/audit.
+Then wire GmailClient into authorized sync; do not fetch using arbitrary credentials.
+Host deployment remains blocked by authenticated executor and missing production
+Access configuration; do not retry IONOS maintenance without new access evidence.
