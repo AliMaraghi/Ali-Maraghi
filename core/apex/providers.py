@@ -109,4 +109,17 @@ def directory(ledger):
             'health':'HISTORICAL_RECEIPT_NOT_CONTINUOUS_MONITORING',
             'credential_reference':None,'cost_limit_pence':0,
             'pagination':'ONE_PAGE_MAX_3','retries':0})
+    # Partial private adapters are visible without claiming consent or live health.
+    from .meta_readonly import PROVIDER as meta
+    providers.extend([
+        {**meta, 'last_observed_state':'AUTH_REQUIRED', 'health':'NOT_VERIFIED',
+         'receipt_seq':None, 'credential_reference':None, 'retrieved_at':None},
+        {'provider_id':'truelayer-data-v3', 'category':'banking',
+         'official_api':'https://api.truelayer.com',
+         'implementation_state':'IMPLEMENTED_NOT_AUTHORIZED',
+         'capability':'bounded_read_requests_encrypted_receipts_partial',
+         'last_observed_state':'AUTH_REQUIRED', 'health':'NOT_VERIFIED',
+         'receipt_seq':None, 'credential_reference':None, 'retrieved_at':None,
+         'cost_limit_pence':0, 'live_verified':False},
+    ])
     return providers

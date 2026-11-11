@@ -17,3 +17,8 @@ in existing Ledger, bound to approved OAuth owner/session, with atomic refresh/a
 Then wire GmailClient into authorized sync; do not fetch using arbitrary credentials.
 Host deployment remains blocked by authenticated executor and missing production
 Access configuration; do not retry IONOS maintenance without new access evidence.
+
+Three-track continuation: see THREE_TRACK_INCREMENT.md, BANKING_INCREMENT.md,
+META_INCREMENT.md. Google encrypted broker + token HTTP + controller now exist;
+next missing Google boundary is owner-session/CSRF HTTP mounting, key/client
+provisioning and scheduler binding. No consent/live status is implied.
