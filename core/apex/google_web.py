@@ -74,6 +74,44 @@ def scheduled_gmail_sync(ledger,path,owner_digest):
     return GmailSync(ledger,cfg['encryption_key'].encode(),cfg['owner'],policy).step(connection.client())
 
 
+SESSION_ENTRY=frozenset({'/connections/google','/connections/meta'})
+
+
+def owner_session(ledger,environ,path,method):
+    """Access-token-bound owner session; caller has already verified Access JWT."""
+    token=environ.get('HTTP_CF_ACCESS_JWT_ASSERTION','')
+    # Verified Access token binding prevents cookie reuse with a different session.
+    binding=digest(token)
+    cookies=SimpleCookie();cookies.load(environ.get('HTTP_COOKIE',''))
+    sid=cookies[COOKIE].value if COOKIE in cookies else ''
+    if len(sid)>256:raise PermissionError('Invalid session')
+    now=int(time.time());headers=[]
+    with ledger.transaction():
+        ledger.db.execute('CREATE TABLE IF NOT EXISTS owner_web_sessions (id TEXT PRIMARY KEY, binding TEXT NOT NULL, csrf TEXT NOT NULL, expires INTEGER NOT NULL)')
+        ledger.db.execute('DELETE FROM owner_web_sessions WHERE expires<=?',(now,))
+        row=ledger.db.execute('SELECT binding,csrf,expires FROM owner_web_sessions WHERE id=?',(digest(sid),)).fetchone() if sid else None
+        if row and not hmac.compare_digest(row[0],binding):row=None
+        if not row:
+            if path not in SESSION_ENTRY or method!='GET':raise PermissionError('Owner session required')
+            if ledger.db.execute('SELECT count(*) FROM owner_web_sessions').fetchone()[0]>=20:raise PermissionError('Session cap')
+            sid=secrets.token_urlsafe(32);csrf=secrets.token_urlsafe(32)
+            ledger.db.execute('INSERT INTO owner_web_sessions VALUES(?,?,?,?)',(digest(sid),binding,csrf,now+900))
+            ledger._append('owner-session-'+digest(sid),'decision','personal',{'phase':'OWNER_SESSION_CREATED','expires_at':now+900})
+            row=(binding,csrf,now+900)
+            headers.append(('Set-Cookie',COOKIE+'='+sid+'; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=900'))
+    return sid,row,headers
+
+
+def require_csrf(environ,row):
+    if environ.get('HTTP_ORIGIN')!=ORIGIN or environ.get('CONTENT_TYPE')!='application/x-www-form-urlencoded':raise PermissionError('Same-origin form required')
+    length=environ.get('CONTENT_LENGTH','')
+    if not length.isdecimal() or not 1<=int(length)<=1024:raise ValueError('Bounded form required')
+    raw=environ['wsgi.input'].read(int(length))
+    if len(raw)!=int(length):raise ValueError('Incomplete form')
+    form=parse_qs(raw.decode(),strict_parsing=True,max_num_fields=2)
+    if set(form)!={'csrf'} or len(form['csrf'])!=1 or not hmac.compare_digest(form['csrf'][0],row[1]):raise PermissionError('CSRF rejected')
+
+
 class GoogleRoutes:
     def __init__(self,root,path,owner):
         self.root,self.path,self.owner=root,path,owner
@@ -84,36 +122,12 @@ class GoogleRoutes:
         if environ.get('HTTP_HOST')!='console.apexcorelab.uk':raise PermissionError('Exact origin required')
         method=environ.get('REQUEST_METHOD');path=environ.get('PATH_INFO')
         if method not in {'GET','POST'}:return 405,b'{"error":"METHOD_NOT_ALLOWED"}',[],'application/json'
-        token=environ.get('HTTP_CF_ACCESS_JWT_ASSERTION','')
-        # Verified Access token binding prevents cookie reuse with a different session.
-        binding=digest(token)
-        cookies=SimpleCookie();cookies.load(environ.get('HTTP_COOKIE',''))
-        sid=cookies[COOKIE].value if COOKIE in cookies else ''
-        if len(sid)>256:raise PermissionError('Invalid session')
-        now=int(time.time());headers=[]
+        now=int(time.time())
         with Ledger(self.root) as ledger:
-            with ledger.transaction():
-                ledger.db.execute('CREATE TABLE IF NOT EXISTS owner_web_sessions (id TEXT PRIMARY KEY, binding TEXT NOT NULL, csrf TEXT NOT NULL, expires INTEGER NOT NULL)')
-                ledger.db.execute('DELETE FROM owner_web_sessions WHERE expires<=?',(now,))
-                row=ledger.db.execute('SELECT binding,csrf,expires FROM owner_web_sessions WHERE id=?',(digest(sid),)).fetchone() if sid else None
-                if row and not hmac.compare_digest(row[0],binding):row=None
-                if not row:
-                    if path!='/connections/google' or method!='GET':raise PermissionError('Owner session required')
-                    if ledger.db.execute('SELECT count(*) FROM owner_web_sessions').fetchone()[0]>=20:raise PermissionError('Session cap')
-                    sid=secrets.token_urlsafe(32);csrf=secrets.token_urlsafe(32)
-                    ledger.db.execute('INSERT INTO owner_web_sessions VALUES(?,?,?,?)',(digest(sid),binding,csrf,now+900))
-                    ledger._append('owner-session-'+digest(sid),'decision','personal',{'phase':'OWNER_SESSION_CREATED','expires_at':now+900})
-                    row=(binding,csrf,now+900)
-                    headers.append(('Set-Cookie',COOKIE+'='+sid+'; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=900'))
+            sid,row,headers=owner_session(ledger,environ,path,method)
             policy,broker,connection=components(ledger,cfg)
             if method=='POST':
-                if environ.get('HTTP_ORIGIN')!=ORIGIN or environ.get('CONTENT_TYPE')!='application/x-www-form-urlencoded':raise PermissionError('Same-origin form required')
-                length=environ.get('CONTENT_LENGTH','')
-                if not length.isdecimal() or not 1<=int(length)<=1024:raise ValueError('Bounded form required')
-                raw=environ['wsgi.input'].read(int(length))
-                if len(raw)!=int(length):raise ValueError('Incomplete form')
-                form=parse_qs(raw.decode(),strict_parsing=True,max_num_fields=2)
-                if set(form)!={'csrf'} or len(form['csrf'])!=1 or not hmac.compare_digest(form['csrf'][0],row[1]):raise PermissionError('CSRF rejected')
+                require_csrf(environ,row)
                 if path=='/auth/google/start':
                     location=connection.begin(self.owner,sid)
                     return 303,b'',headers+[('Location',location)],'text/plain'

@@ -37,6 +37,9 @@ def content(root,path):
                       ensure_ascii=False,allow_nan=False).encode(),'application/json; charset=utf-8'
 
 
+META_PATHS=frozenset({'/connections/meta','/connections/meta/sync','/auth/meta/start','/auth/meta/callback','/auth/meta/disconnect'})
+
+
 class ReloadingVerifier:
     def __init__(self,path):
         self.path=Path(path);self.lock=threading.Lock()
@@ -57,8 +60,8 @@ class ReloadingVerifier:
 
 
 class ConsoleApp:
-    def __init__(self,root,verifier,google_routes=None):
-        self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes
+    def __init__(self,root,verifier,google_routes=None,meta_routes=None):
+        self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes;self.meta_routes=meta_routes
         self.lock=threading.Lock();self.requests=deque()
     def __call__(self,environ,start_response):
         now=time.monotonic()
@@ -84,6 +87,17 @@ class ConsoleApp:
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
             except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
+        elif self.meta_routes and environ.get('PATH_INFO') in META_PATHS:
+            google=True
+            try:
+                if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.meta_routes.owner:
+                    raise PermissionError('Access owner configuration changed')
+                code,body,extra,kind=self.meta_routes.handle(environ)
+            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
+        elif not self.meta_routes and environ.get('PATH_INFO')=='/connections/meta' and environ.get('REQUEST_METHOD')=='GET':
+            body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Meta app configuration"}'
         elif environ.get('REQUEST_METHOD') not in {'GET','HEAD'}:
             code=405;body=b'{"error":"READ_ONLY; use authenticated operator CLI for STOP"}'
         else:
@@ -91,7 +105,7 @@ class ConsoleApp:
             except KeyError:code=404;body=b'{"error":"NOT_FOUND"}'
             except Exception:code=503;body=b'{"error":"EVIDENCE_UNAVAILABLE"}'
         labels={200:'OK',303:'See Other',400:'Bad Request',403:'Forbidden',401:'Unauthorized',404:'Not Found',405:'Method Not Allowed',429:'Too Many Requests',503:'Service Unavailable'}
-        headers=[(k,v.replace("form-action 'none'","form-action 'self'") if google and k=='Content-Security-Policy' else v) for k,v in HEADERS]+extra+[('Content-Type',kind),('Content-Length',str(len(body)))]
+        headers=[(k,v.replace("form-action 'none'","form-action 'self' https://accounts.google.com https://www.facebook.com") if google and k=='Content-Security-Policy' else v) for k,v in HEADERS]+extra+[('Content-Type',kind),('Content-Length',str(len(body)))]
         if code==429:headers.append(('Retry-After','60'))
         if code==405:headers.append(('Allow','GET, HEAD'))
         start_response(str(code)+' '+labels[code],headers)
@@ -104,6 +118,7 @@ def main():
     p.add_argument('--access-config',type=Path,required=True)
     p.add_argument('--port',type=int,default=8765)
     p.add_argument('--google-config',type=Path,default=Path('/etc/apex/google-runtime.json'))
+    p.add_argument('--meta-config',type=Path,default=Path('/etc/apex/meta-runtime.json'))
     args=p.parse_args()
     if not 1024<=args.port<=65535:raise ValueError('Unprivileged loopback port required')
     # Load and verify before opening listener; no anonymous health/data path.
@@ -112,7 +127,11 @@ def main():
     if args.google_config.exists():
         from .google_web import GoogleRoutes
         google=GoogleRoutes(args.root,args.google_config,verifier.verifier.owner)
-    app=ConsoleApp(args.root,verifier,google)
+    meta=None
+    if args.meta_config.exists():
+        from .meta_web import MetaRoutes
+        meta=MetaRoutes(args.root,args.meta_config,verifier.verifier.owner)
+    app=ConsoleApp(args.root,verifier,google,meta)
     from waitress import serve
     serve(app,listen='127.0.0.1:'+str(args.port),threads=4,connection_limit=32,
           channel_timeout=15,cleanup_interval=5,max_request_header_size=32768,
