@@ -39,3 +39,51 @@ class GmailTests(unittest.TestCase):
         client=Mock(get=Mock(side_effect=[{'emailAddress':'owner@example.org','historyId':'20'},
           {'history':[{'messagesDeleted':[{'message':{'threadId':'abc'}}]}],'historyId':'20'},GmailError(404)]))
         sync.step(client);self.assertEqual(sync.review(),[]);self.assertEqual(sync.load()[0]['cursor'],'20')
+
+    def test_failure_after_audit_insert_rolls_back_ciphertext_cursor_and_audit(self):
+        from apex.kernel.memory import Ledger
+        sync=self.sync();sync.step(self.client())
+        before=self.ledger.db.execute('SELECT * FROM google_private_sync').fetchall()
+        events=self.ledger.db.execute('SELECT * FROM events ORDER BY seq').fetchall()
+        original=self.ledger._append
+        def append_then_fail(*args,**kwargs):
+            original(*args,**kwargs)
+            raise RuntimeError('Injected failure after audit insertion')
+        client=Mock(get=Mock(side_effect=[{'emailAddress':'owner@example.org','historyId':'20'},
+            {'history':[{'messages':[{'threadId':'abc'}]}],'historyId':'20'},self.thread(True)]))
+        with patch.object(self.ledger,'_append',side_effect=append_then_fail):
+            with self.assertRaises(RuntimeError):sync.step(client)
+        self.assertEqual(before,self.ledger.db.execute('SELECT * FROM google_private_sync').fetchall())
+        self.assertEqual(events,self.ledger.db.execute('SELECT * FROM events ORDER BY seq').fetchall())
+        with Ledger.read_only(self.root) as reopened:
+            self.assertEqual(before,reopened.db.execute('SELECT * FROM google_private_sync').fetchall())
+            self.assertEqual(events,reopened.db.execute('SELECT * FROM events ORDER BY seq').fetchall())
+            reopened.verify()
+        self.assertEqual(sync.load()[0]['cursor'],'10')
+        self.assertEqual(len(sync.review()),1)
+
+    def test_nested_outer_rollback_keeps_all_three_unchanged(self):
+        sync=self.sync();sync.step(self.client())
+        before=self.ledger.db.execute('SELECT * FROM google_private_sync').fetchall()
+        count=self.ledger.verify()
+        client=Mock(get=Mock(side_effect=[{'emailAddress':'owner@example.org','historyId':'20'},
+            {'history':[],'historyId':'20'}]))
+        with self.assertRaises(RuntimeError):
+            with self.ledger.transaction():
+                sync.step(client)
+                raise RuntimeError('Outer transaction aborted')
+        self.assertEqual(before,self.ledger.db.execute('SELECT * FROM google_private_sync').fetchall())
+        self.assertEqual(count,self.ledger.verify())
+
+    def test_unrequested_headers_and_extra_fields_not_retained(self):
+        sync=self.sync();thread=self.thread()
+        thread['messages'][0]['payload']['headers']=[
+            {'name':'Subject','value':'allowed','extra':'NOT_ALLOWED'},
+            {'name':'Bcc','value':'PRIVATE_UNREQUESTED'},
+            {'name':'X-Private','value':'PRIVATE_UNREQUESTED'}]
+        thread['messages'][0]['payload']['body']={'data':'BODY_NOT_ALLOWED'}
+        client=Mock(get=Mock(side_effect=[{'emailAddress':'owner@example.org','historyId':'10'},
+            {'threads':[{'id':'abc'}]},thread]))
+        sync.step(client);state=sync.load()[0]
+        self.assertEqual(state['threads']['abc'][0]['headers'],[{'name':'Subject','value':'allowed'}])
+        self.assertNotIn('NOT_ALLOWED',str(state));self.assertNotIn('PRIVATE_UNREQUESTED',str(state))

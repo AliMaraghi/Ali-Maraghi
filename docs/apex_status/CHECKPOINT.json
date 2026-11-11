@@ -2,13 +2,13 @@
   "recorded_at": "2026-11-10T21:03:00.477009+00:00",
   "workspace": "/home/apexdev/apex-work",
   "branch": "apex/unified-field-integration",
-  "verified_implementation_commit": "Following Command Centre implementation commit; resolve git log",
-  "entry_commit": "9bb2a7c",
+  "verified_implementation_commit": "Following Google rollback/minimization commit; resolve git log",
+  "entry_commit": "18db3cd",
   "previous_verified_implementation": "5ad9288632a5d5a28af4aa2826d95492c8cf2f4f",
   "checkpoint_note": "This records the tested implementation; a following documentation commit stores this checkpoint. Use git log for current HEAD.",
   "tests": {
-    "tests_run": 233,
-    "passed": 231,
+    "tests_run": 236,
+    "passed": 234,
     "skipped": 2,
     "failures": 0,
     "errors": 0,
@@ -103,7 +103,7 @@
     "tests/test_jobs.py",
     "tests/test_public_source.py"
   ],
-  "next_action": "Read PRODUCT_DELIVERY_20261111.md; approved host executor runs deployment bundle with python3 -I",
+  "next_action": "Locate user Google source ZIP by supplied exact path; do not fabricate package content",
   "field_trace": "field-20261110-v1",
   "field_candidates_unverified": 4,
   "field_excluded": 3,
@@ -139,5 +139,6 @@
   "provider_framework_report": "docs/apex_status/PROVIDER_FRAMEWORK_REPORT.md",
   "host_deployment_boundary": "docs/apex_status/HOST_DEPLOYMENT_BOUNDARY.json",
   "google_report": "docs/apex_status/GOOGLE_SYNC_REPORT.md",
-  "product_acceptance": "docs/apex_status/PRODUCT_ACCEPTANCE_20261111.json"
+  "product_acceptance": "docs/apex_status/PRODUCT_ACCEPTANCE_20261111.json",
+  "google_package_review": "docs/apex_status/GOOGLE_PACKAGE_REVIEW.md"
 }

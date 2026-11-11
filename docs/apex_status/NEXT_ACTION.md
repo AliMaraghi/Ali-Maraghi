@@ -12,3 +12,5 @@ Then verify signed-owner origin access, current owner-only Access policies, DNS/
 recovery and real Safari before claiming publication.3 historical provider exchanges,
 not130connections. Full18role acceptance still open. Web STOP is not implemented;
 existing durable operator CLI remains authoritative.
+
+Google package: exact new ZIP path required; searched workspace and attachments, found only two old archives. Read GOOGLE_PACKAGE_REVIEW.md before integrating. Do not replace explicit Ledger transactions or mount unverified OAuth routes.

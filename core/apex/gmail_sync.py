@@ -8,6 +8,28 @@ import json
 from cryptography.fernet import Fernet
 
 
+METADATA_HEADERS=('From','To','Subject','Date','Message-ID','In-Reply-To')
+
+
+def minimized_headers(payload):
+    """Do not trust a provider response to honor requested metadata fields."""
+    if not isinstance(payload,dict):raise ValueError('Invalid metadata payload')
+    headers=payload.get('headers',[])
+    if not isinstance(headers,list) or len(headers)>100:raise ValueError('Invalid header collection')
+    allowed={name.lower():name for name in METADATA_HEADERS}
+    result=[]
+    for header in headers:
+        if not isinstance(header,dict) or not isinstance(header.get('name'),str):
+            raise ValueError('Invalid header shape')
+        name=allowed.get(header['name'].lower())
+        if name is None:continue
+        value=header.get('value')
+        if not isinstance(value,str) or len(value)>8192 or '\x00' in value:
+            raise ValueError('Invalid bounded header value')
+        result.append({'name':name,'value':value})
+    return result
+
+
 class GmailError(Exception):
     def __init__(self,status):self.status=status;super().__init__('Gmail request failed')
 
@@ -18,7 +40,7 @@ class GmailSync:
         if not isinstance(owner,str) or '@' not in owner:raise ValueError('Owner identity required')
         with ledger.transaction():
             ledger.db.execute('CREATE TABLE IF NOT EXISTS google_private_sync (account TEXT PRIMARY KEY, encrypted BLOB NOT NULL, generation INTEGER NOT NULL)')
-        # Account keyed hash avoids storing plain owner identity in the table.
+        # Unkeyed pseudonym, not anonymization: known email addresses remain guessable.
         self.account=hashlib.sha256(owner.encode()).hexdigest()
 
     def load(self):
@@ -59,7 +81,7 @@ class GmailSync:
             if len(ids)>20:raise ValueError('Thread refresh bound exceeded; cursor unchanged')
             for tid in sorted(ids):
                 if not isinstance(tid,str) or not tid.isalnum() or len(tid)>128:raise ValueError('Invalid thread ID')
-                try:thread=client.get('threads/'+tid,{'format':'metadata','metadataHeaders':['From','To','Subject','Date','Message-ID','In-Reply-To']})
+                try:thread=client.get('threads/'+tid,{'format':'metadata','metadataHeaders':list(METADATA_HEADERS)})
                 except GmailError as error:
                     if error.status==404:state['threads'].pop(tid,None);continue
                     raise
@@ -75,7 +97,7 @@ class GmailSync:
                     date=m['internalDate']
                     if not isinstance(date,str) or not date.isdecimal():raise ValueError('Invalid date')
                     normalized.append({'id':m['id'],'internalDate':date,'labelIds':labels,
-                        'headers':m.get('payload',{}).get('headers',[]),'source':'gmail-thread:'+tid})
+                        'headers':minimized_headers(m.get('payload',{})),'source':'gmail-thread:'+tid})
                 state['threads'][tid]=sorted(normalized,key=lambda x:(int(x['internalDate']),x['id']))
             if len(state['threads'])>100:raise ValueError('Initial pilot retention cap reached; no silent truncation')
             state['page']=page.get('nextPageToken')

@@ -36,3 +36,6 @@ GOOGLE_SYNC_REPORT.md: encrypted bounded Gmail thread/history state with Sent as
 
 ## Product delivery2026-11-11
 See PRODUCT_DELIVERY_20261111.md. Actual mobile UI and Waitress HTTP tested with real journal; production remains blocked by authenticated administrative/Cloudflare bindings. No further worker changes.
+
+## Google rollback and minimization
+GOOGLE_PACKAGE_REVIEW.md:234passed/2skipped; package path unresolved. Verified post-audit and nested rollback, fixed header minimization. No live Google data or deployment.
