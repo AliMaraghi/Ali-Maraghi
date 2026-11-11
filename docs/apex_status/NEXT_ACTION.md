@@ -1,16 +1,10 @@
-# Next executable operation
-python3 -B deploy/production/install.py
-
-Non-mutating bundle validation only. Production application and12section dashboard
-implemented; see PRODUCT_DELIVERY_20261111.md and acceptance JSON. Once approved
-host admin and actual Access configuration are bound, executor runs:
-python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies
-
-Do not repeat completed host diagnosis. No owner shell-command checklist. Obtain
-one authenticated host execution session and rotated Cloudflare management binding.
-Then verify signed-owner origin access, current owner-only Access policies, DNS/TLS,
-recovery and real Safari before claiming publication.3 historical provider exchanges,
-not130connections. Full18role acceptance still open. Web STOP is not implemented;
-existing durable operator CLI remains authoritative.
-
-Google package: exact new ZIP path required; searched workspace and attachments, found only two old archives. Read GOOGLE_PACKAGE_REVIEW.md before integrating. Do not replace explicit Ledger transactions or mount unverified OAuth routes.
+# Next Google integration operation
+Read docs/apex_status/GOOGLE_ADDON_INTEGRATION.md and reports/validation/google_addon_inventory.json.
+New archive is inspected; do not repeat missing-package search. Implement reviewed
+Google read-only transport using pinned TLS/DNS and bounded operation contracts;
+then atomic encrypted credential lifecycle. No live consent or import until actual
+owner-bound OAuth/key storage and privacy review are established. Keep start/callback
+unmounted until owner HTTPS/Access/session verification. Do not import reference
+Store or full-format Gmail helpers. Reproduce current regression only after changes:
+PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/test_offline.py
+Production deployment remains independently gated as documented previously.

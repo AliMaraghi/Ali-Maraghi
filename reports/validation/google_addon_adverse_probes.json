@@ -1,0 +1,6 @@
+{
+  "reference_only": true,
+  "token_survived_failed_audit": true,
+  "audit_event_count": 0,
+  "mailbox_message_format": "full"
+}

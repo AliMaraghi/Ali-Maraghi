@@ -1,0 +1,64 @@
+{
+  "archive_path": "/home/apexdev/.codex/attachments/5230dc98-229d-49c7-adc7-10389105c37f/APEX_GOOGLE_RUNTIME_ADDON_REBUILT_2026-11-11.zip",
+  "sha256": "e8d7e570f264f3992ece0a8ee7f74383daa7759f159b46c8a9b966e4b60d0e07",
+  "members": 12,
+  "uncompressed_bytes": 54645,
+  "checksums": [
+    {
+      "path": "CODEX_MERGE_INSTRUCTIONS.txt",
+      "sha256": "2506d4a931c84a6107d8620c7574adeb322874e083461fc1bdcaccee0900b83f",
+      "matched": true
+    },
+    {
+      "path": "README_FA.md",
+      "sha256": "cd2952e1048fdc31e498d9cc082f9b006c353c328faadbe4989c27ec4ebf76d7",
+      "matched": true
+    },
+    {
+      "path": "TEST_RESULTS.txt",
+      "sha256": "dee60694a7ded8ed75921be3531759b2ca7915035eb9571d6e98fb0ce8b8af73",
+      "matched": true
+    },
+    {
+      "path": "VALIDATION_REPORT.json",
+      "sha256": "e3d8a04c3e4118a1a50559b6a55822871d0f4f21f0f75558e574b43614f9dc60",
+      "matched": true
+    },
+    {
+      "path": "apex_google/__init__.py",
+      "sha256": "489654b51c286296e401e864412e83b5db8d4ba8574faa0c7e3dfa5cdfe8c724",
+      "matched": true
+    },
+    {
+      "path": "apex_google/http.py",
+      "sha256": "cfede550e422527ec2cda36bcab526bdfbccb681a032c3a84ae459b512ea4a3e",
+      "matched": true
+    },
+    {
+      "path": "apex_google/oauth.py",
+      "sha256": "4366ca9d95f360f5a80ac0ff0ec85f3e73e6f573213928ab19a23a9a2ba243e4",
+      "matched": true
+    },
+    {
+      "path": "apex_google/store.py",
+      "sha256": "3bcd8c5ba6c27bda917d578db80e1b7133ca315b85a40a912ed1c988da77c472",
+      "matched": true
+    },
+    {
+      "path": "apex_google/sync.py",
+      "sha256": "bcf09550612204a43ede3e7c0c6ebd1f9c4d8129b4e433ec75ff21562463bde9",
+      "matched": true
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "66f7c546692a66087d212cdff0f98aafbb758e2b5d7036bd50f39a3c4237429a",
+      "matched": true
+    },
+    {
+      "path": "tests/test_google_runtime.py",
+      "sha256": "07bf8002d408a60a30e3ca22250bb6bc46f1e5f67e59e1db1485e1547835cf78",
+      "matched": true
+    }
+  ],
+  "execution": "No installer or package hooks run"
+}

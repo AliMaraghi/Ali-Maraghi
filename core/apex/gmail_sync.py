@@ -35,8 +35,8 @@ class GmailError(Exception):
 
 
 class GmailSync:
-    def __init__(self,ledger,key,owner):
-        self.ledger=ledger;self.cipher=Fernet(key);self.owner=owner
+    def __init__(self,ledger,key,owner,policy=None):
+        self.ledger=ledger;self.cipher=Fernet(key);self.owner=owner;self.policy=policy
         if not isinstance(owner,str) or '@' not in owner:raise ValueError('Owner identity required')
         with ledger.transaction():
             ledger.db.execute('CREATE TABLE IF NOT EXISTS google_private_sync (account TEXT PRIMARY KEY, encrypted BLOB NOT NULL, generation INTEGER NOT NULL)')
@@ -50,6 +50,9 @@ class GmailSync:
 
     def step(self,client):
         from .kernel.policy import enforce_durable_stop
+        from .google_policy import ImportPolicy
+        if not isinstance(self.policy,ImportPolicy):raise PermissionError("Private import review required")
+        self.policy.require(self.owner,"gmail")
         with self.ledger.transaction():
             enforce_durable_stop(self.ledger)
             state,generation=self.load()

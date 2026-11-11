@@ -1,0 +1,23 @@
+{
+  "recorded_at": "2026-11-11T06:40:28.521072+00:00",
+  "entry_commit": "40968be",
+  "archive_sha256": "e8d7e570f264f3992ece0a8ee7f74383daa7759f159b46c8a9b966e4b60d0e07",
+  "files_inspected": 12,
+  "internal_hashes_matched": 11,
+  "reference_tests_passed": 26,
+  "regression": {
+    "run": 242,
+    "passed": 240,
+    "skipped": 2,
+    "failed": 0
+  },
+  "integrated": [
+    "strict import review gate",
+    "session-bound audited encrypted PKCE state"
+  ],
+  "oauth_routes_mounted": false,
+  "google_live_verified": false,
+  "private_data_imported": false,
+  "deployed": false,
+  "paid_api_spend_gbp": 0
+}

@@ -39,3 +39,6 @@ See PRODUCT_DELIVERY_20261111.md. Actual mobile UI and Waitress HTTP tested with
 
 ## Google rollback and minimization
 GOOGLE_PACKAGE_REVIEW.md:234passed/2skipped; package path unresolved. Verified post-audit and nested rollback, fixed header minimization. No live Google data or deployment.
+
+## Google package received and selectively adapted
+GOOGLE_ADDON_INTEGRATION.md/GOOGLE_ADDON_STATE.json. Reference26pass; adverse token/audit atomicity and full-format probes reproduced. New policy/state primitives pass240tests/2skips. No live consent/import/deployment.

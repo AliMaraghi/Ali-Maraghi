@@ -3,11 +3,12 @@ from unittest.mock import Mock,patch
 from cryptography.fernet import Fernet
 import test_missions
 from apex.gmail_sync import GmailSync,GmailError
+from apex.google_policy import ImportPolicy
 
 class GmailTests(unittest.TestCase):
     setUp=test_missions.MissionTests.setUp
     tearDown=test_missions.MissionTests.tearDown
-    def sync(self):return GmailSync(self.ledger,Fernet.generate_key(),'owner@example.org')
+    def sync(self):return GmailSync(self.ledger,Fernet.generate_key(),'owner@example.org',ImportPolicy('owner@example.org',frozenset({'gmail'}),'synthetic-review',30,True))
     def thread(self,incoming=False):
         msgs=[{'id':'m1','threadId':'abc','internalDate':'100','labelIds':['SENT'],'payload':{'headers':[{'name':'Subject','value':'PRIVATE SUBJECT'}]}}]
         if incoming:msgs.append({'id':'m2','threadId':'abc','internalDate':'200','labelIds':['INBOX']})
@@ -87,3 +88,11 @@ class GmailTests(unittest.TestCase):
         sync.step(client);state=sync.load()[0]
         self.assertEqual(state['threads']['abc'][0]['headers'],[{'name':'Subject','value':'allowed'}])
         self.assertNotIn('NOT_ALLOWED',str(state));self.assertNotIn('PRIVATE_UNREQUESTED',str(state))
+
+    def test_import_policy_missing_or_wrong_denies_before_client(self):
+        for policy in [None,ImportPolicy('other@example.org',frozenset({'gmail'}),'test',30,True),
+                       ImportPolicy('owner@example.org',frozenset({'gmail'}),'test',30,'true')]:
+            sync=GmailSync(self.ledger,Fernet.generate_key(),'owner@example.org',policy)
+            client=Mock()
+            with self.assertRaises(PermissionError):sync.step(client)
+            client.get.assert_not_called()

@@ -91,3 +91,5 @@ Google additive directive: GOOGLE_SYNC_REPORT.md and GOOGLE_REQUIREMENTS.json. G
 Product continuation2026-11-11: PRODUCT_DELIVERY_20261111.md/PRODUCT_ACCEPTANCE_20261111.json.12section bilingual command centre, source projection, Access-only Waitress origin.231regressionpass/2skip+11bundlepass. Browser realledger localtest, not production/Safari. Host apply now requires python3 -I; do not publish before real Access tests.
 
 Google package request: GOOGLE_PACKAGE_REVIEW.md. New ZIP not found; no integration claimed. Existing explicit Ledger transactions retained; ciphertext/audit/cursor rollback verified. Header allowlist enforced.234pass/2skip. No live import until explicit policy review and OAuth/key binding.
+
+Google rebuilt addon received/reviewed: GOOGLE_ADDON_INTEGRATION.md.12files/11hashes,26reference tests. Reference token/audit defect reproduced; no wholesale import. Strict import policy + session-bound encrypted PKCE state use existingLedger.240pass/2skip. OAuth unmounted; no live data. Previous missing-package blocker resolved.
