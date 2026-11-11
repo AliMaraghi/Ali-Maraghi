@@ -9,7 +9,7 @@ ConditionPathExists=/etc/apex/access-origin.json
 Type=simple
 User=apexdev
 WorkingDirectory=/home/apexdev/apex-work
-ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/apex owner-view --trace ted-fresh-20261110-v3 --port 8765 --access-config /etc/apex/access-origin.json
+ExecStart=/usr/bin/python3 -B -m apex.console_server --root /home/apexdev/apex-work --port 8765 --access-config /etc/apex/access-origin.json
 Restart=on-failure
 RestartSec=15
 TimeoutStopSec=15
@@ -20,6 +20,7 @@ ProtectHome=read-only
 RestrictAddressFamilies=AF_INET AF_UNIX
 UMask=0077
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONPATH=/home/apexdev/apex-work/core
 
 [Install]
 WantedBy=multi-user.target

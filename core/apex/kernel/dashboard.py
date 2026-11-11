@@ -6,7 +6,7 @@ from .missions import Missions
 from ..connectors import verify
 
 
-def snapshot(ledger):
+def snapshot(ledger,root=None):
     from .worker_health import status as worker_status
     count=ledger.verify()
     queue=Jobs.read_only(ledger).status()
@@ -28,7 +28,8 @@ def snapshot(ledger):
                         'status':o['retrieval_status']} for o in p['observations']],
             'next_internal_action':p['next_internal_action'],
             'independent_outcome':'NOT_MEASURED'})
-    return {'mode':'LOCAL_AUTHENTICATED_DEVELOPMENT_VIEW','audit_events_verified':count,
+    from .product_evidence import product_snapshot
+    return {'product':product_snapshot(ledger,root),'mode':'LOCAL_AUTHENTICATED_DEVELOPMENT_VIEW','audit_events_verified':count,
         'worker':worker_status(ledger),'queue':queue,'missions':missions,'schedules':schedules,'providers':verify(ledger),
         'reports':reports,'recorded_field_api_spend_pence':sum(r['paid_api_spend_pence'] for r in reports),
         'financial_outcome':'NO_VERIFIED_INCOME_RECORDED','independent_improvement':'NOT_MEASURED',
@@ -37,12 +38,5 @@ def snapshot(ledger):
 
 
 def render(data, reports_only=False):
-    title='APEX Reports' if reports_only else 'APEX Founder Command Centre'
-    sections={'Persisted reports':data['reports']} if reports_only else {
-        'Operations':{k:data[k] for k in ['mode','audit_events_verified','recorded_field_api_spend_pence','financial_outcome','independent_improvement','runtime_service','remote_https','full_acceptance']},
-        'Worker observation':data['worker'],'Queue':data['queue'],'Missions':data['missions'],'Schedules':data['schedules'],'Providers':data['providers']}
-    cards=''.join('<section><h2>'+escape(name)+'</h2><pre>'+escape(json.dumps(value,indent=2))+'</pre></section>' for name,value in sections.items())
-    return ('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        '<title>'+title+'</title><style>body{font:16px system-ui;margin:20px auto;padding:0 16px;max-width:1000px;background:#101820;color:#eee}nav a{color:#8ddcff;margin-right:16px}section{background:#192934;padding:16px;margin:16px 0;border-radius:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}</style>'
-        '<h1>'+title+'</h1><nav><a href="/console">Command Centre</a><a href="/reports">Reports</a></nav>'
-        '<p>Read-only. Candidate records are not qualified opportunities or earned income. No remote deployment is implied.</p>'+cards+'</html>').encode()
+    from .console_ui import render as render_console
+    return render_console(data,reports_only)

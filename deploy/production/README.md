@@ -9,7 +9,7 @@ python3 -B deploy/production/install.py
 systemd-analyze verify deploy/production/apex-worker.service deploy/production/apex-console.service
 
 Host install after actual root-owned /etc/apex/access-origin.json is bound:
-python3 -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies
+python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies
 
 The installer refuses non-root/isolated PID1, changed original manifesto,
 conflicting existing units, runtime symlinks and invalid Access configuration.
@@ -32,11 +32,34 @@ in docs/apex_status/ACCESS_ORIGIN_REPORT.md. No test keys or placeholder identit
 
 Open deployment gates: production load/rate-limit validation, automatic trusted
 JWKS renewal (current snapshot expires within24h and fails closed), host restart
-and external founder login/denial/TLS verification. Current standard-library HTTP
-origin remains read-only loopback. Do not publish before these gates are accepted.
+and external founder login/denial/TLS verification. The production origin uses Waitress behind loopback with application Access validation. Do not publish before these gates are accepted.
 The bundle is ready for host validation, not a full production-readiness claim.
 
 Rollback only newly installed units: stop/disable apex-console and apex-worker;
 retain runtime database and verified deployment-backups. Do not remove existing
 units or restore a stale database automatically. Revert only new console DNS/ingress
 entries using the captured Cloudflare snapshot, preserving unrelated routes.
+
+## Release safety corrections
+Root apply requires Python isolated mode (-I), sanitized child process environment,
+and reviewed SHA256-pinned unit contents captured before unprivileged tests run.
+Changing units requires intentional pin updates. Unit creation is atomic without
+overwriting concurrent host administrator changes; identical reinstall is a no-op.
+Online SQLite backup runs as apexdev, never as root in a user-writable directory.
+An older root-owned deployment-backups directory may require explicit ownership
+repair after review; installer fails rather than changing it silently.
+
+Production console now targets apex.console_server (Waitress), installed through
+Ubuntu python3-waitress when --install-dependencies is explicitly used. Actual
+host package version/security acceptance remains unverified until installation.
+No live tests, config writes or service changes occurred during bundle validation.
+A package-install/test/start failure stops apply; automatically rolling back a
+preexisting service is deliberately not attempted. Deployment receipt only proves
+active units, never public HTTPS or founder login.
+
+Cloudflare owner policy review can consume the complete authenticated app policy
+snapshot via cloudflare_plan.py --existing-policies PATH. It rejects broad Everyone,
+alternate-owner allow policies and bypass/non-identity decisions, including when
+a correct owner policy also exists. Snapshot validation does not prove its live
+origin or pagination completeness. Fetch all app policy pages using the approved
+management connection before relying on it; owner login remains a separate gate.

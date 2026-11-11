@@ -1,8 +1,14 @@
-# Resume
-python3 -B scripts/apex connectors verify
+# Next executable operation
+python3 -B deploy/production/install.py
 
-Read PROVIDER_FRAMEWORK_REPORT.md. Crossref live trace crossref-20261110-v1 is persisted; repeating its exact probe command replays evidence without fetching. Independent next implementation: unify FTS/TED adapter metadata and capability-specific receipt expiry without weakening field workflow.130-provider original inventory still missing; do not invent founder identities. Deployment requires an approved administrative execution path and securely bound rotated Cloudflare credentials/actual owner Access settings; production server packaging remains unfinished. No self-SSH to bypass sandbox.
+Non-mutating bundle validation only. Production application and12section dashboard
+implemented; see PRODUCT_DELIVERY_20261111.md and acceptance JSON. Once approved
+host admin and actual Access configuration are bound, executor runs:
+python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies
 
-Deployment priority override: HOST_DEPLOYMENT_BOUNDARY.md/json. Supported host systemd D-Bus exists; PolicyKit authentication is required for the current caller. No further worker-health increment. Await approved host administrator session/executor, then perform deployment and recovery verification; no self-SSH.
-
-Google workstream: GOOGLE_SYNC_REPORT.md. Offline sync engine exists; next code is constrained Google GET transport and authenticated OAuth broker with protected key binding. No live import until consent/privacy gates. Google full-service requirements in GOOGLE_REQUIREMENTS.json remain open.
+Do not repeat completed host diagnosis. No owner shell-command checklist. Obtain
+one authenticated host execution session and rotated Cloudflare management binding.
+Then verify signed-owner origin access, current owner-only Access policies, DNS/TLS,
+recovery and real Safari before claiming publication.3 historical provider exchanges,
+not130connections. Full18role acceptance still open. Web STOP is not implemented;
+existing durable operator CLI remains authoritative.

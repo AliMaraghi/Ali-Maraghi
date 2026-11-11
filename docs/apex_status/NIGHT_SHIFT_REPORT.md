@@ -33,3 +33,6 @@ Read HOST_DEPLOYMENT_BOUNDARY.md/json. Isolated Codex PID1, host system bus acce
 
 ## Google sync engine
 GOOGLE_SYNC_REPORT.md: encrypted bounded Gmail thread/history state with Sent as first-class metadata, atomic cursor/audit, conservative outgoing review.220 tests passed/2 skipped. No Google live retrieval, OAuth or deployment.
+
+## Product delivery2026-11-11
+See PRODUCT_DELIVERY_20261111.md. Actual mobile UI and Waitress HTTP tested with real journal; production remains blocked by authenticated administrative/Cloudflare bindings. No further worker changes.

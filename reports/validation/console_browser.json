@@ -1,0 +1,27 @@
+{
+  "scope": "LOCAL_WAITRESS_REAL_LEDGER_TEST_IDENTITY_NOT_PUBLIC_DEPLOYMENT",
+  "checks": [
+    {
+      "route": "/console",
+      "unauthorized": 401
+    },
+    {
+      "route": "/reports",
+      "unauthorized": 401
+    },
+    {
+      "route": "/api/status",
+      "unauthorized": 401
+    },
+    {
+      "route": "/assets/console.js",
+      "unauthorized": 401
+    }
+  ],
+  "panels": 12,
+  "roles": 18,
+  "audit_events": 79,
+  "product_commit": "9bb2a7c0175f00f01d18b38db73cc9805691e4cf",
+  "browser_errors": [],
+  "phone_viewport": "390x844 Chromium, not actual Safari"
+}

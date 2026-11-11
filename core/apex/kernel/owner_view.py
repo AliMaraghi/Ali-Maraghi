@@ -39,39 +39,24 @@ def handler(root, trace, token, expires_at, access_verifier=None):
                 if access_verifier is None:
                     self.send_header('WWW-Authenticate','Basic realm="APEX local owner", charset="UTF-8"')
                 data = b'Owner authentication required'
-            elif self.path not in {'/', '/trace.json','/console','/reports','/status.json','/reports.json'}:
+            elif self.path not in {'/', '/trace.json','/console','/reports','/status.json','/reports.json','/api/status','/assets/console.css','/assets/console.js'}:
                 self.send_response(404); data = b'Not found'
             else:
                 try:
-                    with Ledger.read_only(root) as ledger:
-                        from .dashboard import snapshot, render
-                        overview = snapshot(ledger)
-                        result = report(ledger, trace)
-                        from ..connectors import verify
-                        from .jobs import Jobs
-                        result['runtime']={'providers':verify(ledger),'queue':Jobs.read_only(ledger).status(),
-                                           'verified_audit_events':ledger.verify()}
-                        if ledger.db.execute("SELECT 1 FROM sqlite_master WHERE name='mission_graphs'").fetchone():
-                            from .missions import Missions
-                            result['runtime']['missions']=[Missions.read_only(ledger).status(r[0]) for r in ledger.db.execute('SELECT id FROM mission_graphs ORDER BY id')]
-                    encoded = json.dumps(result, indent=2, ensure_ascii=True)
-                    if self.path in {'/console','/reports'}:data=render(overview,self.path=='/reports')
-                    elif self.path=='/status.json':data=json.dumps(overview).encode()
-                    elif self.path=='/reports.json':data=json.dumps({'reports':overview['reports']}).encode()
-                    elif self.path == '/trace.json': data = encoded.encode()
+                    if self.path != '/trace.json':
+                        from ..console_server import content
+                        data, content_type = content(root,self.path)
                     else:
-                        data = ('<!doctype html><html lang="en"><meta charset="utf-8">'
-                            '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                            '<title>APEX owner review</title><h1>APEX: internal research review</h1>'
-                            '<p>Read-only development view. No bid, income or deployment is implied.</p>'
-                            '<p>Next internal action awaits owner decision. External actions remain blocked.</p>'
-                            '<pre>'+escape(encoded)+'</pre></html>').encode()
+                        with Ledger.read_only(root) as ledger:
+                            result=report(ledger,trace)
+                        data=json.dumps(result,ensure_ascii=True).encode()
+                        content_type='application/json'
                     self.send_response(200)
                 except Exception:
                     self.send_response(503); data = b'Trace unavailable'
-            self.send_header('Content-Type','application/json' if self.path.endswith('.json') else 'text/html; charset=utf-8')
+            self.send_header('Content-Type',locals().get('content_type','text/plain; charset=utf-8'))
             self.send_header('Cache-Control','no-store')
-            self.send_header('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'")
+            self.send_header('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
             self.send_header('X-Content-Type-Options','nosniff')
             self.send_header('Content-Length',str(len(data)))
             self.end_headers(); self.wfile.write(data)

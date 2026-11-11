@@ -1,0 +1,44 @@
+{
+  "recorded_at": "2026-11-11T06:28:26.330391+00:00",
+  "entry_commit": "9bb2a7c0175f00f01d18b38db73cc9805691e4cf",
+  "production_acceptance": "BLOCKED",
+  "working_public_urls": [],
+  "deployed_commit": null,
+  "apex_services": "NOT_DEPLOYED",
+  "cloudflared": "Historical active observation only; no new infrastructure diagnosis",
+  "cloudflare_access": "BLOCKED_UNVERIFIED_LIVE_OWNER_POLICY",
+  "historical_provider_receipts": 3,
+  "currently_live_probed_providers_this_increment": 0,
+  "fully_accepted_agents": 0,
+  "deterministic_role_handlers": 1,
+  "schedules": "PERSISTED_NOT_SUPERVISED",
+  "reboot_recovery": "NOT_VERIFIED",
+  "tests": {
+    "run": 233,
+    "passed": 231,
+    "skipped": 2,
+    "failed": 0,
+    "bundle_passed": 11
+  },
+  "browser": "Chromium390x844+desktop1440;12sections,FA/RTL/theme/navigation;realSQLite79events;ephemeralRSAidentity;noJSerrors",
+  "iphone_safari": "NOT_VERIFIED",
+  "read_only_api": "LOCAL_HTTP_VERIFIED /api/status",
+  "external_login": "BLOCKED",
+  "paid_api_spend_gbp": 0,
+  "environment_test_failure": {
+    "errors": 124,
+    "reason": "Sandbox filesystem became read-only after session reset",
+    "resolution": "Requested repository permission; reran suite successfully"
+  },
+  "owner_action": "Connect an authenticated host admin executor/PolicyKit session and approved rotated Cloudflare management binding; never paste credentials",
+  "artifact": "deploy/production",
+  "remaining": [
+    "Private OAuth and130inventory unresolved",
+    "18 full roles not accepted",
+    "No publicAccess/TLS/ownerlogin verification",
+    "No reboot/laptop-off verification",
+    "No autonomous trusted JWKS retrieval",
+    "Web STOP intentionally not enabled; durable operator CLI remains functional",
+    "Persian chrome supported; original evidence text retained in its source language"
+  ]
+}
