@@ -20,12 +20,42 @@ HEADERS=[('Cache-Control','no-store'),('X-Content-Type-Options','nosniff'),
          ('Permissions-Policy','camera=(), microphone=(), geolocation=()')]
 
 
+def connections_page(root):
+    import html
+    from .declared_targets import directory,COMPARTMENTS
+    with Ledger.read_only(root) as ledger:
+        rows=directory(ledger)
+    links={'google':'/connections/google','meta':'/connections/meta'}
+    live=sum(r['state'] in ('LIVE','LIVE_PUBLIC_RECEIPT') for r in rows)
+    out=['<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1">'
+         '<title>Connections</title><link rel="stylesheet" href="/assets/console.css"><body><main><h1>Account connections</h1>',
+         '<p>'+str(len(rows))+' founder-declared targets · '+str(live)+' with a live retrieval receipt. '
+         'An adapter is not a connection; LIVE requires an authorized request receipt in the Ledger. '
+         'Not the authoritative 130-provider inventory (not found in repository).</p>',
+         '<p><a href="/connections/finance">Financial accounts</a> · <a href="/connections/google">Google</a> · '
+         '<a href="/connections/meta">Meta</a> · <a href="/console">Founder console</a></p>']
+    for compartment in COMPARTMENTS:
+        group=[r for r in rows if r['compartment']==compartment]
+        if not group:continue
+        out.append('<section><h2>'+html.escape(compartment)+('' if COMPARTMENTS[compartment]['briefing'] else ' (segregated: excluded from briefings)')+'</h2><table><tr><th>Target</th><th>Route</th><th>State</th><th>Notes</th></tr>')
+        for r in group:
+            link=links.get(r['adapter']) or ('/connections/finance' if (r['adapter'] or '').startswith('finance:') else None)
+            name=html.escape(r['target'])
+            out.append('<tr><td>'+('<a href="'+link+'">'+name+'</a>' if link else name)+'</td><td>'+r['route']+'</td><td><b>'+r['state']+'</b>'
+                       +(' #'+str(r['receipt_seq']) if r['receipt_seq'] else '')+'</td><td>'+html.escape(r['note'])+(' [to verify]' if r['verify'] else '')+'</td></tr>')
+        out.append('</table></section>')
+    out.append('</main></body></html>')
+    return ''.join(out).encode()
+
+
 def content(root,path):
     assets={'/assets/console.css':('console.css','text/css; charset=utf-8'),
             '/assets/console.js':('console.js','text/javascript; charset=utf-8')}
     if path in assets:
         filename,kind=assets[path]
         return (ASSETS/filename).read_bytes(),kind
+    if path=='/connections':
+        return connections_page(root),'text/html; charset=utf-8'
     if path not in {'/','/console','/reports','/status.json','/api/status','/reports.json'}:
         raise KeyError('Unknown route')
     from .kernel.dashboard import snapshot,render

@@ -1,6 +1,6 @@
 # APEX continuation (read first)
 
-Updated 2026-11-11. Branch apex/unified-field-integration. Offline suite 292 run / 290 pass / 2 skip.
+Updated 2026-11-11. Branch apex/unified-field-integration. Offline suite 295 run / 293 pass / 2 skip.
 
 ## Production state (verified by probe, not by report)
 - Cloudflare: Access app + tunnel route + DNS live. Team `wispy-limit-fad4`, AUD verified
@@ -37,8 +37,18 @@ Worker cycle completes; health fresh. Stale `fresh-review` schedule is isolated,
   import: `scripts/apex finance import --account paypal --file F.csv --format paypal` (IMPORTED, not LIVE).
   GoCardless BAD new signups disabled (official notice). TrueLayer adapter kept; needs commercial go-live.
 
+## Unified connections (2026-11-11 mandate A-M)
+core/apex/declared_targets.py: 45 founder-declared targets in 11 compartments, reconciled into
+connectors CLI and console /connections. States derive only from Ledger receipts. Production-copy
+result: 1 LIVE_PUBLIC_RECEIPT (Crossref #79), 12 IMPLEMENTED_NOT_AUTHORIZED, 12 IMPORT_NOT_IMPLEMENTED,
+15 NOT_IMPLEMENTED, 2 BLOCKED_BUDGET_APPROVAL (X, Anthropic API), 3 EXISTING_PUBLIC_CONNECTOR.
+health/intimate/dating compartments excluded from briefings by default. verify=True rows need
+re-check against current provider docs before implementation.
+
 ## Next engineering
 1. After live consent: verify Gmail profile/INBOX/SENT labels via /connections/google/sync, arm schedule.
 2. Meta: connector allowlist entry for scheduled page discovery after first live success.
-3. Daily founder briefing + credential-expiry warnings projected into console from Ledger.
+3. Generic encrypted data-export importer (dating/adult/social/health documents), compartment-bound.
+4. YouTube Data API on existing Google OAuth client; Threads via Meta app.
+5. Daily founder briefing + credential-expiry warnings projected into console from Ledger.
 Live providers operational: none. 18 agents / 130 providers: not live-verified.
