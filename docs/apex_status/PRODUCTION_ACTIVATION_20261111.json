@@ -1,0 +1,26 @@
+{
+  "updated": "2026-11-11",
+  "verified_commit": "d8cf084",
+  "production_host": {"ip": "31.70.173.143", "hostname": "ubuntu", "machine_id_prefix": "30a405d7", "pid1": "systemd"},
+  "observed": {
+    "apex_units": "not-found",
+    "etc_apex": "absent",
+    "deployment_backup": "absent",
+    "cloudflared_service": "active (token-managed remote tunnel)",
+    "dns_console_at_1_1_1_1": "NXDOMAIN",
+    "zone_apexcorelab_uk": "exists"
+  },
+  "founder_report": "Dashboard and root Steps 1-2 reported done, but executed on a different machine (founder-confirmed); dashboard public hostname not visible in DNS",
+  "ready_operations": {
+    "step1_bind_access": "sudo python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --bind-access --team TEAM --aud AUD --owner EMAIL",
+    "step2_install": "sudo python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies",
+    "must_run_on": "31.70.173.143 only"
+  },
+  "pending_owner_actions": [
+    "Zero Trust > Networks > Tunnels > HEALTHY tunnel on this VPS > Public Hostname console.apexcorelab.uk -> HTTP localhost:8765 (confirm NXDOMAIN clears)",
+    "Run Step 1 and Step 2 in a root shell on 31.70.173.143",
+    "Google OAuth client + /etc/apex/google-runtime.json (after console login verified)"
+  ],
+  "production_acceptance": "NOT_PERFORMED",
+  "live_providers_operational": []
+}
