@@ -34,7 +34,9 @@ def cycle(root, google_config=None):
             try:enforce_durable_stop(ledger)
             except PermissionError:return {'state':'STOPPED','executed':[]}
         outcomes=[]
-        try:released=scheduler.poll()['released']
+        try:
+            polled=scheduler.poll();released=polled['released']
+            outcomes.extend({'schedule_id':sid,'state':'BLOCKED_CODE_CHANGED_REVIEW_REQUIRED'} for sid in polled['blocked_code_changed'])
         except ValueError:released=[];outcomes.append({'stage':'schedule','state':'BLOCKED_INPUT_OR_CODE'})
         try:connector_outcomes=run_connectors(ledger,scheduler,google_config)
         except PermissionError:connector_outcomes=[]  # Durable stop raised during settlement.

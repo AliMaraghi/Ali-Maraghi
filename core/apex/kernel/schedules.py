@@ -111,13 +111,16 @@ class Schedules:
 
     def poll(self, now=None):
         now=integer(int(time.time()) if now is None else now,0,2**53)
-        releases=[]
+        releases=[];blocked=[]
         with self.ledger.transaction():
             enforce_durable_stop(self.ledger)
-            rows=self.ledger.db.execute('SELECT id,packet,interval_seconds,next_due,remaining,issued FROM mission_schedules WHERE enabled=1 AND remaining>0 AND next_due<=? ORDER BY next_due,id LIMIT 4',(now,)).fetchall()
+            rows=self.ledger.db.execute('SELECT id,packet,interval_seconds,next_due,remaining,issued FROM mission_schedules WHERE enabled=1 AND remaining>0 AND next_due<=? ORDER BY next_due,id LIMIT 104',(now,)).fetchall()
             for sid,encoded,interval,due,remaining,issued in rows:
                 saved=strict_json(encoded)
-                if saved['code_sha256']!=code_digest():raise ValueError('Schedule code changed; reviewed replacement required')
+                if saved['code_sha256']!=code_digest():
+                    # Stays blocked and unmodified; it must not starve other schedules.
+                    blocked.append(sid);continue
+                if len(releases)>=4:break
                 packet=saved['template'];trace='sched-'+sid+'-'+str(issued+1)
                 packet['trace_id']=trace
                 for node in packet['nodes']:node['task']['task_id']=trace+'-'+node['id']
@@ -135,7 +138,7 @@ class Schedules:
                 next_due=due+((now-due)//interval+1)*interval
                 self.ledger.db.execute('UPDATE connector_schedules SET pending=1,next_due=?,remaining=remaining-1,issued=issued+1 WHERE connector=?',(next_due,name))
                 connectors.append(name)
-        return {'released':releases,'connectors_released':connectors,'network_calls':0,
+        return {'released':releases,'blocked_code_changed':blocked,'connectors_released':connectors,'network_calls':0,
                 'scope':'Scheduled review only; evidence not refreshed; connector runs execute in worker'}
 
     def status(self):

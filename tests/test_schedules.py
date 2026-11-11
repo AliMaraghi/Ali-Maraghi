@@ -35,7 +35,9 @@ class ScheduleTests(unittest.TestCase):
         with self.assertRaises(PermissionError):s.poll(100)
         s.missions.queue.set_stop(KillState.RUNNING)
         with patch('apex.kernel.schedules.code_digest',return_value='changed'):
-            with self.assertRaises(ValueError):s.poll(100)
+            result=s.poll(100)
+        self.assertEqual((result['released'],len(result['blocked_code_changed'])),([],1))
+        self.assertEqual(s.status()[0]['issued'],0)  # Blocked, not consumed or released.
 
     def test_invalid_caps_and_expiry_preserved(self):
         s=Schedules(self.ledger)

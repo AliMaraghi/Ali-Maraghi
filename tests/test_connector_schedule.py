@@ -54,6 +54,18 @@ class ConnectorScheduleTests(unittest.TestCase):
             self.assertEqual(cycle(self.root,'cfg')['state'],'STOPPED')
         run.assert_not_called()
 
+    def test_stale_code_schedule_isolated_not_starving_connector(self):
+        s=Schedules(self.ledger)
+        with self.ledger.transaction():
+            self.ledger.db.execute("INSERT INTO mission_schedules VALUES('old','{\"code_sha256\":\"stale\",\"template\":{}}','f',3600,0,1,0,1)")
+        s.arm_connector('gmail',OWNER,900,0,10)
+        result=s.poll()
+        self.assertEqual((result['blocked_code_changed'],result['connectors_released']),(['old'],['gmail']))
+        self.assertEqual(self.ledger.db.execute("SELECT remaining,issued,enabled FROM mission_schedules WHERE id='old'").fetchone(),(1,0,1))
+        with patch('apex.google_web.scheduled_gmail_sync',return_value={'status':'PAGE_SYNCHRONIZED'}):
+            outcomes=cycle(self.root,'cfg')
+        self.assertIn({'schedule_id':'old','state':'BLOCKED_CODE_CHANGED_REVIEW_REQUIRED'},outcomes['outcomes'])
+
     def test_disarm_settles_pending_and_stale_outcome_ignored(self):
         s=Schedules(self.ledger);s.arm_connector('gmail',OWNER,900,0,10);s.poll()
         s.disarm_connector('gmail')
