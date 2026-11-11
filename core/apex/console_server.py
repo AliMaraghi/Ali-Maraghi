@@ -57,8 +57,8 @@ class ReloadingVerifier:
 
 
 class ConsoleApp:
-    def __init__(self,root,verifier):
-        self.root=Path(root);self.verifier=verifier
+    def __init__(self,root,verifier,google_routes=None):
+        self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes
         self.lock=threading.Lock();self.requests=deque()
     def __call__(self,environ,start_response):
         now=time.monotonic()
@@ -66,18 +66,31 @@ class ConsoleApp:
             while self.requests and self.requests[0]<=now-60:self.requests.popleft()
             limited=len(self.requests)>=300
             if not limited:self.requests.append(now)
-        code=200;body=b'';kind='application/json; charset=utf-8'
+        code=200;body=b'';kind='application/json; charset=utf-8';extra=[];google=False
         if limited:code=429;body=b'{"error":"RATE_LIMITED"}'
         elif not self.verifier.valid(environ.get('HTTP_CF_ACCESS_JWT_ASSERTION','')):
             code=401;body=b'{"error":"OWNER_AUTHENTICATION_REQUIRED"}'
+        elif not self.google_routes and environ.get('PATH_INFO')=='/connections/google' and environ.get('REQUEST_METHOD')=='GET':
+            body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Google client, persistent encryption key and reviewed import policy configuration"}'
+        elif self.google_routes and environ.get('PATH_INFO') in {
+                '/connections/google','/connections/google/sync','/auth/google/start',
+                '/auth/google/callback','/auth/google/disconnect','/auth/logout'}:
+            google=True
+            try:
+                if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.google_routes.owner:
+                    raise PermissionError('Access owner configuration changed')
+                code,body,extra,kind=self.google_routes.handle(environ)
+            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif environ.get('REQUEST_METHOD') not in {'GET','HEAD'}:
             code=405;body=b'{"error":"READ_ONLY; use authenticated operator CLI for STOP"}'
         else:
             try:body,kind=content(self.root,environ.get('PATH_INFO',''))
             except KeyError:code=404;body=b'{"error":"NOT_FOUND"}'
             except Exception:code=503;body=b'{"error":"EVIDENCE_UNAVAILABLE"}'
-        labels={200:'OK',401:'Unauthorized',404:'Not Found',405:'Method Not Allowed',429:'Too Many Requests',503:'Service Unavailable'}
-        headers=HEADERS+[('Content-Type',kind),('Content-Length',str(len(body)))]
+        labels={200:'OK',303:'See Other',400:'Bad Request',403:'Forbidden',401:'Unauthorized',404:'Not Found',405:'Method Not Allowed',429:'Too Many Requests',503:'Service Unavailable'}
+        headers=[(k,v.replace("form-action 'none'","form-action 'self'") if google and k=='Content-Security-Policy' else v) for k,v in HEADERS]+extra+[('Content-Type',kind),('Content-Length',str(len(body)))]
         if code==429:headers.append(('Retry-After','60'))
         if code==405:headers.append(('Allow','GET, HEAD'))
         start_response(str(code)+' '+labels[code],headers)
@@ -89,10 +102,16 @@ def main():
     p.add_argument('--root',type=Path,required=True)
     p.add_argument('--access-config',type=Path,required=True)
     p.add_argument('--port',type=int,default=8765)
+    p.add_argument('--google-config',type=Path,default=Path('/etc/apex/google-runtime.json'))
     args=p.parse_args()
     if not 1024<=args.port<=65535:raise ValueError('Unprivileged loopback port required')
     # Load and verify before opening listener; no anonymous health/data path.
-    app=ConsoleApp(args.root,ReloadingVerifier(args.access_config))
+    verifier=ReloadingVerifier(args.access_config)
+    google=None
+    if args.google_config.exists():
+        from .google_web import GoogleRoutes
+        google=GoogleRoutes(args.root,args.google_config,verifier.verifier.owner)
+    app=ConsoleApp(args.root,verifier,google)
     from waitress import serve
     serve(app,listen='127.0.0.1:'+str(args.port),threads=4,connection_limit=32,
           channel_timeout=15,cleanup_interval=5,max_request_header_size=32768,

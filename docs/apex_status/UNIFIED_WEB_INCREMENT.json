@@ -1,0 +1,46 @@
+{
+  "entry_commit": "7e5342ff6123b7a1879a747b7bcf5dba2cd0f222",
+  "date": "2026-11-11",
+  "production_acceptance": "FAIL",
+  "implemented": [
+    "Conditional Google routes within existing Access-authenticated ConsoleApp",
+    "Durable owner session and CSRF forms",
+    "Google connection/status/manual bounded synchronization",
+    "Protected runtime configuration without key replacement",
+    "Existing encrypted banking receipt projection with provenance"
+  ],
+  "live_google_accounts": 0,
+  "live_bank_accounts": 0,
+  "live_meta_accounts": 0,
+  "deployment_attempted": false,
+  "paid_api_spend_gbp": 0,
+  "blockers": [
+    "Authenticated host executor not supplied",
+    "Owner Access production configuration absent in accessible filesystem",
+    "Google OAuth client and persistent encryption-key binding not provisioned",
+    "Google owner consent absent",
+    "Banking provider eligibility, approved cost contract and consent absent",
+    "Meta app grants and token binding absent"
+  ],
+  "engineering_gaps": [
+    "Recurring Gmail scheduler binding",
+    "Automated trusted JWKS renewal",
+    "Remote Google revocation",
+    "Retention deletion enforcement",
+    "Full banking consent and transactions normalization",
+    "Meta OAuth/media/insights",
+    "Original 130 inventory reconciliation",
+    "Remaining specialist handlers"
+  ],
+  "next_code_operation": "Add reviewed Gmail handler to existing fenced queue/schedule contracts; do not introduce a second scheduler or automatically enable private import",
+  "rollback": "Revert additive code and pinned unit delta through reviewed host release; preserve runtime database and historical records",
+  "verification": {
+    "regression_run": 269,
+    "passed": 267,
+    "optional_skips": 2,
+    "failures": 0,
+    "errors": 0,
+    "production_bundle_tests_passed": 11,
+    "scope": "OFFLINE_NOT_PRODUCTION"
+  }
+}

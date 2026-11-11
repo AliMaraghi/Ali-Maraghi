@@ -16,6 +16,7 @@ TimeoutStopSec=15
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
+ReadWritePaths=/home/apexdev/apex-work/runtime
 ProtectHome=read-only
 RestrictAddressFamilies=AF_INET AF_UNIX
 UMask=0077

@@ -22,3 +22,10 @@ Three-track continuation: see THREE_TRACK_INCREMENT.md, BANKING_INCREMENT.md,
 META_INCREMENT.md. Google encrypted broker + token HTTP + controller now exist;
 next missing Google boundary is owner-session/CSRF HTTP mounting, key/client
 provisioning and scheduler binding. No consent/live status is implied.
+
+Unified web continuation: UNIFIED_WEB_INCREMENT.json. Google routes conditionally
+mounted in existing ConsoleApp via /etc/apex/google-runtime.json; no separate app.
+Read deployment README security/config contract. Missing config shows blocked.
+Owner forms support explicit bounded sync, not recurring scheduler. Next integrate
+Gmail into existing fenced job/schedule contracts without external autoactivation.
+Banking receipt_projection now available; transactions inference remains blocked.

@@ -101,3 +101,8 @@ META_INCREMENT.md. Google token broker/exchange/controller implemented but HTTP
 routes, session auth and scheduler wiring not mounted. Partial bank and Meta
 adapters use same Ledger and show AUTH_REQUIRED; no live private connections.
 Never infer host executor access from an opened IONOS browser tab.
+
+Unified web continuation: UNIFIED_WEB_INCREMENT.json. Conditional Google routes
+use existing Access-only console, private config, token-bound sessions and CSRF.
+Pinned console unit now allows only runtime writes. No host installation or live
+consent; manual bounded sync only. Never equate mounted code with deployed routes.

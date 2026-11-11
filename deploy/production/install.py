@@ -14,7 +14,7 @@ DEST=Path('/etc/systemd/system')
 CONFIG=Path('/etc/apex/access-origin.json')
 UNITS=('apex-worker.service','apex-console.service')
 # Reviewed unit bytes are captured once; changed directives cannot race the tests.
-UNIT_HASHES={'apex-worker.service': '5c6872fbc225d7de99f147cf17eaddee0e5e91fab827264ab8cb6b8a9f4dceaf', 'apex-console.service': '23d019316457e82ef50595e42b6f71147d7435f640211e851c954baa7a2e144f'}
+UNIT_HASHES={'apex-worker.service': '5c6872fbc225d7de99f147cf17eaddee0e5e91fab827264ab8cb6b8a9f4dceaf', 'apex-console.service': 'ea95eabc34daed31078b837ba61962696622b7da09cd517a511673d8721de96b'}
 MANIFESTO='3947a6b676c01ac642e95020303b1274c750b7a0df59519efccf1f6a8b9c1bcd'
 
 
