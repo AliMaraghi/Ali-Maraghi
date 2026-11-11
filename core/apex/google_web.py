@@ -74,7 +74,7 @@ def scheduled_gmail_sync(ledger,path,owner_digest):
     return GmailSync(ledger,cfg['encryption_key'].encode(),cfg['owner'],policy).step(connection.client())
 
 
-SESSION_ENTRY=frozenset({'/connections/google','/connections/meta'})
+SESSION_ENTRY=frozenset({'/connections/google','/connections/meta','/connections/finance'})
 
 
 def owner_session(ledger,environ,path,method):

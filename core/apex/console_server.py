@@ -37,6 +37,9 @@ def content(root,path):
                       ensure_ascii=False,allow_nan=False).encode(),'application/json; charset=utf-8'
 
 
+from .finance_web import is_finance_path
+from .finance import TARGETS as FINANCE_TARGETS
+
 META_PATHS=frozenset({'/connections/meta','/connections/meta/sync','/auth/meta/start','/auth/meta/callback','/auth/meta/disconnect'})
 
 
@@ -60,8 +63,8 @@ class ReloadingVerifier:
 
 
 class ConsoleApp:
-    def __init__(self,root,verifier,google_routes=None,meta_routes=None):
-        self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes;self.meta_routes=meta_routes
+    def __init__(self,root,verifier,google_routes=None,meta_routes=None,finance_routes=None):
+        self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes;self.meta_routes=meta_routes;self.finance_routes=finance_routes
         self.lock=threading.Lock();self.requests=deque()
     def __call__(self,environ,start_response):
         now=time.monotonic()
@@ -96,6 +99,18 @@ class ConsoleApp:
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
             except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
+        elif self.finance_routes and is_finance_path(environ.get('PATH_INFO')):
+            google=True
+            try:
+                if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.finance_routes.owner:
+                    raise PermissionError('Access owner configuration changed')
+                code,body,extra,kind=self.finance_routes.handle(environ)
+            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
+        elif not self.finance_routes and environ.get('PATH_INFO')=='/connections/finance' and environ.get('REQUEST_METHOD')=='GET':
+            body=json.dumps({'status':'BLOCKED_EXTERNAL_AUTH','required':'Protected finance configuration',
+                             'targets':[{'name':t['name'],'status':'NOT_CONNECTED'} for t in FINANCE_TARGETS]}).encode()
         elif not self.meta_routes and environ.get('PATH_INFO')=='/connections/meta' and environ.get('REQUEST_METHOD')=='GET':
             body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Meta app configuration"}'
         elif environ.get('REQUEST_METHOD') not in {'GET','HEAD'}:
@@ -119,6 +134,7 @@ def main():
     p.add_argument('--port',type=int,default=8765)
     p.add_argument('--google-config',type=Path,default=Path('/etc/apex/google-runtime.json'))
     p.add_argument('--meta-config',type=Path,default=Path('/etc/apex/meta-runtime.json'))
+    p.add_argument('--finance-config',type=Path,default=Path('/etc/apex/finance-runtime.json'))
     args=p.parse_args()
     if not 1024<=args.port<=65535:raise ValueError('Unprivileged loopback port required')
     # Load and verify before opening listener; no anonymous health/data path.
@@ -131,7 +147,11 @@ def main():
     if args.meta_config.exists():
         from .meta_web import MetaRoutes
         meta=MetaRoutes(args.root,args.meta_config,verifier.verifier.owner)
-    app=ConsoleApp(args.root,verifier,google,meta)
+    finance=None
+    if args.finance_config.exists():
+        from .finance_web import FinanceRoutes
+        finance=FinanceRoutes(args.root,args.finance_config,verifier.verifier.owner)
+    app=ConsoleApp(args.root,verifier,google,meta,finance)
     from waitress import serve
     serve(app,listen='127.0.0.1:'+str(args.port),threads=4,connection_limit=32,
           channel_timeout=15,cleanup_interval=5,max_request_header_size=32768,

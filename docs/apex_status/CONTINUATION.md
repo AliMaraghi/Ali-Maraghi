@@ -1,6 +1,6 @@
 # APEX continuation (read first)
 
-Updated 2026-11-11. Branch apex/unified-field-integration. Offline suite 284 run / 282 pass / 2 skip.
+Updated 2026-11-11. Branch apex/unified-field-integration. Offline suite 292 run / 290 pass / 2 skip.
 
 ## Production state (verified by probe, not by report)
 - Cloudflare: Access app + tunnel route + DNS live. Team `wispy-limit-fad4`, AUD verified
@@ -28,8 +28,14 @@ Worker cycle completes; health fresh. Stale `fresh-review` schedule is isolated,
   (Meta app, Development mode, founder admin; Facebook Login redirect
   https://console.apexcorelab.uk/auth/meta/callback; scopes pages_show_list,
   pages_read_engagement, instagram_basic; long-lived token ~60 days).
-- Banking: TrueLayer Data v3 adapter exists; live access needs TrueLayer production approval/contract
-  -> founder decision required; no consent route mounted; no simulation.
+- Finance (9 mandatory targets, core/apex/finance.py + finance_web.py, /connections/finance):
+  `python3 -I -B /home/apexdev/apex-work/deploy/production/provision_finance.py` generates RSA key on
+  server, prints public cert. Owner registers Enable Banking app (Control Panel, restricted mode =
+  own linked accounts, no contract) with redirect https://console.apexcorelab.uk/auth/finance/callback,
+  then reruns script to bind app UUID. Coverage per target comes from live GET /aspsps?country=GB.
+  PayPal/NewDay direct AIS needs FCA-authorised TPP; if aggregator does not list them -> statement
+  import: `scripts/apex finance import --account paypal --file F.csv --format paypal` (IMPORTED, not LIVE).
+  GoCardless BAD new signups disabled (official notice). TrueLayer adapter kept; needs commercial go-live.
 
 ## Next engineering
 1. After live consent: verify Gmail profile/INBOX/SENT labels via /connections/google/sync, arm schedule.

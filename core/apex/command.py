@@ -36,6 +36,9 @@ def main(argv=None):
     for name in ['up','down']:
         q=s.add_parser(name);q.add_argument('--dry-run',action='store_true')
     k=s.add_parser('kernel');k.add_argument('args',nargs=argparse.REMAINDER)
+    fi=s.add_parser('finance');fi.add_argument('operation',choices=['import','status'])
+    fi.add_argument('--account',choices=[t['slug'] for t in __import__('apex.finance',fromlist=['TARGETS']).TARGETS])
+    fi.add_argument('--file');fi.add_argument('--format',choices=['paypal','generic']);fi.add_argument('--config',default='/etc/apex/finance-runtime.json')
     args=p.parse_args(argv)
     try:
         if args.command=='kernel':
@@ -43,6 +46,19 @@ def main(argv=None):
             return kernel(args.args)
         if args.command=='test-all':
             return subprocess.run([sys.executable,'-B',str(ROOT/'scripts/test_offline.py')],cwd=ROOT).returncode
+        if args.command=='finance':
+            from .finance_web import load_config,service
+            from .google_web import protected_json
+            cfg=protected_json(args.config)
+            cfg=load_config(args.config,cfg.get('owner'))
+            with Ledger(ROOT) as ledger:
+                finance=service(ledger,cfg)
+                if args.operation=='import':
+                    if not (args.account and args.file and args.format):raise ValueError('--account, --file and --format required')
+                    result=finance.import_statement(args.account,args.file,args.format)
+                else:
+                    result=[{k:e[k] for k in ('name','status','aspsp','last_success')} for e in finance.dashboard()['entries']]
+            print(json.dumps(result,indent=1));return 0
         if args.command=='worker':
             from .kernel.worker import cycle,serve
             if args.once:result=cycle(ROOT,args.google_config)
