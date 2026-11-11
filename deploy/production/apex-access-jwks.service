@@ -1,0 +1,17 @@
+[Unit]
+Description=APEX Cloudflare Access public-key snapshot renewal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 -I -B /usr/local/lib/apex/refresh_access_jwks.py
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/etc/apex
+ProtectHome=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+UMask=0022

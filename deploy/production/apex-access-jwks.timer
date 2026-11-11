@@ -1,0 +1,11 @@
+[Unit]
+Description=Hourly APEX Access key renewal (console fails closed if renewal stops)
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1h
+RandomizedDelaySec=120
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -8,6 +8,11 @@ Validation (no mutation):
 python3 -B deploy/production/install.py
 systemd-analyze verify deploy/production/apex-worker.service deploy/production/apex-console.service
 
+Bind Access once (public identifiers only; root; installs hash-pinned root-owned
+refresher copy at /usr/local/lib/apex and writes /etc/apex/access-origin.json):
+sudo python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --bind-access --team TEAM --aud AUD --owner OWNER_EMAIL
+--apply then enables apex-access-jwks.timer (hourly key renewal; 12h snapshot).
+
 Host install after actual root-owned /etc/apex/access-origin.json is bound:
 python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies
 
@@ -30,8 +35,7 @@ a new tunnel or overwrite existing policy. API/auth/hooks stay unpublished.
 Both dashboard pages use the single console origin. Access config field schema is
 in docs/apex_status/ACCESS_ORIGIN_REPORT.md. No test keys or placeholder identity.
 
-Open deployment gates: production load/rate-limit validation, automatic trusted
-JWKS renewal (current snapshot expires within24h and fails closed), host restart
+Open deployment gates: production load/rate-limit validation, host restart
 and external founder login/denial/TLS verification. The production origin uses Waitress behind loopback with application Access validation. Do not publish before these gates are accepted.
 The bundle is ready for host validation, not a full production-readiness claim.
 
