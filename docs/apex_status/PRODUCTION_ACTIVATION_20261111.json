@@ -1,26 +1,38 @@
 {
   "updated": "2026-11-11",
-  "verified_commit": "d8cf084",
-  "production_host": {"ip": "31.70.173.143", "hostname": "ubuntu", "machine_id_prefix": "30a405d7", "pid1": "systemd"},
+  "verified_commit": "a5ffdc3",
+  "production_host": {
+    "ip": "31.70.173.143",
+    "hostname": "ubuntu",
+    "machine_id_prefix": "30a405d7",
+    "pid1": "systemd"
+  },
   "observed": {
     "apex_units": "not-found",
     "etc_apex": "absent",
     "deployment_backup": "absent",
     "cloudflared_service": "active (token-managed remote tunnel)",
-    "dns_console_at_1_1_1_1": "NXDOMAIN",
-    "zone_apexcorelab_uk": "exists"
+    "dns_console_at_1_1_1_1": "RESOLVES (Cloudflare proxied)",
+    "zone_apexcorelab_uk": "exists",
+    "public_edge": "TLS verified; anonymous GET 302 to wispy-limit-fad4.cloudflareaccess.com login"
   },
-  "founder_report": "Dashboard and root Steps 1-2 reported done, but executed on a different machine (founder-confirmed); dashboard public hostname not visible in DNS",
+  "founder_report": "Same VPS confirmed (root SSH pts/0, pts/1 visible in who). Founder reported EXIT=0 three times; no host trace: no /etc/apex, no units, python3-waitress not installed (apt log), no /tmp/apex-install-receipt.txt on host /tmp (vda1).",
   "ready_operations": {
-    "step1_bind_access": "sudo python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --bind-access --team TEAM --aud AUD --owner EMAIL",
+    "step1_bind_access": "python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --bind-access --team wispy-limit-fad4 --aud 7e80f52337f480b9f5e877248ffda1e4c71d0956eda62999ba6ad2622a3f6a4a --owner 'OWNER_EMAIL'",
     "step2_install": "sudo python3 -I -B /home/apexdev/apex-work/deploy/production/install.py --apply --install-dependencies",
     "must_run_on": "31.70.173.143 only"
   },
   "pending_owner_actions": [
-    "Zero Trust > Networks > Tunnels > HEALTHY tunnel on this VPS > Public Hostname console.apexcorelab.uk -> HTTP localhost:8765 (confirm NXDOMAIN clears)",
+    "DONE: Access app + tunnel route + DNS (edge-verified)",
     "Run Step 1 and Step 2 in a root shell on 31.70.173.143",
     "Google OAuth client + /etc/apex/google-runtime.json (after console login verified)"
   ],
   "production_acceptance": "NOT_PERFORMED",
-  "live_providers_operational": []
+  "live_providers_operational": [],
+  "access_identifiers_verified": {
+    "team": "wispy-limit-fad4",
+    "aud": "7e80f52337f480b9f5e877248ffda1e4c71d0956eda62999ba6ad2622a3f6a4a",
+    "method": "Access redirect meta JWT RS256-verified against team certs; aud==kid; hostname bound"
+  },
+  "acceptance_probe": "scripts/production_acceptance.py: FAIL (units/config/origin absent); public_edge Access gate present"
 }
