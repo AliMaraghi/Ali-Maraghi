@@ -1,5 +1,11 @@
 # APEX continuation (read first)
 
+GOVERNING SPEC: docs/apex_handoff_20261111/APEX_4_4_MANIFESTO_20261111_FOUNDER_UPLOAD.md (signed 11 Nov,
+sha256 5af960fd...). 8 Nov edition preserved. Conflicts: docs/apex_handoff_20261111/CHANGELOG.md.
+Requirements: docs/apex_status/REQUIREMENTS_20261111.csv (41 rows). Console roster = 11 Nov agents
+(A-1..A-18; A-3 maps legacy executable slot 8-12). Founder rulings pending: C1 n8n pin, C5 banking
+aggregator, C6 key custody.
+
 Updated 2026-11-11. Branch apex/unified-field-integration. Offline suite 295 run / 293 pass / 2 skip.
 
 ## Production state (verified by probe, not by report)

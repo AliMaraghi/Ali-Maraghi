@@ -76,17 +76,24 @@ def product_snapshot(ledger,root=None):
             for node in json.loads(packet).get('nodes',[])[:16]:
                 row=ledger.db.execute('SELECT state FROM jobs WHERE id=?',('mg-'+trace+'-'+node['id'],)).fetchone()
                 if row and row[0]=='COMPLETE':completed[node['role']]=completed.get(node['role'],0)+1
+    # Governing roster: 11 Nov 2026 founder edition (CHANGELOG C4). 8 Nov slots stay
+    # preserved as legacy ids; only slot 8-12 has an executable (deterministic) handler.
+    roster=['Strategic Intelligence','Scientific Research','Evidence & Verification','Personal Context',
+            'Career & Industry','Operations & Executive','Wealth Discovery','Financial Intelligence',
+            'Legal & Compliance','Social & Relational','Creative Direction','Screenwriting & Film',
+            'Publishing & Audience','Security & Privacy','Health & Longevity','Behavioral Ergonomics',
+            'Adversarial Evaluation','Self-Evolution & Systems']
     roles=[]
-    for n in range(1,19):
-        rid='8-'+str(n);r=by_id.get('CLAUSE-'+rid,{})
-        roles.append({'id':rid,'name':_text(r.get('summary')) or 'Source definition unavailable',
-          'status':'PARTIAL' if rid=='8-12' else 'NOT_IMPLEMENTED',
-          'source':r.get('source_anchor',{}).get('path',DOCS['requirements']),
-          'source_line':r.get('source_anchor',{}).get('start_line'),
-          'source_gap':_text(r.get('source_gap'),320) or None,
-          'capability':'Deterministic evidence review only; not independent model reasoning' if rid=='8-12' else 'No verified executable role handler',
-          'permissions':['local_zero_cost_review'] if rid=='8-12' else [],
-          'completed_jobs':completed.get(rid,0),'fully_accepted':False})
+    for n,name in enumerate(roster,1):
+        rid='A-'+str(n);legacy='8-12' if n==3 else None
+        roles.append({'id':rid,'name':name,
+          'status':'PARTIAL' if legacy else 'NOT_IMPLEMENTED',
+          'source':'docs/apex_handoff_20261111/APEX_4_4_MANIFESTO_20261111_FOUNDER_UPLOAD.md',
+          'source_line':68+n,'legacy_slot':legacy,
+          'source_gap':None,
+          'capability':'Deterministic evidence review only (legacy slot 8-12); not independent model reasoning' if legacy else 'No verified executable role handler',
+          'permissions':['local_zero_cost_review'] if legacy else [],
+          'completed_jobs':completed.get(legacy,0) if legacy else 0,'fully_accepted':False})
     layers=[
       {'id':'I','name':'Open-World Sensing and Knowledge','components':['FTS','TED','Crossref','Evidence journal'],'limitation':'Bounded public reads; no continuous global discovery'},
       {'id':'II','name':'Constitutional Cognition','components':['Mission DAG','Deterministic critic','18 role contracts'],'limitation':'No independent model verification or full role acceptance'},
