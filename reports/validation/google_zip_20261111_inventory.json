@@ -1,0 +1,87 @@
+{
+  "archive_path": "/home/apexdev/.codex/attachments/8b916064-8470-4392-b0fd-c9ee283d4c33/apex-google.zip",
+  "sha256": "d37fd703065f4642bfbcb37afd93dd328fae3cfa2d7c8e360e87e0b68c9137fe",
+  "archive_bytes": 19619,
+  "crc_test": "PASS",
+  "members": [
+    {
+      "path": "CODEX_MERGE_INSTRUCTIONS.txt",
+      "sha256": "2506d4a931c84a6107d8620c7574adeb322874e083461fc1bdcaccee0900b83f",
+      "bytes": 2287,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "README_FA.md",
+      "sha256": "cd2952e1048fdc31e498d9cc082f9b006c353c328faadbe4989c27ec4ebf76d7",
+      "bytes": 4338,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "sha256": "51e06faa9ec42453051729ece013192306fd95bafa1035ed3709d1bf7afec7f6",
+      "bytes": 958,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "TEST_RESULTS.txt",
+      "sha256": "dee60694a7ded8ed75921be3531759b2ca7915035eb9571d6e98fb0ce8b8af73",
+      "bytes": 99,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "VALIDATION_REPORT.json",
+      "sha256": "e3d8a04c3e4118a1a50559b6a55822871d0f4f21f0f75558e574b43614f9dc60",
+      "bytes": 420,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "apex_google/__init__.py",
+      "sha256": "489654b51c286296e401e864412e83b5db8d4ba8574faa0c7e3dfa5cdfe8c724",
+      "bytes": 425,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "apex_google/http.py",
+      "sha256": "cfede550e422527ec2cda36bcab526bdfbccb681a032c3a84ae459b512ea4a3e",
+      "bytes": 3055,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "apex_google/oauth.py",
+      "sha256": "4366ca9d95f360f5a80ac0ff0ec85f3e73e6f573213928ab19a23a9a2ba243e4",
+      "bytes": 7046,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "apex_google/store.py",
+      "sha256": "3bcd8c5ba6c27bda917d578db80e1b7133ca315b85a40a912ed1c988da77c472",
+      "bytes": 9627,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "apex_google/sync.py",
+      "sha256": "bcf09550612204a43ede3e7c0c6ebd1f9c4d8129b4e433ec75ff21562463bde9",
+      "bytes": 14976,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "66f7c546692a66087d212cdff0f98aafbb758e2b5d7036bd50f39a3c4237429a",
+      "bytes": 456,
+      "identical_to_previously_reviewed_package": true
+    },
+    {
+      "path": "tests/test_google_runtime.py",
+      "sha256": "07bf8002d408a60a30e3ca22250bb6bc46f1e5f67e59e1db1485e1547835cf78",
+      "bytes": 10958,
+      "identical_to_previously_reviewed_package": true
+    }
+  ],
+  "internal_hashes_matched": 11,
+  "prior_archive": "/home/apexdev/.codex/attachments/5230dc98-229d-49c7-adc7-10389105c37f/APEX_GOOGLE_RUNTIME_ADDON_REBUILT_2026-11-11.zip",
+  "all_members_identical_to_prior": true,
+  "tar_sha256": "7f67228e5aca5e5794a6bfd4ff2e7c9bb515cec7b93a7cf4098ddc39c29e5a74",
+  "tar_member_content_identical": true,
+  "review_directory": "/home/apexdev/apex-work/work/review-kit/google-zip-5y6swfok",
+  "head": "3ee97308100c8e8a61d7ed3458332bc840ff2f96"
+}

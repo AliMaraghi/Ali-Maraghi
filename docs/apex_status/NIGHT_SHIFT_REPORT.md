@@ -42,3 +42,6 @@ GOOGLE_PACKAGE_REVIEW.md:234passed/2skipped; package path unresolved. Verified p
 
 ## Google package received and selectively adapted
 GOOGLE_ADDON_INTEGRATION.md/GOOGLE_ADDON_STATE.json. Reference26pass; adverse token/audit atomicity and full-format probes reproduced. New policy/state primitives pass240tests/2skips. No live consent/import/deployment.
+
+## apex-google.zip reconciliation
+GOOGLE_ZIP_RECONCILIATION.md: CRC/internal hashes verified, all12files identical to previously reviewed addon; current source retained. Requested project/reference/bundle regressions pass. No new runtime code or live Google acceptance.

@@ -8,3 +8,5 @@ unmounted until owner HTTPS/Access/session verification. Do not import reference
 Store or full-format Gmail helpers. Reproduce current regression only after changes:
 PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/test_offline.py
 Production deployment remains independently gated as documented previously.
+
+Latest apex-google.zip has no code delta; see GOOGLE_ZIP_RECONCILIATION.md. Archive inspection complete. Continue constrained Google transport/token lifecycle work when requested; never copy reference store/OAuth wholesale.

@@ -93,3 +93,5 @@ Product continuation2026-11-11: PRODUCT_DELIVERY_20261111.md/PRODUCT_ACCEPTANCE_
 Google package request: GOOGLE_PACKAGE_REVIEW.md. New ZIP not found; no integration claimed. Existing explicit Ledger transactions retained; ciphertext/audit/cursor rollback verified. Header allowlist enforced.234pass/2skip. No live import until explicit policy review and OAuth/key binding.
 
 Google rebuilt addon received/reviewed: GOOGLE_ADDON_INTEGRATION.md.12files/11hashes,26reference tests. Reference token/audit defect reproduced; no wholesale import. Strict import policy + session-bound encrypted PKCE state use existingLedger.240pass/2skip. OAuth unmounted; no live data. Previous missing-package blocker resolved.
+
+New apex-google.zip reconciled: GOOGLE_ZIP_RECONCILIATION.md. All12members identical to prior rebuilt addon; no new source delta.3ee9730 remains implementation commit.240projectpass/2skip,26referencepass,11bundlepass. Do not re-import excluded reference modules.
