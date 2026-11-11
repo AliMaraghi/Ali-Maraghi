@@ -1,0 +1,51 @@
+{
+  "observed_at": "2026-11-11T06:49:12.897735+00:00",
+  "commit": "3534d16d8961af4f875f2e4586843bfe04c192f3",
+  "installation_attempted": false,
+  "reason": "Interactive host authentication did not authorize caller; no authenticated executor binding supplied",
+  "host_authentication": {
+    "at": "2026-11-11T06:47:27.324086+00:00",
+    "operation": "PolicyKit CheckAuthorization ALLOW_USER_INTERACTION",
+    "action": "org.freedesktop.systemd1.manage-units",
+    "authorized": false,
+    "challenge_available": true
+  },
+  "services": {
+    "apex-console.service": {
+      "returncode": 0,
+      "properties": {
+        "LoadState": "not-found",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "apex-worker.service": {
+      "returncode": 0,
+      "properties": {
+        "LoadState": "not-found",
+        "ActiveState": "inactive",
+        "SubState": "dead"
+      }
+    },
+    "cloudflared.service": {
+      "returncode": 0,
+      "properties": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running"
+      }
+    }
+  },
+  "dns": {
+    "error_type": "gaierror",
+    "errno": -2
+  },
+  "https": {
+    "error_type": "URLError",
+    "status": null
+  },
+  "owner_login_verified": false,
+  "google_oauth_consent": false,
+  "google_data_retrieved": false,
+  "paid_api_spend_gbp": 0
+}
