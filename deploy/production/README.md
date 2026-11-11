@@ -77,6 +77,14 @@ readable only by the console service identity (mode0600). Required JSON fields:
 `redirect_uri` (exact https://console.apexcorelab.uk/auth/google/callback),
 `encryption_key` (existing persistent Fernet key), `review_reference`,
 `retention_days`, `mixed_content_reviewed` (explicit booleantrue).
+
+Recurring Gmail sync uses the same scheduler/worker and Ledger, not a new
+service. The owner arms it at `/connections/google/schedule` (15-minute
+interval, 672 runs, then re-arm) and disarms at `/connections/google/unschedule`.
+The worker executes armed runs only with `--google-config`, supplied by the
+opt-in drop-in `apex-worker.service.d/google-sync.conf.example`, which also
+widens `RestrictAddressFamilies` to AF_INET/AF_INET6. Three consecutive failures
+or RESYNC_REQUIRED disable the schedule; a run never starts consent.
 Never put actual values in Git or chat. Retention policy is an import gate;
 automatic deletion/expiry of synchronized content is not implemented.
 

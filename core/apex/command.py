@@ -24,7 +24,7 @@ def main(argv=None):
     connectors=s.add_parser('connectors');connectors.add_argument('operation',choices=['verify','probe']);connectors.add_argument('--provider');connectors.add_argument('--query');connectors.add_argument('--trace')
     s.add_parser('audit')
     s.add_parser('costs')
-    wo=s.add_parser('worker');wo.add_argument('--once',action='store_true');wo.add_argument('--interval',type=int,default=60)
+    wo=s.add_parser('worker');wo.add_argument('--once',action='store_true');wo.add_argument('--interval',type=int,default=60);wo.add_argument('--google-config')
     mi=s.add_parser('missions');mi.add_argument('operation',choices=['submit','tick','status']);mi.add_argument('target');mi.add_argument('--worker',default='local-mission-worker')
     sc=s.add_parser('schedules');sc.add_argument('operation',choices=['add','poll','status']);sc.add_argument('--input')
     st=s.add_parser('status');st.add_argument('--json',action='store_true')
@@ -45,8 +45,8 @@ def main(argv=None):
             return subprocess.run([sys.executable,'-B',str(ROOT/'scripts/test_offline.py')],cwd=ROOT).returncode
         if args.command=='worker':
             from .kernel.worker import cycle,serve
-            if args.once:result=cycle(ROOT)
-            else:serve(ROOT,args.interval);return 0
+            if args.once:result=cycle(ROOT,args.google_config)
+            else:serve(ROOT,args.interval,args.google_config);return 0
         elif args.command=='schedules':
             from .kernel.schedules import Schedules
             with Ledger(ROOT) as ledger:

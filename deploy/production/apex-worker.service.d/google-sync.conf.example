@@ -1,0 +1,9 @@
+# Opt-in only. Install as /etc/systemd/system/apex-worker.service.d/google-sync.conf
+# after: (1) owner Access login verified, (2) /etc/apex/google-runtime.json
+# provisioned 0600 for the service user, (3) owner completed Google consent and
+# armed "Enable recurring sync" in /connections/google. Without this drop-in the
+# worker stays AF_UNIX-only and armed Gmail runs fail closed and auto-disable.
+[Service]
+ExecStart=
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/apex worker --interval 60 --google-config /etc/apex/google-runtime.json
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

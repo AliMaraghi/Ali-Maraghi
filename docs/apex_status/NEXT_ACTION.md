@@ -29,3 +29,10 @@ Read deployment README security/config contract. Missing config shows blocked.
 Owner forms support explicit bounded sync, not recurring scheduler. Next integrate
 Gmail into existing fenced job/schedule contracts without external autoactivation.
 Banking receipt_projection now available; transactions inference remains blocked.
+
+2026-11-11 connector schedule: CONNECTOR_SCHEDULE_INCREMENT.json. Gmail recurring
+sync now runs through existing Schedules/worker (owner-armed, bounded, auto-disabling).
+PID1 is now systemd. Deployment blocked only by owner/admin actions listed there:
+root install, Access app config, tunnel DNS route, Google client/key provisioning.
+Next engineering: bind banking/Meta adapters to the same connector allowlist once
+their live auth exists; mobile command-centre schedule status projection.

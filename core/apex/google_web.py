@@ -22,6 +22,7 @@ from .google_oauth_state import OAuthState
 from .google_tokens import TokenBroker
 from .google_connect import GoogleConnection
 from .gmail_sync import GmailSync
+from .kernel.schedules import Schedules
 
 ORIGIN='https://console.apexcorelab.uk'
 COOKIE='__Host-apex-owner'
@@ -49,6 +50,28 @@ def load_config(path,access_owner):
     policy=ImportPolicy(cfg['owner'],frozenset({'gmail'}),cfg['review_reference'],cfg['retention_days'],cfg.get('mixed_content_reviewed'))
     policy.require(cfg['owner'],'gmail')
     return cfg
+
+
+def components(ledger,cfg):
+    policy=ImportPolicy(cfg['owner'],frozenset({'gmail'}),cfg['review_reference'],cfg['retention_days'],cfg['mixed_content_reviewed'])
+    broker=TokenBroker(ledger,cfg['encryption_key'].encode(),cfg['owner'],cfg['client_id'],policy)
+    state=OAuthState(ledger,cfg['encryption_key'].encode(),cfg['client_id'],cfg['redirect_uri'],cfg['owner'])
+    return policy,broker,GoogleConnection(state,broker,cfg['client_secret'])
+
+
+def scheduled_gmail_sync(ledger,path,owner_digest):
+    """Worker handler: one bounded page for the owner who armed the schedule.
+
+    Uses only the administrator-provisioned config and the encrypted token already
+    installed via owner consent. Never starts consent; refresh failures surface.
+    """
+    cfg=protected_json(path)
+    if not hmac.compare_digest(digest(cfg.get('owner','')),owner_digest):
+        raise PermissionError('Scheduled owner does not match configured owner')
+    load_config(path,cfg['owner'])
+    policy,broker,connection=components(ledger,cfg)
+    if broker.status()['status']=='AUTH_REQUIRED':raise PermissionError('Google not connected')
+    return GmailSync(ledger,cfg['encryption_key'].encode(),cfg['owner'],policy).step(connection.client())
 
 
 class GoogleRoutes:
@@ -82,10 +105,7 @@ class GoogleRoutes:
                     ledger._append('owner-session-'+digest(sid),'decision','personal',{'phase':'OWNER_SESSION_CREATED','expires_at':now+900})
                     row=(binding,csrf,now+900)
                     headers.append(('Set-Cookie',COOKIE+'='+sid+'; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=900'))
-            policy=ImportPolicy(cfg['owner'],frozenset({'gmail'}),cfg['review_reference'],cfg['retention_days'],cfg['mixed_content_reviewed'])
-            broker=TokenBroker(ledger,cfg['encryption_key'].encode(),cfg['owner'],cfg['client_id'],policy)
-            state=OAuthState(ledger,cfg['encryption_key'].encode(),cfg['client_id'],cfg['redirect_uri'],cfg['owner'])
-            connection=GoogleConnection(state,broker,cfg['client_secret'])
+            policy,broker,connection=components(ledger,cfg)
             if method=='POST':
                 if environ.get('HTTP_ORIGIN')!=ORIGIN or environ.get('CONTENT_TYPE')!='application/x-www-form-urlencoded':raise PermissionError('Same-origin form required')
                 length=environ.get('CONTENT_LENGTH','')
@@ -106,6 +126,11 @@ class GoogleRoutes:
                 elif path=='/connections/google/sync':
                     receipt=GmailSync(ledger,cfg['encryption_key'].encode(),self.owner,policy).step(connection.client())
                     return 200,json.dumps(receipt).encode(),headers,'application/json'
+                elif path=='/connections/google/schedule':
+                    if broker.status()['status']=='AUTH_REQUIRED':raise PermissionError('Connect Google first')
+                    Schedules(ledger).arm_connector('gmail',digest(self.owner),900,now,672)
+                elif path=='/connections/google/unschedule':
+                    Schedules(ledger).disarm_connector('gmail')
                 else:return 404,b'{}',headers,'application/json'
                 return 303,b'',headers+[('Location','/connections/google')],'text/plain'
             if path=='/auth/google/callback':
@@ -118,6 +143,8 @@ class GoogleRoutes:
                 return 303,b'',headers+[('Location','/connections/google')],'text/plain'
             if path!='/connections/google':return 405,b'{}',headers,'application/json'
             status=broker.status()['status']
-            controls=''.join('<form method="post" action="'+route+'"><input type="hidden" name="csrf" value="'+html.escape(row[1])+'"><button>'+label+'</button></form>' for route,label in [('/auth/google/start','Connect / reconnect Google'),('/connections/google/sync','Sync one bounded metadata page'),('/auth/google/disconnect','Disconnect locally'),('/auth/logout','End application session')])
-            page='<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google connection</title><body><main><h1>Google connection</h1><p>'+html.escape(status)+'</p><p>Metadata only. Local disconnect does not revoke the Google grant. A bounded page is not a full mailbox backfill.</p>'+controls+'<a href="/console">Founder console</a></main></body></html>'
+            recurring=next((r for r in Schedules(ledger).connector_status() if r['connector']=='gmail'),None)
+            recurring='Recurring sync: not armed' if recurring is None else ('Recurring sync: '+('enabled' if recurring['enabled'] else 'disabled')+', remaining runs '+str(recurring['remaining'])+', consecutive failures '+str(recurring['failures']))
+            controls=''.join('<form method="post" action="'+route+'"><input type="hidden" name="csrf" value="'+html.escape(row[1])+'"><button>'+label+'</button></form>' for route,label in [('/auth/google/start','Connect / reconnect Google'),('/connections/google/sync','Sync one bounded metadata page'),('/connections/google/schedule','Enable recurring sync (15 min, 7 days)'),('/connections/google/unschedule','Disable recurring sync'),('/auth/google/disconnect','Disconnect locally'),('/auth/logout','End application session')])
+            page='<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google connection</title><body><main><h1>Google connection</h1><p>'+html.escape(status)+'</p><p>'+html.escape(recurring)+' (runs only when the supervised worker has Google configuration).</p><p>Metadata only. Local disconnect does not revoke the Google grant. A bounded page is not a full mailbox backfill.</p>'+controls+'<a href="/console">Founder console</a></main></body></html>'
             return 200,page.encode(),headers,'text/html; charset=utf-8'

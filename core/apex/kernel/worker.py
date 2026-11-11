@@ -1,4 +1,8 @@
-"""Supervisable local scheduler loop, fixed handlers and no implicit networking."""
+"""Supervisable local scheduler loop with fixed handlers.
+
+Networking happens only for an owner-armed connector schedule AND an explicit
+administrator config path passed at start; otherwise connector runs fail closed.
+"""
 import json
 import signal
 from .memory import Ledger
@@ -6,7 +10,24 @@ from .schedules import Schedules
 from .policy import enforce_durable_stop
 
 
-def cycle(root):
+def run_connectors(ledger, scheduler, google_config):
+    outcomes=[]
+    for connector,owner_digest,issued in scheduler.pending_connectors():
+        state,error=None,None
+        try:
+            if connector!='gmail':raise PermissionError('No handler')
+            if google_config is None:raise PermissionError('Worker not configured for Google')
+            from ..google_web import scheduled_gmail_sync
+            state=scheduled_gmail_sync(ledger,google_config,owner_digest)['status']
+        except Exception as failure:  # Settled and audited; never retried within this cycle.
+            state,error='CONNECTOR_FAILED',type(failure).__name__
+        settled=scheduler.record_connector(connector,issued,state,error)
+        outcomes.append({'connector':connector,'state':state,'error_type':error,
+                         'disabled':bool(settled and settled['disabled'])})
+    return outcomes
+
+
+def cycle(root, google_config=None):
     with Ledger(root) as ledger:
         scheduler=Schedules(ledger)
         with ledger.transaction():
@@ -15,6 +36,8 @@ def cycle(root):
         outcomes=[]
         try:released=scheduler.poll()['released']
         except ValueError:released=[];outcomes.append({'stage':'schedule','state':'BLOCKED_INPUT_OR_CODE'})
+        try:connector_outcomes=run_connectors(ledger,scheduler,google_config)
+        except PermissionError:connector_outcomes=[]  # Durable stop raised during settlement.
         # Persist admission before executing. A crash may defer an admitted graph
         # by one rotation, but cannot repeatedly pin the head of the queue.
         # Job leases, not this cursor, fence actual execution attempts.
@@ -49,10 +72,11 @@ def cycle(root):
             except (ValueError,PermissionError):
                 outcomes.append({'trace_id':trace,'state':'BLOCKED_INPUT_CODE_OR_STOP'})
         return {'state':'CYCLE_COMPLETED','released':released,'outcomes':outcomes,
-                'network_calls':0,'paid_api_spend_pence':0}
+                'connector_outcomes':connector_outcomes,
+                'connector_runs':len(connector_outcomes),'paid_api_spend_pence':0}
 
 
-def serve(root, interval=60):
+def serve(root, interval=60, google_config=None):
     if type(interval) is not int or not 60<=interval<=3600:raise ValueError('Worker interval out of bounds')
     import threading
     stopped=threading.Event()
@@ -61,7 +85,7 @@ def serve(root, interval=60):
     from .worker_health import record
     failures = 0
     while not stopped.is_set():
-        try:result=cycle(root)
+        try:result=cycle(root,google_config)
         except Exception as error:result={'state':'CYCLE_FAILED','error_type':type(error).__name__}
         failures = failures+1 if result['state']=='CYCLE_FAILED' else 0
         if failures >= 3:

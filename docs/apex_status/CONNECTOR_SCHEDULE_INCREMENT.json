@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "c54ec99e61ac38a3b4098a9a2e09efa318c1b454",
+  "change": "Gmail sync bound into existing Schedules/worker cycle and Ledger; no second scheduler or database",
+  "components": {
+    "core/apex/kernel/schedules.py": "connector_schedules: allowlist {gmail}, owner-digest bound, interval 300-86400s, max 2016 runs, single pending release, 3 failures or RESYNC_REQUIRED disables",
+    "core/apex/kernel/worker.py": "run_connectors executes fixed handler only with explicit --google-config; failures settled and audited",
+    "core/apex/google_web.py": "scheduled_gmail_sync handler; owner CSRF routes /connections/google/schedule and /unschedule",
+    "deploy/production/apex-worker.service.d/google-sync.conf.example": "opt-in drop-in; default worker unit unchanged (AF_UNIX only, installer hashes unchanged)"
+  },
+  "tests": {"offline_suite": "276 run / 274 passed / 2 optional skips", "deploy_bundle": "11 passed", "installer_check": "BUNDLE_CHECKED_NOT_DEPLOYED"},
+  "host_observation": {
+    "pid1": "systemd",
+    "apex_units_installed": false,
+    "cloudflared_service": "active",
+    "etc_apex_present": false,
+    "console_dns": "does not resolve",
+    "root_authority_for_this_account": false
+  },
+  "live_google_consent": false,
+  "live_data_retrieved": false,
+  "deployment_performed": false,
+  "paid_api_spend_gbp": 0,
+  "blockers": [
+    "Host administrator must run installer as root (python3 -I deploy/production/install.py --apply)",
+    "/etc/apex/access-origin.json absent: requires Cloudflare Access application (team domain, AUD, owner email) created by owner",
+    "console.apexcorelab.uk has no DNS record: Cloudflare tunnel public hostname not published",
+    "/etc/apex/google-runtime.json absent: requires Google OAuth client + persistent Fernet key provisioned by owner"
+  ]
+}

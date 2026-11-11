@@ -73,7 +73,8 @@ class ConsoleApp:
         elif not self.google_routes and environ.get('PATH_INFO')=='/connections/google' and environ.get('REQUEST_METHOD')=='GET':
             body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Google client, persistent encryption key and reviewed import policy configuration"}'
         elif self.google_routes and environ.get('PATH_INFO') in {
-                '/connections/google','/connections/google/sync','/auth/google/start',
+                '/connections/google','/connections/google/sync','/connections/google/schedule',
+                '/connections/google/unschedule','/auth/google/start',
                 '/auth/google/callback','/auth/google/disconnect','/auth/logout'}:
             google=True
             try:

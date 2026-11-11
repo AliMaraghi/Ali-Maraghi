@@ -106,3 +106,7 @@ Unified web continuation: UNIFIED_WEB_INCREMENT.json. Conditional Google routes
 use existing Access-only console, private config, token-bound sessions and CSRF.
 Pinned console unit now allows only runtime writes. No host installation or live
 consent; manual bounded sync only. Never equate mounted code with deployed routes.
+
+Connector schedule continuation: CONNECTOR_SCHEDULE_INCREMENT.json. Gmail recurring sync
+uses existing Schedules/worker/Ledger via fixed allowlisted handler and opt-in worker
+drop-in; default worker unit unchanged. 276 run/274 pass/2 skip. Not deployed; PID1 systemd.
