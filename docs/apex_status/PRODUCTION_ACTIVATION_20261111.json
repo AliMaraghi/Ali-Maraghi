@@ -1,6 +1,6 @@
 {
   "updated": "2026-11-11",
-  "verified_commit": "a5ffdc3",
+  "verified_commit": "a502808",
   "production_host": {
     "ip": "31.70.173.143",
     "hostname": "ubuntu",
@@ -34,5 +34,12 @@
     "aud": "7e80f52337f480b9f5e877248ffda1e4c71d0956eda62999ba6ad2622a3f6a4a",
     "method": "Access redirect meta JWT RS256-verified against team certs; aud==kid; hostname bound"
   },
-  "acceptance_probe": "scripts/production_acceptance.py: FAIL (units/config/origin absent); public_edge Access gate present"
+  "acceptance_probe": "scripts/production_acceptance.py: FAIL (units/config/origin absent); public_edge Access gate present",
+  "access_rights": {
+    "apexdev_groups": "apexdev,sudo",
+    "sudo": "password required; Claude Bash has no tty (stdin /dev/null) so cannot authenticate; no NOPASSWD rule added (would allow root code execution from editable workspace)"
+  },
+  "activation_attempts_reported_not_observed": 5,
+  "last_observation": "2026-11-11T22:00Z: no /tmp/apex-install-receipt.txt, no /etc/apex, units inactive; sessions only root pts/0 (19:58) and pts/1 (20:58, hosts Claude)",
+  "single_required_action": "In a root shell outside Claude: sh /home/apexdev/apex-work/deploy/production/activate.sh 'OWNER_EMAIL'; self-check: cat /tmp/apex-install-receipt.txt"
 }
