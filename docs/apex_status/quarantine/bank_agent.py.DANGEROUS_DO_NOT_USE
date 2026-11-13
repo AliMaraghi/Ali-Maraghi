@@ -1,0 +1,69 @@
+import requests
+import sqlite3
+import os
+from datetime import datetime
+
+DB_PATH = "/home/apexdev/apex-work/runtime/kernel.sqlite3"
+# توکن را از developer.starlingbank.com بگیرید
+STARLING_TOKEN = os.environ.get("STARLING_TOKEN", "YOUR_STARLING_TOKEN_HERE")
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS bank_transactions (
+        id TEXT PRIMARY KEY,
+        account_id TEXT,
+        amount REAL,
+        currency TEXT,
+        date TEXT,
+        reference TEXT,
+        category TEXT
+    )''')
+    conn.commit()
+    conn.close()
+
+def sync_starling():
+    if "YOUR_STARLING_TOKEN" in STARLING_TOKEN:
+        print("⚠️ STARLING_TOKEN is not set. Please get a Personal Access Token.")
+        return
+
+    headers = {"Authorization": f"Bearer {STARLING_TOKEN}"}
+    
+    # ۱. دریافت لیست حساب‌ها
+    print("Fetching accounts...")
+    res = requests.get("https://api.starlingbank.com/api/v2/accounts", headers=headers)
+    if res.status_code != 200:
+        print(f"Error: {res.status_code} - {res.text}")
+        return
+    
+    accounts = res.json().get("accounts", [])
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    for acc in accounts:
+        acc_uid = acc['accountUid']
+        cat_uid = acc['defaultCategory']
+        print(f"Syncing transactions for account: {acc['name']}")
+
+        # ۲. دریافت تراکنش‌ها (۶۰ روز اخیر)
+        tx_url = f"https://api.starlingbank.com/api/v2/feed/account/{acc_uid}/category/{cat_uid}/transactions"
+        tx_res = requests.get(tx_url, headers=headers)
+        
+        if tx_res.status_code == 200:
+            txs = tx_res.json().get("feedItems", [])
+            for tx in txs:
+                amount = tx['amount']['minorUnits'] / 100.0  # تبدیل پنس به پوند
+                # ذخیره در دیتابیس (نادیده گرفتن تکراری‌ها)
+                c.execute("INSERT OR IGNORE INTO bank_transactions (id, account_id, amount, currency, date, reference, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                          (tx['feedItemUid'], acc_uid, amount, tx['amount']['currency'], tx['transactionTime'], tx.get('reference', 'Unknown'), tx['source']))
+            print(f"  -> Saved {len(txs)} transactions.")
+        else:
+            print(f"  -> Error fetching transactions: {tx_res.status_code}")
+
+    conn.commit()
+    conn.close()
+    print("✅ Bank Sync Complete.")
+
+if __name__ == "__main__":
+    init_db()
+    sync_starling()

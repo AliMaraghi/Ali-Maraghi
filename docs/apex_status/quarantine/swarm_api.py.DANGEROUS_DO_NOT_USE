@@ -1,0 +1,17 @@
+import http.server, socketserver, json, sqlite3
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/api/swarm':
+            conn = sqlite3.connect("/home/apexdev/apex-work/runtime/kernel.sqlite3")
+            c = conn.cursor()
+            c.execute("SELECT agent_id, status, task FROM swarm_status")
+            rows = c.fetchall(); conn.close()
+            data = {"agents": [{"id": r[0], "status": r[1], "task": r[2]} for r in rows]}
+            self.send_response(200); self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*'); self.end_headers()
+            self.wfile.write(json.dumps(data).encode())
+        else:
+            self.send_response(404); self.end_headers()
+
+with socketserver.TCPServer(("", 8082), Handler) as httpd: httpd.serve_forever()

@@ -1,0 +1,37 @@
+import os
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
+SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly']
+
+def get_youtube_service():
+    creds = None
+    if os.path.exists('/etc/apex/youtube-token.json'):
+        creds = Credentials.from_authorized_user_file('/etc/apex/youtube-token.json', SCOPES)
+    if not creds or not creds.valid:
+        # نیاز به credentials.json از Google Cloud Console
+        flow = InstalledAppFlow.from_client_secrets_file('/etc/apex/youtube-credentials.json', SCOPES)
+        creds = flow.run_local_server(port=0)
+        with open('/etc/apex/youtube-token.json', 'w') as token:
+            token.write(creds.to_json())
+    return build('youtube', 'v3', credentials=creds)
+
+def upload_video(file_path, title, description, tags):
+    youtube = get_youtube_service()
+    body = {
+        'snippet': {
+            'title': title, 'description': description, 'tags': tags,
+            'categoryId': '22'
+        },
+        'status': {'privacyStatus': 'private'}  # اول private، بعد از تایید تو public میشه
+    }
+    media = MediaFileUpload(file_path, chunksize=-1, resumable=True)
+    request = youtube.videos().insert(part='snippet,status', body=body, media_body=media)
+    response = request.execute()
+    print(f"✅ Uploaded: https://youtube.com/watch?v={response['id']}")
+    return response
+
+if __name__ == "__main__":
+    print("YouTube Agent ready. Waiting for videos to upload.")

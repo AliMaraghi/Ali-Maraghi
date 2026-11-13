@@ -1,0 +1,69 @@
+import pandas as pd
+from sentence_transformers import SentenceTransformer, util
+import networkx as nx
+import yfinance as yf
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+print("🧠 Loading AI Models (This might take a minute on first run)...")
+# مدل رایگان تبدیل متن به بردار (برای تطبیق معنایی)
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# ==========================================
+# ۱. الگوریتم تطبیق دیتینگ و شغل (Dense Vector Embeddings)
+# ==========================================
+def semantic_match(user_profile, candidates, threshold=0.3):
+    print(f"\n🔍 Analyzing Match for: '{user_profile}'")
+    user_embedding = model.encode(user_profile, convert_to_tensor=True)
+    candidate_embeddings = model.encode(candidates, convert_to_tensor=True)
+    
+    # محاسبه شباهت کسینوسی (Cosine Similarity)
+    cosine_scores = util.cos_sim(user_embedding, candidate_embeddings)[0]
+    
+    results = []
+    for idx, score in enumerate(cosine_scores):
+        if score > threshold:
+            results.append((candidates[idx], round(score.item(), 3)))
+    
+    return sorted(results, key=lambda x: x[1], reverse=True)
+
+profiles = [
+    "I am a 40-year-old tech professional in London. I love philosophy, gym, and deep conversations.",
+    "Looking for a wealthy man who can take care of me.",
+    "I am a female data scientist who loves cats and coding.",
+    "I am an AI researcher interested in consciousness and startups."
+]
+print("--- Dating Agent Results ---")
+for match, score in semantic_match("ADHD, tech, gym, looking for a smart, mature woman", profiles):
+    print(f"Match ({score}): {match}")
+
+# ==========================================
+# ۲. الگوریتم گراف اجتماعی (Graph Neural Networks logic)
+# ==========================================
+print("\n--- Social Graph Analysis ---")
+G = nx.Graph()
+# ساخت یک گراف شبیه‌سازی‌شده از دوستان و همکاران
+G.add_edges_from([("Ali", "Friend_A"), ("Ali", "Colleague_B"), ("Friend_A", "Friend_C"), ("Colleague_B", "Friend_C")])
+print(f"Nodes (People): {G.nodes()}")
+print(f"Degree of Ali (Direct Connections): {G.degree('Ali')}")
+# محاسبه Centrality (چه کسی در مرکز شبکه است؟)
+centrality = nx.degree_centrality(G)
+print(f"Network Centrality: {centrality}")
+
+# ==========================================
+# ۳. الگوریتم بازار مالی (LSTM/Transformers logic simplified to RF)
+# ==========================================
+print("\n--- Financial Forecasting (AMD Stock) ---")
+ticker = "AMD"
+data = yf.download(ticker, period="1mo", interval="1d")
+data['Target'] = (data['Close'].shift(-1) > data['Close']).astype(int) # آیا فردا رشد می‌کند؟
+data = data.dropna()
+
+X = data[['Open', 'High', 'Low', 'Close', 'Volume']]
+y = data['Target']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+clf = RandomForestClassifier(n_estimators=100)
+clf.fit(X_train, y_train)
+accuracy = clf.score(X_test, y_test)
+print(f"Stock Prediction Model Accuracy: {accuracy * 100:.2f}%")

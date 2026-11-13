@@ -1,0 +1,59 @@
+import time, sqlite3, logging, os
+from datetime import datetime
+from pathlib import Path
+import anthropic
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - SWARM - %(message)s')
+DB_PATH = "/home/apexdev/apex-work/runtime/kernel.sqlite3"
+
+# خواندن کلید API
+try:
+    key = Path('/etc/apex/anthropic-key').read_text().strip()
+    client = anthropic.Anthropic(api_key=key)
+except Exception as e:
+    logging.error(f"Failed to load API key: {e}")
+    exit(1)
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS swarm_status
+                 (agent_id TEXT PRIMARY KEY, status TEXT, last_run TEXT, task TEXT)''')
+    agents = ['A-1 Strategic', 'A-2 Research', 'A-5 Career', 'A-8 Financial', 'A-15 Health', 'A-18 Evolve']
+    for a in agents:
+        c.execute("INSERT OR IGNORE INTO swarm_status VALUES (?, 'IDLE', ?, 'Waiting...')", (a, datetime.now().isoformat()))
+    conn.commit(); conn.close()
+
+def run_swarm():
+    init_db()
+    logging.info("🧠 APEX AUTONOMOUS SWARM STARTED. THINKING 24/7...")
+    agents = ['A-1 Strategic', 'A-2 Research', 'A-5 Career', 'A-8 Financial', 'A-15 Health', 'A-18 Evolve']
+    idx = 0
+    while True:
+        try:
+            agent = agents[idx % len(agents)]
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+            c = conn.cursor()
+            c.execute("UPDATE swarm_status SET status='ACTIVE', last_run=?, task='Thinking...' WHERE agent_id=?", (datetime.now().isoformat(), agent))
+            conn.commit()
+            logging.info(f"⚙️ {agent} is ACTIVE. Calling Claude...")
+            
+            # فراخوانی واقعی مدل برای هر ایجنت
+            prompt = f"You are {agent}, part of Apex OS. Provide a 1-sentence strategic insight for Ali right now."
+            response = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=60,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            result = response.content[0].text.replace('\n', ' ')
+            logging.info(f"✅ {agent} Insight: {result[:50]}...")
+            
+            c.execute("UPDATE swarm_status SET status='IDLE', task=? WHERE agent_id=?", (result[:100], agent))
+            conn.commit(); conn.close()
+            idx += 1
+            time.sleep(10) # زمان استراحت بین ایجنت‌ها
+            
+        except Exception as e:
+            logging.error(f"Error: {e}"); time.sleep(30)
+
+if __name__ == "__main__": run_swarm()

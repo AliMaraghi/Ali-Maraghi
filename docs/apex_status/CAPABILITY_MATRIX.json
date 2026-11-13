@@ -1,0 +1,369 @@
+{
+ "as_of": "2026-11-12",
+ "note": "Statuses are verified against repository files and recorded checks; none implies a live connection.",
+ "services": [
+  {
+   "domain": "finance",
+   "service": "Enable Banking AIS",
+   "requested_operation": "Read UK bank accounts, balances, transactions",
+   "interface": "Enable Banking Open Banking AIS API",
+   "documentation": "https://enablebanking.com/ (owner-supplied; documentation path and UK bank coverage not verified in this session)",
+   "permissions_or_eligibility": "Production application registration with privacy/terms URLs and data-protection email; per-bank owner consent",
+   "implemented_files": [
+    "core/apex/finance.py",
+    "core/apex/finance_web.py",
+    "tests/test_finance.py",
+    "deploy/production/provision_finance.py"
+   ],
+   "checks_executed": [
+    "scripts/test_offline.py (2026-11-12): 339 run, 337 passed, 2 optional skips, 0 failures; offline only"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Owner has not completed Enable Banking registration; console callback service not persistently running; /etc/apex/finance-runtime.json absent; UK coverage of Santander/HSBC/Halifax/Lloyds/NatWest unverified",
+   "smallest_next_action": "Owner: sign up at enablebanking.com and check its bank list for the five banks",
+   "implementation": "IMPLEMENTED_OFFLINE"
+  },
+  {
+   "domain": "finance",
+   "service": "CSV statement import",
+   "requested_operation": "Import downloaded statements for any bank",
+   "interface": "Local file import (no provider)",
+   "documentation": "n/a",
+   "permissions_or_eligibility": "Owner downloads CSV from bank website/app",
+   "implemented_files": [
+    "core/apex/finance.py",
+    "tests/test_finance.py"
+   ],
+   "checks_executed": [
+    "scripts/test_offline.py (2026-11-12): 339 run, 337 passed, 2 optional skips, 0 failures; offline only",
+    "Parser run on a synthetic generic CSV in this session: 2 rows, closing balance parsed"
+   ],
+   "live_status": "NOT_APPLICABLE_LOCAL_IMPORT",
+   "blocker": "Generic format only (date,description,amount,currency[,balance]); per-bank column mappings need one header row per bank (owner input)",
+   "smallest_next_action": "Owner: send one CSV header row per bank (no balances or account numbers)",
+   "implementation": "IMPLEMENTED_OFFLINE"
+  },
+  {
+   "domain": "finance",
+   "service": "GoCardless Bank Account Data",
+   "requested_operation": "Automatic UK bank data",
+   "interface": "GoCardless Bank Account Data API",
+   "documentation": "https://docs.gocardless.com/docs/bank-account-data",
+   "permissions_or_eligibility": "Developer portal account",
+   "implemented_files": [],
+   "checks_executed": [
+    "Signup page checked by owner"
+   ],
+   "live_status": "BLOCKED_PROVIDER_ACCESS",
+   "blocker": "Provider text: 'New signups for Bank Account Data are currently disabled.' (cause: provider access)",
+   "smallest_next_action": "Ask GoCardless support when signups reopen for personal use",
+   "implementation": "NOT_IMPLEMENTED"
+  },
+  {
+   "domain": "finance",
+   "service": "Yapily",
+   "requested_operation": "Automatic UK bank data",
+   "interface": "Yapily Open Banking API",
+   "documentation": "https://docs.yapily.com/concepts/licensing-registration",
+   "permissions_or_eligibility": "Yapily Connect or own TPP licence plus per-bank registration (business arrangement)",
+   "implemented_files": [],
+   "checks_executed": [
+    "Docs read by owner"
+   ],
+   "live_status": "BLOCKED_PROVIDER_ELIGIBILITY",
+   "blocker": "Docs: access restricted to licensed TPPs; Yapily Connect is a company arrangement; personal use not documented",
+   "smallest_next_action": "Only pursue if a company/licensed route is chosen",
+   "implementation": "NOT_IMPLEMENTED"
+  },
+  {
+   "domain": "finance",
+   "service": "Monzo Developer API",
+   "requested_operation": "Read own Monzo accounts, balance, transactions",
+   "interface": "Monzo Developer API (OAuth bearer token)",
+   "documentation": "https://docs.monzo.com/ (endpoints and fields fetched and checked 2026-11-12)",
+   "permissions_or_eligibility": "Own account only; OAuth plus in-app approval; full history only in first 5 minutes after authentication, then 90 days",
+   "implemented_files": [
+    "core/apex/monzo.py",
+    "tests/test_monzo.py"
+   ],
+   "checks_executed": [
+    "tests/test_monzo.py: 8 synthetic-fixture contract tests pass (request shape, validation, NOT_CONFIGURED, error non-leak, normalisation, pagination bounds, 5-minute coverage rule)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Never run against the live API; no token; no token storage/refresh integration yet; owner may not have a Monzo account",
+   "smallest_next_action": "Owner: confirm a Monzo account exists; then register an OAuth client at the Monzo developer portal",
+   "implementation": "IMPLEMENTED_OFFLINE"
+  },
+  {
+   "domain": "finance",
+   "service": "Starling Personal API",
+   "requested_operation": "Read own Starling account and transactions",
+   "interface": "Starling Personal Access Token API",
+   "documentation": "Official starlingbank/starling-developer-sdk source (account.js, feedItem.js, http.js, test fixtures); developer.starlingbank.com/docs needs JavaScript and was not used",
+   "permissions_or_eligibility": "Personal Access Token with read scopes",
+   "implemented_files": [
+    "core/apex/starling.py",
+    "core/apex/private_token.py",
+    "docs/apex_status/integrations/starling.md",
+    "tests/test_read_adapters.py"
+   ],
+   "checks_executed": [
+    "tests/test_read_adapters.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 15); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Read-only adapter written (accounts, balance, incremental feed with upsert by account/feedItemUid; GET only). Response fields come from SDK test fixtures, not an API reference; direction IN, statuses beyond PENDING/SETTLED, paging and rate limits are unconfirmed; never run live; no token",
+   "smallest_next_action": "Owner: confirm a Starling account exists and create a personal access token (read scopes only) stored in a private 0600 file; never paste it in chat",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "email",
+   "service": "Gmail read-only + drafts",
+   "requested_operation": "Read allow-listed mail, create drafts, never send",
+   "interface": "Gmail API (OAuth gmail.readonly)",
+   "documentation": "https://developers.google.com/workspace/gmail/api/guides",
+   "permissions_or_eligibility": "Owner OAuth consent; test user on consent screen",
+   "implemented_files": [
+    "core/apex/gmail_sync.py",
+    "core/apex/google_connect.py",
+    "core/apex/google_tokens.py",
+    "core/apex/google_web.py",
+    "core/apex/google_http.py",
+    "core/apex/gmail_drafts.py",
+    "core/apex/kernel/adapters.py",
+    "docs/apex_status/integrations/gmail_drafts.md",
+    "tests/test_gmail_sync.py",
+    "tests/test_google_tokens.py",
+    "tests/test_google_web.py",
+    "tests/test_google_http.py",
+    "tests/test_mail_messaging.py"
+   ],
+   "checks_executed": [
+    "gmail_sync/google_*: earlier suite pass (2026-11-12, offline)",
+    "tests/test_mail_messaging.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 15); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Draft-only adapter written (compose scope only, send structurally impossible); OAuth client created by owner 2026-11-12; /etc/apex/google-runtime.json absent; console callback not persistent; consent not given",
+   "smallest_next_action": "Owner: install google-runtime.json (sudo) when the console runs as a service; then consent with gmail.readonly (+ gmail.compose for drafts)",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "email",
+   "service": "Outlook / Microsoft Graph",
+   "requested_operation": "Read mail, create drafts (no Mail.Send)",
+   "interface": "Microsoft Graph delegated Mail.Read/Mail.ReadWrite",
+   "documentation": "https://learn.microsoft.com/graph/permissions-reference",
+   "permissions_or_eligibility": "Azure app registration with personal-account support; owner consent",
+   "implemented_files": [
+    "core/apex/outlook_graph.py",
+    "docs/apex_status/integrations/outlook_graph.md",
+    "tests/test_mail_messaging.py"
+   ],
+   "checks_executed": [
+    "tests/test_mail_messaging.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 15); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Header-only listing with explicit $select and verbatim, validated @odata.nextLink paging; draft-only (Mail.ReadWrite) with no send function. Never run against the service; no Azure registration or token; unconfirmed: emailAddress sub-property name 'address' (from create-message sample) and max $top",
+   "smallest_next_action": "Owner: register a personal-account Azure app with Mail.ReadBasic + Mail.ReadWrite only (never Mail.Send)",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "messaging",
+   "service": "Telegram bot (command channel)",
+   "requested_operation": "Notifications and approval links to an allow-listed chat",
+   "interface": "Telegram Bot API",
+   "documentation": "https://core.telegram.org/bots/api",
+   "permissions_or_eligibility": "BotFather token; chat allowlist; webhook secret_token",
+   "implemented_files": [
+    "core/apex/telegram_bot.py",
+    "docs/apex_status/integrations/telegram.md",
+    "tests/test_mail_messaging.py"
+   ],
+   "checks_executed": [
+    "tests/test_mail_messaging.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 15); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Adapter written; no bot token or chat allowlist; no webhook receiver mounted; gateway kind telegram_notify resolves to NOT_CONFIGURED",
+   "smallest_next_action": "Owner: create a bot with BotFather and provide the token via private config (never in chat)",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "messaging",
+   "service": "WhatsApp / iMessage / personal Telegram",
+   "requested_operation": "Read personal chats",
+   "interface": "No supported hosted API for personal accounts (MTProto userbot is ban-risk; WhatsApp Business is separate)",
+   "documentation": "https://developers.facebook.com/docs/whatsapp/cloud-api/",
+   "permissions_or_eligibility": "Manual export/import only",
+   "implemented_files": [
+    "core/apex/chat_import.py",
+    "docs/apex_status/integrations/chat_import.md",
+    "tests/test_mail_messaging.py"
+   ],
+   "checks_executed": [
+    "tests/test_mail_messaging.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 15); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "MANUAL_ONLY",
+   "blocker": "Two observed layouts only (24-hour; not official; no compliance claim). Unsupported layouts, ambiguous/invalid dates, unparsed lines and every system line are reported as unresolved with raw text; import_status is never 'complete'",
+   "smallest_next_action": "Owner: provide a few lines from one real export (header lines only, content redacted) so the layout and system-line patterns can be confirmed",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "social",
+   "service": "Meta Pages + Instagram (read-only)",
+   "requested_operation": "Read Page list/engagement and Instagram basics",
+   "interface": "Facebook Login for Business + Graph API",
+   "documentation": "https://developers.facebook.com/docs/instagram-platform/",
+   "permissions_or_eligibility": "Meta app; app role or App Review; Instagram Business/Creator linked to a Page; business portfolio for Instagram API",
+   "implemented_files": [
+    "core/apex/meta_connect.py",
+    "core/apex/meta_readonly.py",
+    "core/apex/meta_web.py",
+    "tests/test_meta_connect.py",
+    "tests/test_meta_readonly.py",
+    "deploy/production/provision_meta.py"
+   ],
+   "checks_executed": [
+    "scripts/test_offline.py (2026-11-12): 339 run, 337 passed, 2 optional skips, 0 failures; offline only"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Owner created app 'apex-personal' and Instagram tester 2026-11-12; /etc/apex/meta-runtime.json absent; console callback not persistent; App Review needed for non-role users",
+   "smallest_next_action": "Owner: install meta-runtime.json (needs sudo) when console service exists",
+   "implementation": "IMPLEMENTED_OFFLINE"
+  },
+  {
+   "domain": "social",
+   "service": "YouTube (adapter) / LinkedIn / X / TikTok / Snapchat / Threads (not yet)",
+   "requested_operation": "Daily metric snapshots; draft/manual publishing",
+   "interface": "Each platform's official API",
+   "documentation": "https://developers.facebook.com/docs/threads/ ; https://docs.x.com/ ; https://developers.google.com/youtube/v3 ; https://developers.tiktok.com/doc/content-posting-api-get-started/",
+   "permissions_or_eligibility": "Per-platform app approval, paid tiers (X), audits (TikTok/YouTube), partner programmes (LinkedIn)",
+   "implemented_files": [
+    "core/apex/declared_targets.py",
+    "core/apex/social_snapshots.py",
+    "core/apex/youtube_stats.py",
+    "docs/apex_status/integrations/youtube_stats.md",
+    "tests/test_read_adapters.py"
+   ],
+   "checks_executed": [
+    "tests/test_read_adapters.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 15); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "YouTube channel-statistics snapshot adapter written (GET only; youtube.readonly is the accepted scope for mine=true per owner statement 2026-11-12, not a provider-docs confirmation; count encoding and quota unconfirmed; compiled only, never run; no consent/credentials). LinkedIn, X, TikTok, Snapchat, Threads: no adapters; each needs its own approval/cost decision",
+   "smallest_next_action": "Owner: enable YouTube Data API v3 in the apex-personal Google project and consent with youtube.readonly; choose the next platform to implement",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "dating",
+   "service": "Dating / relationship assistance",
+   "requested_operation": "Respectful photo/bio advice, notes, manual draft messages",
+   "interface": "None (no automation): platforms restrict AI agents",
+   "documentation": "Mashable report 'AI agents are banned on Tinder and Hinge, CEO says' (owner-supplied research; URL not re-verified)",
+   "permissions_or_eligibility": "Owner-provided content only; no account access",
+   "implemented_files": [
+    "core/apex/relationship_assist.py",
+    "tests/test_governance.py"
+   ],
+   "checks_executed": [
+    "tests/test_governance.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 14); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "MANUAL_ONLY",
+   "blocker": "Manual notes/draft packages/rule-based checklist only, by design (no automation, no account access); no model-assisted drafting wired",
+   "smallest_next_action": "None required; optional: wire drafting through the Action Gateway with owner review",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "infrastructure",
+   "service": "Cloudflare tunnel, DNS, Access",
+   "requested_operation": "Publish legal pages; protect console; plan origins",
+   "interface": "Cloudflare dashboard (owner), cloudflared tunnel",
+   "documentation": "https://developers.cloudflare.com/cloudflare-one/",
+   "permissions_or_eligibility": "Owner dashboard login; no API token provided to this session",
+   "implemented_files": [
+    "deploy/legal/serve_legal.py",
+    "deploy/legal/apex-legal.service",
+    "deploy/legal/check_legal_pages.sh",
+    "deploy/public_legal/",
+    "deploy/production/cloudflare_plan.py",
+    "deploy/production/apex-console.service",
+    "scripts/dev_console.py",
+    "scripts/fetch_locked_wheels.py",
+    "requirements-console.lock"
+   ],
+   "checks_executed": [
+    "deploy/legal/check_legal_pages.sh passed 4/4 on 2026-11-12 (local + public HTTP 200)",
+    "DEVELOPMENT console: waitress 3.0.2 from hash-pinned .devdeps; listening on 127.0.0.1:18765 only (not tunnelled, not production); manual requests 401 without token, 200 with local dev token; TESTS_NOT_RUN"
+   ],
+   "live_status": "PARTIAL_LIVE",
+   "blocker": "Legal pages live but served by a session process; `loginctl enable-linger` denied: 'Permission for this action was denied by the Claude Code auto mode classifier. Reason: [Unauthorized Persistence]' (cause: harness policy); sudo: 'a password is required' (OS permission); /etc/apex absent",
+   "smallest_next_action": "Owner: run `sudo loginctl enable-linger apexdev` and install /etc/apex files",
+   "implementation": "PARTIAL_LIVE"
+  },
+  {
+   "domain": "health",
+   "service": "Local lab text, PubMed (ESearch + EFetch), Apple Health export",
+   "requested_operation": "Parse owner-exported documents; research notes",
+   "interface": "Local files; Apple Shortcuts export; NCBI E-utilities",
+   "documentation": "https://www.ncbi.nlm.nih.gov/books/NBK25501/",
+   "permissions_or_eligibility": "Owner-exported files only; no GP API exists for third parties (GP Connect statement, 19 Jan 2026, as reported)",
+   "implemented_files": [
+    "core/apex/health_labs.py",
+    "core/apex/pubmed.py",
+    "docs/apex_status/integrations/health_labs.md",
+    "docs/apex_status/integrations/pubmed.md",
+    "tests/test_read_adapters.py",
+    "tests/test_private_data.py"
+   ],
+   "checks_executed": [
+    "tests/test_read_adapters.py + tests/test_private_data.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 29); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Lab-text parser (no storage) and PubMed ESearch+EFetch adapter written (GET only, rate-limited, retraction status, WebEnv chaining), never run. PubMed parameters beyond the NLM Data Guide (sort, date filters, usehistory, api_key limit) are owner-supplied; ESearch JSON field names are from general knowledge, unverified, fail-closed. Apple Health export format unverified. Raw health data must stay local; this VPS is not the owner's device",
+   "smallest_next_action": "Owner: provide a contact email via private config if NCBI contact is wanted (never defaulted); decide where raw health data may live",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "location",
+   "service": "OwnTracks / Shortcuts receiver",
+   "requested_operation": "Coarse city/timezone from device location",
+   "interface": "OwnTracks HTTP mode; Apple Shortcuts",
+   "documentation": "https://owntracks.org/booklet/tech/http/",
+   "permissions_or_eligibility": "Device authentication; Cloudflare Access service token on a dedicated path (never a public Bypass)",
+   "implemented_files": [
+    "core/apex/location_coarse.py",
+    "docs/apex_status/integrations/location.md",
+    "tests/test_private_data.py"
+   ],
+   "checks_executed": [
+    "tests/test_private_data.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 14); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "Validation, replay guard and coarsening functions only; no receiver mounted; the 0.1-degree grid label is itself a coarse derivative of raw coordinates (owner to accept or restrict to named zones)",
+   "smallest_next_action": "Owner: choose named zones and decide whether grid labels may leave the device",
+   "implementation": "PARTIAL_OFFLINE"
+  },
+  {
+   "domain": "media",
+   "service": "Edit package; FFmpeg; Runway/Veo/Kling; ElevenLabs; Flux",
+   "requested_operation": "Plan shots, captions, assemble previews",
+   "interface": "apex.video.v1 manifest; FFmpeg argument arrays; vendor APIs",
+   "documentation": "https://ffmpeg.org/documentation.html ; https://docs.dev.runwayml.com/",
+   "permissions_or_eligibility": "Provider keys and a registered fresh price before any paid call (budget module blocks otherwise)",
+   "implemented_files": [
+    "core/apex/studio.py",
+    "core/apex/kernel/budget.py",
+    "core/apex/ffmpeg_plan.py",
+    "docs/apex_status/integrations/ffmpeg_plan.md",
+    "tests/test_budget.py",
+    "tests/test_night_operations.py",
+    "tests/test_private_data.py"
+   ],
+   "checks_executed": [
+    "studio/budget: earlier suite pass (2026-11-12, offline)",
+    "tests/test_private_data.py: contract tests with synthetic fixtures pass (offline, 2026-11-12; module-group total 14); full suite 423 run / 421 passed / 2 optional skips / 0 failures. Provider behaviour not verified (never run against the live service)"
+   ],
+   "live_status": "NOT_CONNECTED",
+   "blocker": "FFmpeg planner emits separate trimmed segments only: concat, scale/pad and subtitle burn-in not implemented because the filter docs did not load for verification; no vendor adapters or registered prices",
+   "smallest_next_action": "Re-fetch FFmpeg filter docs to verify scale/concat/subtitles before extending the planner",
+   "implementation": "PARTIAL_OFFLINE"
+  }
+ ]
+}
