@@ -69,6 +69,8 @@ def content(root,path):
 
 from .finance_web import is_finance_path
 from .finance import TARGETS as FINANCE_TARGETS
+from .approvals_web import is_approvals_path
+from .bridge_web import is_bridge_path
 
 META_PATHS=frozenset({'/connections/meta','/connections/meta/sync','/auth/meta/start','/auth/meta/callback','/auth/meta/disconnect'})
 
@@ -93,8 +95,9 @@ class ReloadingVerifier:
 
 
 class ConsoleApp:
-    def __init__(self,root,verifier,google_routes=None,meta_routes=None,finance_routes=None):
+    def __init__(self,root,verifier,google_routes=None,meta_routes=None,finance_routes=None,approval_routes=None,bridge_routes=None):
         self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes;self.meta_routes=meta_routes;self.finance_routes=finance_routes
+        self.approval_routes=approval_routes;self.bridge_routes=bridge_routes
         self.lock=threading.Lock();self.requests=deque()
     def __call__(self,environ,start_response):
         now=time.monotonic()
@@ -102,17 +105,18 @@ class ConsoleApp:
             while self.requests and self.requests[0]<=now-60:self.requests.popleft()
             limited=len(self.requests)>=300
             if not limited:self.requests.append(now)
-        code=200;body=b'';kind='application/json; charset=utf-8';extra=[];google=False
+        code=200;body=b'';kind='application/json; charset=utf-8';extra=[];form_action=None
+        path_info=environ.get('PATH_INFO')
         if limited:code=429;body=b'{"error":"RATE_LIMITED"}'
         elif not self.verifier.valid(environ.get('HTTP_CF_ACCESS_JWT_ASSERTION','')):
             code=401;body=b'{"error":"OWNER_AUTHENTICATION_REQUIRED"}'
-        elif not self.google_routes and environ.get('PATH_INFO')=='/connections/google' and environ.get('REQUEST_METHOD')=='GET':
+        elif not self.google_routes and path_info=='/connections/google' and environ.get('REQUEST_METHOD')=='GET':
             body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Google client, persistent encryption key and reviewed import policy configuration"}'
-        elif self.google_routes and environ.get('PATH_INFO') in {
+        elif self.google_routes and path_info in {
                 '/connections/google','/connections/google/sync','/connections/google/schedule',
                 '/connections/google/unschedule','/auth/google/start',
                 '/auth/google/callback','/auth/google/disconnect','/auth/logout'}:
-            google=True
+            form_action="'self' https://accounts.google.com https://www.facebook.com"
             try:
                 if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.google_routes.owner:
                     raise PermissionError('Access owner configuration changed')
@@ -120,8 +124,8 @@ class ConsoleApp:
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
             except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
-        elif self.meta_routes and environ.get('PATH_INFO') in META_PATHS:
-            google=True
+        elif self.meta_routes and path_info in META_PATHS:
+            form_action="'self' https://accounts.google.com https://www.facebook.com"
             try:
                 if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.meta_routes.owner:
                     raise PermissionError('Access owner configuration changed')
@@ -129,8 +133,8 @@ class ConsoleApp:
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
             except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
-        elif self.finance_routes and is_finance_path(environ.get('PATH_INFO')):
-            google=True
+        elif self.finance_routes and is_finance_path(path_info):
+            form_action="'self' https://accounts.google.com https://www.facebook.com"
             try:
                 if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.finance_routes.owner:
                     raise PermissionError('Access owner configuration changed')
@@ -138,19 +142,37 @@ class ConsoleApp:
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
             except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
-        elif not self.finance_routes and environ.get('PATH_INFO')=='/connections/finance' and environ.get('REQUEST_METHOD')=='GET':
+        elif not self.finance_routes and path_info=='/connections/finance' and environ.get('REQUEST_METHOD')=='GET':
             body=json.dumps({'status':'BLOCKED_EXTERNAL_AUTH','required':'Protected finance configuration',
                              'targets':[{'name':t['name'],'status':'NOT_CONNECTED'} for t in FINANCE_TARGETS]}).encode()
-        elif not self.meta_routes and environ.get('PATH_INFO')=='/connections/meta' and environ.get('REQUEST_METHOD')=='GET':
+        elif not self.meta_routes and path_info=='/connections/meta' and environ.get('REQUEST_METHOD')=='GET':
             body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Meta app configuration"}'
+        elif not self.approval_routes and is_approvals_path(path_info):
+            code=503;body=b'{"error":"APPROVALS_NOT_CONFIGURED"}'
+        elif self.approval_routes and is_approvals_path(path_info):
+            form_action="'self'"
+            try:
+                code,body,extra,kind=self.approval_routes.handle(environ)
+            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
+        elif not self.bridge_routes and is_bridge_path(path_info):
+            code=503;body=b'{"error":"BRIDGE_NOT_CONFIGURED"}'
+        elif self.bridge_routes and is_bridge_path(path_info):
+            form_action="'self'"
+            try:
+                code,body,extra,kind=self.bridge_routes.handle(environ)
+            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif environ.get('REQUEST_METHOD') not in {'GET','HEAD'}:
             code=405;body=b'{"error":"READ_ONLY; use authenticated operator CLI for STOP"}'
         else:
-            try:body,kind=content(self.root,environ.get('PATH_INFO',''))
+            try:body,kind=content(self.root,path_info or '')
             except KeyError:code=404;body=b'{"error":"NOT_FOUND"}'
             except Exception:code=503;body=b'{"error":"EVIDENCE_UNAVAILABLE"}'
         labels={200:'OK',303:'See Other',400:'Bad Request',403:'Forbidden',401:'Unauthorized',404:'Not Found',405:'Method Not Allowed',429:'Too Many Requests',503:'Service Unavailable'}
-        headers=[(k,v.replace("form-action 'none'","form-action 'self' https://accounts.google.com https://www.facebook.com") if google and k=='Content-Security-Policy' else v) for k,v in HEADERS]+extra+[('Content-Type',kind),('Content-Length',str(len(body)))]
+        headers=[(k,v.replace("form-action 'none'","form-action "+form_action) if form_action and k=='Content-Security-Policy' else v) for k,v in HEADERS]+extra+[('Content-Type',kind),('Content-Length',str(len(body)))]
         if code==429:headers.append(('Retry-After','60'))
         if code==405:headers.append(('Allow','GET, HEAD'))
         start_response(str(code)+' '+labels[code],headers)
@@ -165,6 +187,7 @@ def main():
     p.add_argument('--google-config',type=Path,default=Path('/etc/apex/google-runtime.json'))
     p.add_argument('--meta-config',type=Path,default=Path('/etc/apex/meta-runtime.json'))
     p.add_argument('--finance-config',type=Path,default=Path('/etc/apex/finance-runtime.json'))
+    p.add_argument('--approvals-config',type=Path,default=Path('/etc/apex/approvals-runtime.json'))
     args=p.parse_args()
     if not 1024<=args.port<=65535:raise ValueError('Unprivileged loopback port required')
     # Load and verify before opening listener; no anonymous health/data path.
@@ -181,7 +204,13 @@ def main():
     if args.finance_config.exists():
         from .finance_web import FinanceRoutes
         finance=FinanceRoutes(args.root,args.finance_config,verifier.verifier.owner)
-    app=ConsoleApp(args.root,verifier,google,meta,finance)
+    approvals=None
+    if args.approvals_config.exists():
+        from .approvals_web import ApprovalRoutes
+        approvals=ApprovalRoutes(args.root,args.approvals_config,verifier.verifier.owner)
+    from .bridge_web import BridgeRoutes
+    bridge=BridgeRoutes(args.root,verifier.verifier.owner)
+    app=ConsoleApp(args.root,verifier,google,meta,finance,approvals,bridge)
     from waitress import serve
     serve(app,listen='127.0.0.1:'+str(args.port),threads=4,connection_limit=32,
           channel_timeout=15,cleanup_interval=5,max_request_header_size=32768,

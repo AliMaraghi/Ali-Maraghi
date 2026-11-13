@@ -1,6 +1,12 @@
-"""Read public arXiv RSS 2.0 and Atom API feeds as untrusted data.
+"""Read public arXiv and university-news RSS 2.0 / Atom feeds as untrusted data.
 
 No model calls, payments, publishing, or user-account permissions.
+
+'mit-ai-news' verified live on 2026-11-13 (WebFetch): https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml
+is real RSS 2.0, channel "MIT News - Artificial intelligence". Oxford (ox.ac.uk) and Stanford
+(news.stanford.edu) candidate URLs were checked the same way and both returned HTTP 403 - not
+added here rather than guessed; add a real, individually-verified URL (and matching hostname
+below) if/when one is confirmed working.
 """
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
@@ -9,8 +15,9 @@ ATOM_NS = '{http://www.w3.org/2005/Atom}'
 SOURCES = {
     'arxiv-ai': 'https://export.arxiv.org/api/query?search_query=cat:cs.AI&start=0&max_results=10&sortBy=submittedDate&sortOrder=descending',
     'arxiv-ml': 'https://export.arxiv.org/api/query?search_query=cat:cs.LG&start=0&max_results=10&sortBy=submittedDate&sortOrder=descending',
+    'mit-ai-news': 'https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml',
 }
-ALLOWED_HOSTS = {'arxiv.org', 'export.arxiv.org', 'www.arxiv.org'}
+ALLOWED_HOSTS = {'arxiv.org', 'export.arxiv.org', 'www.arxiv.org', 'news.mit.edu'}
 MAX_FEED_BYTES = 2_097_152
 
 

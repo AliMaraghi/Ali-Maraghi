@@ -92,7 +92,7 @@ def owner_session(ledger,environ,path,method):
         row=ledger.db.execute('SELECT binding,csrf,expires FROM owner_web_sessions WHERE id=?',(digest(sid),)).fetchone() if sid else None
         if row and not hmac.compare_digest(row[0],binding):row=None
         if not row:
-            if path not in SESSION_ENTRY or method!='GET':raise PermissionError('Owner session required')
+            if not (path in SESSION_ENTRY or path.startswith('/approvals') or path=='/bridge') or method!='GET':raise PermissionError('Owner session required')
             if ledger.db.execute('SELECT count(*) FROM owner_web_sessions').fetchone()[0]>=20:raise PermissionError('Session cap')
             sid=secrets.token_urlsafe(32);csrf=secrets.token_urlsafe(32)
             ledger.db.execute('INSERT INTO owner_web_sessions VALUES(?,?,?,?)',(digest(sid),binding,csrf,now+900))

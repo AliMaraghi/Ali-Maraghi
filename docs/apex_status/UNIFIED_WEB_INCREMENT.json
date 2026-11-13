@@ -14,7 +14,7 @@
   "live_meta_accounts": 0,
   "deployment_attempted": false,
   "paid_api_spend_gbp": 0,
-  "blockers": [
+  "blockers": [ 
     "Authenticated host executor not supplied",
     "Owner Access production configuration absent in accessible filesystem",
     "Google OAuth client and persistent encryption-key binding not provisioned",

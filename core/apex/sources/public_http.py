@@ -33,6 +33,14 @@ ROUTES = {
         '/swagger-ui/index.html', '/swagger-ui/swagger-initializer.js',
         '/v3/api-docs', '/v3/api-docs/swagger-config', '/v3/notices/search', '/api-v3.yaml',
     },
+    # export.arxiv.org/news.mit.edu: A-1's actual live feeds (core/apex/rss.py SOURCES) were
+    # being silently blocked here (SourceError: "outside the reviewed endpoint scope") before
+    # this entry existed - confirmed live via agent_telemetry's own unknowns field. Added here,
+    # not just in rss.py's ALLOWED_HOSTS, because this module is the real network path A-1 uses
+    # (agents_runner.fetch_public -> public_http.fetch), and rss.py's own allowlist alone never
+    # reaches it.
+    'export.arxiv.org': {'/api/query'},
+    'news.mit.edu': {'/topic/mitartificial-intelligence2-rss.xml'},
 }
 
 

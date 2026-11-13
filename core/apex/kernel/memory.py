@@ -26,7 +26,7 @@ class Ledger:
         if directory.is_symlink() or path.is_symlink() or not path.is_file():
             raise ValueError('Existing regular local journal required')
         instance = cls.__new__(cls)
-        instance.db = sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, isolation_level=None, timeout=5)
+        instance.db = sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, isolation_level=None, timeout=5, check_same_thread=False)
         try:
             instance.verify()
         except Exception:
@@ -49,7 +49,7 @@ class Ledger:
         os.close(fd)
         if path.stat().st_mode & 0o077:
             raise ValueError("Database must be private (mode 0600)")
-        self.db = sqlite3.connect(path, isolation_level=None, timeout=5)
+        self.db = sqlite3.connect(path, isolation_level=None, timeout=5, check_same_thread=False)
         self.db.execute("PRAGMA busy_timeout=5000")
         self.db.execute("PRAGMA synchronous=FULL")
         self.db.executescript("""

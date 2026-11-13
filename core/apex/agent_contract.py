@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 CLAIM_KINDS = ("fact", "inference", "hypothesis")
-UNTRUSTED_SOURCES = ("email", "web", "feed", "file", "mcp")
+UNTRUSTED_SOURCES = ("email", "web", "feed", "file", "mcp", "chat")
 
 
 class ContractError(ValueError):
@@ -36,12 +36,16 @@ class AgentOutput:
     unknowns: tuple[str, ...]
     confidence: float
     evidence: tuple[str, ...] = field(default_factory=tuple)
+    contradictions: tuple[str, ...] = field(default_factory=tuple)     # manifesto contract field; optional here for backward compatibility
+    estimated_cost_pence: int = 0                                      # manifesto 'estimated cost'; integer minor units
 
     def __post_init__(self) -> None:
         if not self.task_id or not self.agent_id:
             raise ContractError("task_id and agent_id are required")
         if not 0.0 <= self.confidence <= 1.0:
             raise ContractError("confidence must be between 0 and 1")
+        if type(self.estimated_cost_pence) is not int or self.estimated_cost_pence < 0:
+            raise ContractError("estimated_cost_pence must be a non-negative integer")
 
 
 def parse_output(payload: dict[str, Any]) -> AgentOutput:
@@ -73,6 +77,8 @@ def parse_output(payload: dict[str, Any]) -> AgentOutput:
         unknowns=tuple(str(x) for x in payload["unknowns"]),
         confidence=confidence,
         evidence=tuple(str(x) for x in payload.get("evidence", [])),
+        contradictions=tuple(str(x) for x in payload.get("contradictions", [])),
+        estimated_cost_pence=payload.get("estimated_cost_pence", 0),
     )
 
 
