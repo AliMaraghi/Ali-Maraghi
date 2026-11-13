@@ -1,0 +1,24 @@
+[Unit]
+Description=APEX laptop bridge endpoint (loopback only; reached through the Cloudflare route apexcorelab.uk/bridge)
+After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=apexdev
+WorkingDirectory=/home/apexdev/apex-work
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/bridge_server.py
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONDONTWRITEBYTECODE=1
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/apexdev/apex-work/runtime
+ProtectHome=read-only
+RestrictAddressFamilies=AF_UNIX AF_INET
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

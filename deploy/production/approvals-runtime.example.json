@@ -1,0 +1,4 @@
+{
+  "owner": "SAME_VALUE_AS_ACCESS_OWNER",
+  "approval_secret": "REPLACE_WITH_AT_LEAST_32_RANDOM_CHARACTERS"
+}
