@@ -1,0 +1,5 @@
+# Console listener dependency (WSGI server). Pinned with the SHA-256 published by PyPI on 2026-11-12
+# (trust-on-first-use: verify against another source before production). Pure-Python wheel, no runtime dependencies.
+# Not installed with pip: this server has no pip/ensurepip. Use scripts/fetch_locked_wheels.py (project-local .devdeps/).
+# Production uses the Ubuntu package python3-waitress via the reviewed installer, not this directory.
+waitress==3.0.2 --hash=sha256:c56d67fd6e87c2ee598b76abdd4e96cfad1f24cacdea5078d382b1f9d7b5ed2e
