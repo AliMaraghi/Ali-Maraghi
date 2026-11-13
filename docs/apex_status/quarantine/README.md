@@ -74,3 +74,23 @@ No Budget/ActionGateway anywhere; pulls live Yahoo Finance data with no cap. Kep
 evidence of what was on disk, not as a starting point - any real semantic-matching or
 forecasting capability would need to go through agents_impl.py/agents_research.py's existing
 claims+evidence+confidence contract, not a bare printed percentage.
+
+## dashboard_api.py.FABRICATED_DATA_DO_NOT_USE (was scripts/dashboard_api.py)
+
+Caught on a Phase-H dashboard-traceability audit on 2026-11-13, AFTER it had already been
+committed once in this same cleanup pass (batch "Commit worker loop, agent runner, and the
+core/dashboard/telemetry CLI scripts") - the py_compile/subprocess/sqlite-pattern checks used
+for that batch did not catch fabricated literal content, only structural/security red flags.
+Recorded here as the correction, not hidden.
+
+The file serves `/api/stats` with ENTIRELY HARDCODED data: fixed "ACTIVE"/"IDLE" statuses,
+a fixed "articles_read": 14, fixed fake last-action strings ("Scanned LinkedIn (mock)"), a
+fixed "$0.05" (wrong currency for this project - everything else is GBP pence) and a fixed
+"uptime": "2 hours" - none read from the real Ledger/agent_schedule/events tables. Its own
+Persian comment admits this: "chون فعلا دیتابیس ایجنت‌ها را برای تست خالی است، داده‌های نمونه
+برمی‌گردانیم" ("since the agents database is empty for testing, we return sample data"). This is
+exactly the fabricated-metric pattern SUPERIOR_OS_PLAN_20261113.md Section 3 and Section 5
+explicitly rule out, and exactly what dashboard_payload() in scripts/orchestrator.py (the real,
+committed, tested dashboard endpoint - see its own docstring) was built to avoid. Confirmed not
+referenced by anything else and not running. The real dashboard endpoint is
+scripts/orchestrator.py's dashboard_payload()/voice_api.py's /api/dashboard route.
