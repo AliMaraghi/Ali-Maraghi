@@ -101,17 +101,33 @@ def fetch_mentions(bearer_token: str, user_id: str, transport, max_results: int 
 def generate_and_save_draft(budget: Budget, ledger, mention_id: str, mention_text: str, run_id: str) -> int:
     """Budget-gated LLM call (reserve/settle, zero-budget-by-default - same pattern as A-2's
     _spend() in agents_research.py) producing ONE draft reply, saved locally via save_draft().
-    Never calls any Twitter write endpoint - there is no such function in this module."""
+    Never calls any Twitter write endpoint - there is no such function in this module.
+
+    Calibration (same pattern as orchestrator.py's finance_strategy_reply): before drafting,
+    real past outcomes recorded against prior "twitter_draft_*" facts (via the existing, generic
+    scripts/record_outcome.py - no new tool needed) are read and included in the prompt, so a
+    past rejection visibly changes this draft. After drafting, the new draft is ALSO asserted as
+    a fact (subject "owner", predicate "twitter_draft_<seq-to-be>") so the owner can record an
+    outcome against it the same generic way."""
+    from apex.kernel import facts
     key = f"{run_id}.draft"
     budget.reserve(key, "core", PROVIDER, SKU, 1)
+    past_outcomes = facts.recent_outcomes_for_predicate_prefix(ledger, "owner", "twitter_draft_", limit=3)
+    calibration_note = ""
+    if past_outcomes:
+        lines = [f"- a past draft was {o['outcome']}" + (f" ({o['note']})" if o["note"] else "") for o in past_outcomes]
+        calibration_note = ("\n\nWhat happened to past drafts (recorded by the owner - let this "
+                             "visibly change this draft, e.g. avoid repeating a rejected tone):\n" + "\n".join(lines))
     try:
         api_key = load_api_key()
-        draft = call_anthropic(api_key, TONE, f"Mention: {mention_text}", max_tokens=100)
+        draft = call_anthropic(api_key, TONE, f"Mention: {mention_text}{calibration_note}", max_tokens=100)
     except ResearchPipelineError:
         budget.release(key)
         raise
     budget.settle(key, 1)
-    return save_draft(ledger, mention_id, draft[:MAX_DRAFT_CHARS], time.time())
+    seq = save_draft(ledger, mention_id, draft[:MAX_DRAFT_CHARS], time.time())
+    facts.assert_fact(ledger, "owner", f"twitter_draft_{seq}", draft[:MAX_DRAFT_CHARS], "A-20:TwitterAgent")
+    return seq
 
 
 def save_draft(ledger, mention_id: str, draft_text: str, now: float) -> int:

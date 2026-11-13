@@ -95,3 +95,64 @@ class DraftTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TwitterCalibrationTests(unittest.TestCase):
+    """Phase E (SUPERIOR_OS_PLAN_20261113.md): repeat the finance-calibration pattern for
+    twitter drafts, using the existing generic facts/record_outcome.py machinery - no new tool."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.ledger = Ledger(self.root)
+        self.budget = Budget(self.ledger)
+        self.budget.set_price("anthropic", "twitter-draft-step", 100, time.time(), "test")
+        self.budget.set_cap("core", "day", 10000)
+
+    def tearDown(self):
+        self.ledger.close()
+        self.tmp.cleanup()
+
+    def test_new_draft_is_recorded_as_a_fact_the_owner_can_record_an_outcome_against(self):
+        from apex.kernel import facts
+        with mock.patch("apex.twitter_agent.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.twitter_agent.call_anthropic", return_value="Thanks for the mention!"):
+            seq = twitter_agent.generate_and_save_draft(self.budget, self.ledger, "mention-1", "hello", "run1")
+        fact = facts.query_fact(self.ledger, "owner", f"twitter_draft_{seq}")
+        self.assertIsNotNone(fact)
+        self.assertEqual(fact["object"], "Thanks for the mention!")
+
+    def test_no_past_outcomes_means_no_calibration_note(self):
+        captured = {}
+
+        def fake_call(api_key, system, user_text, max_tokens=100):
+            captured["user_text"] = user_text
+            return "A generic reply."
+
+        with mock.patch("apex.twitter_agent.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.twitter_agent.call_anthropic", side_effect=fake_call):
+            twitter_agent.generate_and_save_draft(self.budget, self.ledger, "mention-1", "hello", "run1")
+        self.assertNotIn("What happened to past drafts", captured["user_text"])
+
+    def test_recorded_rejection_changes_the_next_prompt(self):
+        from apex.kernel import facts
+        with mock.patch("apex.twitter_agent.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.twitter_agent.call_anthropic", return_value="Too formal reply."):
+            seq1 = twitter_agent.generate_and_save_draft(self.budget, self.ledger, "mention-1", "hello", "run1")
+        fact1 = facts.query_fact(self.ledger, "owner", f"twitter_draft_{seq1}")
+        facts.record_outcome(self.ledger, fact1["id"], "rejected", note="too formal, be more casual")
+
+        captured = {}
+
+        def fake_call(api_key, system, user_text, max_tokens=100):
+            captured["user_text"] = user_text
+            return "Hey, thanks!"
+
+        with mock.patch("apex.twitter_agent.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.twitter_agent.call_anthropic", side_effect=fake_call):
+            twitter_agent.generate_and_save_draft(self.budget, self.ledger, "mention-2", "hi again", "run2")
+        self.assertIn("What happened to past drafts", captured["user_text"])
+        self.assertIn("too formal, be more casual", captured["user_text"])
+
+
+if __name__ == "__main__":
+    unittest.main()
