@@ -11,3 +11,6 @@ __pycache__/
 work/
 runtime/
 *.partial
+.devdeps/
+node_modules/
+apex-ui/dist/
