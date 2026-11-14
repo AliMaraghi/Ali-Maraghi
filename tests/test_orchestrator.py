@@ -722,3 +722,58 @@ class SequencePlannerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RecurringGapReminderTests(unittest.TestCase):
+    """Phase D: system_status_reply surfaces a real recurring-gap count, never fabricated,
+    and never breaks the real status line if the reminder lookup fails."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        from apex.kernel.budget import Budget
+        from apex.kernel.memory import Ledger
+        with Ledger(self.root) as ledger:
+            Budget(ledger)  # pre-create the budget tables, same as real first use - a read-only connection can't create them
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_no_recurring_gap_no_reminder(self):
+        reply = orchestrator.system_status_reply(self.root, "what is the system status")
+        self.assertNotIn("you've asked for something like", reply)
+        self.assertIn("Voice-API spend today", reply)
+
+    def test_recurring_gap_is_surfaced_with_a_real_count(self):
+        from apex.kernel import facts
+        from apex.kernel.memory import Ledger
+        with Ledger(self.root) as ledger:
+            for t in (1.0, 2.0, 3.0):
+                facts.assert_fact(ledger, "owner", "capability_gap", "tell me tomorrow's weather", "voice:unmet_request", now=t)
+        reply = orchestrator.system_status_reply(self.root, "what is the system status")
+        self.assertIn("tell me tomorrow's weather", reply)
+        self.assertIn("3 times", reply)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+class FreshLedgerStatusTests(unittest.TestCase):
+    """A genuinely fresh ledger (before Budget's tables are ever created) must not crash
+    system_status_reply - found while testing Phase D's reminder wiring."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        from apex.kernel.memory import Ledger
+        Ledger(self.root).close()  # create the journal file itself, but no Budget tables yet
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_fresh_ledger_reports_zero_spend_not_a_crash(self):
+        reply = orchestrator.system_status_reply(self.root, "what is the system status")
+        self.assertIn("Voice-API spend today: 0p", reply)
+
+
+if __name__ == "__main__":
+    unittest.main()

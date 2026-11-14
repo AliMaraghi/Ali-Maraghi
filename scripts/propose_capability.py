@@ -83,6 +83,21 @@ def draft_capability(budget, text: str) -> dict:
     return {"capability_name": name, "draft_notes": notes, "draft_code": code.strip()[:2000]}
 
 
+def recurring_gaps(ledger, min_count: int = 3) -> list:
+    """Phase D's reminder trigger (SUPERIOR_OS_PLAN_20261113.md): real counts of IDENTICAL
+    repeated unmet requests, read from the existing capability_gap fact history - never an
+    automatic proposal, only a count-based nudge that the same gap keeps recurring and the
+    pending draft (if one was already proposed) is worth reviewing. Matching is exact-text
+    only - no fuzzy/semantic matching, no extra LLM call - so this under-counts paraphrased
+    repeats; that limitation is deliberate, not hidden."""
+    history = factstore.fact_history(ledger, "owner", "capability_gap", limit=500)
+    counts: dict = {}
+    for h in history:
+        counts[h["object"]] = counts.get(h["object"], 0) + 1
+    return sorted([{"text": text, "count": n} for text, n in counts.items() if n >= min_count],
+                  key=lambda r: -r["count"])
+
+
 def propose(ledger, gateway, budget, text: str) -> dict:
     """Logs the gap as a fact, drafts the capability, submits it as a PENDING/DEFERRED proposal.
     Returns {"fact_id", "proposal_id", "state"}. Never writes a .py file, never executes the

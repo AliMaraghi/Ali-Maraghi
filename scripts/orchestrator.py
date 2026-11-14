@@ -569,9 +569,15 @@ def dashboard_payload(root: Path) -> dict:
 
 
 def _general_status(ledger, now: float) -> str:
+    import sqlite3
     from apex.kernel.budget import Budget
-    budget = Budget(ledger)
-    spent_today = budget.spent("core", "day", now)
+    try:
+        spent_today = Budget(ledger).spent("core", "day", now)
+    except sqlite3.OperationalError:
+        # A genuinely fresh ledger (before Budget's tables are ever created) is read-only here
+        # (Ledger.read_only) and can't create them - real state, not an error: nothing has been
+        # spent yet.
+        spent_today = 0
     recent = ledger.db.execute(
         "SELECT payload FROM events WHERE kind='decision' ORDER BY seq DESC LIMIT 50").fetchall()
     last_runs = {}
@@ -583,7 +589,17 @@ def _general_status(ledger, now: float) -> str:
         if data.get("event") == "agent_run" and data.get("agent") not in last_runs:
             last_runs[data["agent"]] = data.get("status")
     runs_text = ", ".join(f"{agent}: {status}" for agent, status in last_runs.items()) or "no agent runs recorded yet"
-    return f"Voice-API spend today: {spent_today}p. Most recent agent runs - {runs_text}."
+    reminder = ""
+    try:
+        from propose_capability import recurring_gaps  # scripts/ is already on sys.path (every real entry point/test puts it there)
+        gaps = recurring_gaps(ledger)
+        if gaps:
+            top = gaps[0]
+            reminder = (f" Note: you've asked for something like \"{top['text'][:80]}\" {top['count']} times - "
+                        "check /console for its pending capability proposal.")
+    except Exception:
+        reminder = ""  # the reminder is optional polish; its failure must never hide the real status above
+    return f"Voice-API spend today: {spent_today}p. Most recent agent runs - {runs_text}.{reminder}"
 
 
 def system_status_reply(root: Path, text: str) -> str:

@@ -113,3 +113,39 @@ class ProposeCapabilityTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RecurringGapsTests(unittest.TestCase):
+    """Phase D (SUPERIOR_OS_PLAN_20261113.md): let the capability registry grow through this
+    pipeline, with a real count-based reminder - never an automatic proposal."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.ledger = Ledger(Path(self.tmp.name))
+
+    def tearDown(self):
+        self.ledger.close()
+        self.tmp.cleanup()
+
+    def test_no_history_means_no_reminder(self):
+        self.assertEqual(propose_capability.recurring_gaps(self.ledger), [])
+
+    def test_below_threshold_is_not_surfaced(self):
+        facts.assert_fact(self.ledger, "owner", "capability_gap", "tell me tomorrow's weather", "voice:unmet_request", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "capability_gap", "tell me tomorrow's weather", "voice:unmet_request", now=2.0)
+        self.assertEqual(propose_capability.recurring_gaps(self.ledger), [])
+
+    def test_three_identical_repeats_are_surfaced_with_a_real_count(self):
+        for t in (1.0, 2.0, 3.0):
+            facts.assert_fact(self.ledger, "owner", "capability_gap", "tell me tomorrow's weather", "voice:unmet_request", now=t)
+        out = propose_capability.recurring_gaps(self.ledger)
+        self.assertEqual(out, [{"text": "tell me tomorrow's weather", "count": 3}])
+
+    def test_different_wording_is_never_merged_exact_match_only(self):
+        facts.assert_fact(self.ledger, "owner", "capability_gap", "tell me the weather", "voice:unmet_request", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "capability_gap", "tell me the weather tomorrow", "voice:unmet_request", now=2.0)
+        facts.assert_fact(self.ledger, "owner", "capability_gap", "what's the weather", "voice:unmet_request", now=3.0)
+        self.assertEqual(propose_capability.recurring_gaps(self.ledger), [])
+
+
+if __name__ == "__main__":
+    unittest.main()
