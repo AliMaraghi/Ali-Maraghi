@@ -127,7 +127,7 @@ class AgentTelemetryTests(unittest.TestCase):
 
     def test_fresh_root_reports_never_run_and_no_fake_activity(self):
         agents = orchestrator.agent_telemetry(self.root)
-        self.assertEqual({a["agent_id"] for a in agents}, {"A-1", "A-2", "A-5", "A-8"})
+        self.assertEqual({a["agent_id"] for a in agents}, {"A-1", "A-2", "A-5", "A-8", "A-15"})
         for a in agents:
             self.assertEqual(a["status"], "NEVER_RUN")
             self.assertNotEqual(a["status"], "ACTIVE")  # no live-execution signal is ever claimed

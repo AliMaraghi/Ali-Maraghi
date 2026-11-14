@@ -6,7 +6,7 @@ from pathlib import Path
 
 from apex import agents_governing as gov
 from apex import agents_registry as legacy
-from apex.agents_impl import CareerIndustry, FinancialIntelligence, StrategicIntelligence, income_tax
+from apex.agents_impl import CareerIndustry, FinancialIntelligence, HealthLongevity, StrategicIntelligence, income_tax
 from apex.agents_runtime import AgentContext, AgentResult, AgentRunner, BaseAgent, contract
 from apex.kernel.approvals import ApprovalBook
 from apex.kernel.budget import Budget
@@ -49,9 +49,9 @@ class RuntimeBase(unittest.TestCase):
 
 
 class RosterTests(unittest.TestCase):
-    def test_eighteen_roles_four_implemented(self):
+    def test_eighteen_roles_five_implemented(self):
         self.assertEqual([r.agent_id for r in gov.ROLES], [f"A-{n}" for n in range(1, 19)])
-        self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL], ["A-1", "A-2", "A-5", "A-8"])
+        self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL], ["A-1", "A-2", "A-5", "A-8", "A-15"])
         self.assertEqual(gov.get("A-3").legacy_slot, "8-12")
         self.assertEqual(gov.get("A-5").name, "Career & Industry")
 
@@ -293,3 +293,34 @@ class BenefitAndMortgageTests(RuntimeBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HealthLongevityTests(RuntimeBase):
+    """A-15, promoted from SPEC_ONLY this session (SUPERIOR_OS_PLAN_20261113.md Phase C) by
+    wrapping the already-tested core/apex/health_labs.py parser as a real agent."""
+    LAB_TEXT = "Glucose 115 mg/dL (70-99)\nTSH 2.1 mIU/L\nWeird line that is not a result\n"
+
+    def test_no_export_no_claims(self):
+        out = self.runner([HealthLongevity()]).run_once(self.ctx)[0]
+        self.assertEqual((out["confidence"], out["claims"]), (0.0, 0))
+        self.assertIn("No lab export is configured", out["unknowns"][-1])
+
+    def test_parsed_rows_become_claims_with_flags(self):
+        (self.root / "inbox" / "lab_results.txt").write_text(self.LAB_TEXT)
+        agent = HealthLongevity()
+        contract_payload = agent.run(self.ctx).contract
+        texts = [c["text"] for c in contract_payload["claims"]]
+        self.assertTrue(any("Glucose" in t and "HIGH" in t for t in texts))
+        self.assertTrue(any("TSH" in t for t in texts))
+        self.assertIn("not a medical device", " ".join(contract_payload["risks"]))
+
+    def test_agent_runs_through_the_real_runner_data_class_gate(self):
+        (self.root / "inbox" / "lab_results.txt").write_text(self.LAB_TEXT)
+        out = self.runner([HealthLongevity()]).run_once(self.ctx)[0]
+        self.assertEqual(out["status"], "OK")
+        self.assertGreater(out["claims"], 0)
+
+    def test_registry_grants_medical_not_finance(self):
+        self.assertTrue(gov.check_inputs("A-15", [legacy.PUBLIC, legacy.MEDICAL]))
+        with self.assertRaises(legacy.IsolationError):
+            gov.check_inputs("A-15", [legacy.FINANCE])

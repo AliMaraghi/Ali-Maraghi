@@ -66,7 +66,7 @@ def ooda_cycle():
         # on the same line) - stays a no-op until an operator prices it, same zero-budget-by-
         # default guarantee as every other paid call in this project.
         agents = [runner.StrategicIntelligence(), runner.CareerIndustry(), runner.FinancialIntelligence(),
-                  runner.ScientificResearch(budget, ledger)]
+                  runner.HealthLongevity(), runner.ScientificResearch(budget, ledger)]
         agent_runner = runner.AgentRunner(ledger, gateway, agents, notifier=runner.make_notifier())
         observed = runner.cycle(ledger, agent_runner)           # OBSERVE + ORIENT/DECIDE: agents read inputs and propose
         acted = act_on_approved(gateway, book)                   # ACT: only on what the owner already approved

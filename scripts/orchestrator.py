@@ -375,6 +375,11 @@ _AGENT_META = {
             "workflow": ["Read owner's runtime/inbox/espp_inputs.json", "Read sourced runtime/rules/uk_tax_rules.json",
                          "Compute gain/tax/NIC in integer pence (no LLM)",
                          "Voice-only: +1 LLM call for a plain-language recommendation"]},
+    "A-15": {"name": "Health & Longevity", "interval": 24 * 3600,
+             "task": "Parsing owner-exported lab results (research aid only)",
+             "workflow": ["Read owner's runtime/inbox/lab_results.txt", "Parse each line (health_labs.py, regex-based)",
+                          "Restate printed reference-range comparison - never a clinical interpretation",
+                          "No LLM call, no network - free, rule-based"]},
 }
 
 
@@ -401,6 +406,8 @@ def _blocked_reason(agent_id: str, root: Path) -> str | None:
         if not (inbox / "espp_inputs.json").is_file():
             missing.append("inbox/espp_inputs.json")
         return "Missing: " + ", ".join(missing) if missing else None
+    if agent_id == "A-15":
+        return None if (inbox / "lab_results.txt").is_file() else "No runtime/inbox/lab_results.txt"
     return None
 
 

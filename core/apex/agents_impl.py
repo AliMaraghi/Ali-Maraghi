@@ -12,8 +12,10 @@ import json
 import re
 from collections import Counter
 
-from . import rss
+from . import health_labs, rss
 from .agents_runtime import AgentContext, AgentResult, BaseAgent, contract, evidence_id
+
+MAX_LAB_RESULTS = 500
 
 STOP = frozenset("with from that this their into using based towards toward over under between via for and the are our how can new use study analysis approach method model models learning".split())
 JOB_TITLE_WEIGHTS = {"procurement": 3, "sourcing": 2, "supply chain": 2, "operations": 2, "purchasing": 2, "category": 1, "vendor": 1}
@@ -217,3 +219,47 @@ class FinancialIntelligence(BaseAgent):
                            "kind": "inference", "evidence_ids": [eid]})
 
         return AgentResult(contract(self.agent_id, f"A8-{ctx.today}", claims, risks, unknowns, 0.5, [eid]))
+
+
+class HealthLongevity(BaseAgent):
+    """A-15 (promoted from SPEC_ONLY this session - see docs/apex_status/SUPERIOR_OS_PLAN_20261113.md
+    Phase C). Wraps the already-written, already-tested core/apex/health_labs.py parser as a real
+    agent: reads owner-exported lab-result TEXT from runtime/inbox/lab_results.txt, parses it with
+    parse_lab_text()/reference_check(), and reports one claim per cleanly-parsed row. Pure function
+    underneath - no model call, no network, nothing stored beyond what the Ledger/Gateway already
+    store for any agent's claims. RESEARCH AID ONLY: never a diagnosis, never clinical advice, and
+    any row the parser could not parse with certainty (needs_review) is counted in unknowns, never
+    silently dropped or guessed."""
+    agent_id = "A-15"
+    min_interval_seconds = 24 * 3600   # daily is plenty; lab results don't change hour to hour
+    data_classes = ("public", "medical")
+
+    def run(self, ctx: AgentContext) -> AgentResult:
+        path = ctx.inbox / "lab_results.txt"
+        risks = ["Research aid only - this is not a medical device, not a diagnosis, and not clinical advice",
+                  "LOW/HIGH/NORMAL only restates the printed reference range on the report; it is not a clinical interpretation"]
+        if not path.is_file():
+            return AgentResult(contract(self.agent_id, f"A15-{ctx.today}", [], risks,
+                                        ["No lab export is configured (runtime/inbox/lab_results.txt is absent). "
+                                         "Export the text from your own report with a local tool; no PDF is parsed here"], 0.0, []))
+        text = path.read_text(encoding="utf-8")
+        rows = health_labs.parse_lab_text(text, f"A15-{ctx.today}", max_lines=MAX_LAB_RESULTS * 10)
+        if not rows:
+            return AgentResult(contract(self.agent_id, f"A15-{ctx.today}", [], risks,
+                                        ["No recognisable result lines were found in the export"], 0.0, []))
+        claims, evidence, needs_review_count = [], [], 0
+        for row in rows[:MAX_LAB_RESULTS]:
+            eid = evidence_id("lab", f"{row['document_id']}:{row['line_no']}:{row['test']}")
+            evidence.append(eid)
+            if row["needs_review"]:
+                needs_review_count += 1
+            check = health_labs.reference_check(row)
+            value_text = f"{row['value']} {row['unit']}" if row["unit"] else str(row["value"])
+            claims.append({"text": f"{row['test']}: {value_text} (flag: {row['flag']}). {check['statement']}",
+                           "kind": "fact", "evidence_ids": [eid]})
+        unknowns = []
+        if needs_review_count:
+            unknowns.append(f"{needs_review_count} of {len(rows)} line(s) need manual review - "
+                             "unit or printed range could not be parsed with certainty")
+        confidence = round((len(rows) - needs_review_count) / len(rows), 2) if rows else 0.0
+        return AgentResult(contract(self.agent_id, f"A15-{ctx.today}", claims, risks, unknowns, confidence, evidence))

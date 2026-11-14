@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "core"))
 
 from apex import private_token, rss, telegram_bot                     # noqa: E402
-from apex.agents_impl import CareerIndustry, FinancialIntelligence, StrategicIntelligence      # noqa: E402
+from apex.agents_impl import CareerIndustry, FinancialIntelligence, HealthLongevity, StrategicIntelligence      # noqa: E402
 from apex.agents_research import ScientificResearch                     # noqa: E402
 from apex.agents_runtime import AgentContext, AgentRunner               # noqa: E402
 from apex.google_web import protected_json                              # noqa: E402
@@ -84,7 +84,7 @@ def main():
                 # `python3 core/apex/agents_research.py --set-price-millipence N --set-daily-cap-pence N`
                 # once - zero-budget-by-default is untouched by adding it here.
                 agents = [StrategicIntelligence(), CareerIndustry(), FinancialIntelligence(),
-                          ScientificResearch(budget, ledger)]
+                          HealthLongevity(), ScientificResearch(budget, ledger)]
                 runner = AgentRunner(ledger, gateway, agents, notifier=make_notifier())
                 print(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "runs": cycle(ledger, runner)}), flush=True)
             except PermissionError as exc:
