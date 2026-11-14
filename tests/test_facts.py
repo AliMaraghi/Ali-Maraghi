@@ -102,3 +102,45 @@ class CalibrationHookTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ContradictionScanTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.ledger = Ledger(Path(self.tmp.name))
+
+    def tearDown(self):
+        self.ledger.close()
+        self.tmp.cleanup()
+
+    def test_no_facts_no_contradictions(self):
+        self.assertEqual(facts.find_contradictions(self.ledger), [])
+
+    def test_single_assertion_is_not_a_contradiction(self):
+        facts.assert_fact(self.ledger, "owner", "city", "London", "voice")
+        self.assertEqual(facts.find_contradictions(self.ledger), [])
+
+    def test_repeated_identical_value_is_not_a_contradiction(self):
+        facts.assert_fact(self.ledger, "owner", "city", "London", "voice", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "city", "London", "voice", now=2.0)
+        self.assertEqual(facts.find_contradictions(self.ledger), [])
+
+    def test_two_distinct_values_is_a_contradiction_with_full_history(self):
+        facts.assert_fact(self.ledger, "owner", "city", "London", "voice", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "city", "Paris", "voice", now=2.0)
+        out = facts.find_contradictions(self.ledger)
+        self.assertEqual(len(out), 1)
+        self.assertEqual((out[0]["subject"], out[0]["predicate"]), ("owner", "city"))
+        self.assertEqual([h["object"] for h in out[0]["history"]], ["Paris", "London"])
+
+    def test_different_subjects_or_predicates_never_mix(self):
+        facts.assert_fact(self.ledger, "owner", "city", "London", "voice", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "city", "Paris", "voice", now=2.0)
+        facts.assert_fact(self.ledger, "owner", "country", "UK", "voice", now=1.0)
+        facts.assert_fact(self.ledger, "someone_else", "city", "Rome", "voice", now=1.0)
+        out = facts.find_contradictions(self.ledger)
+        self.assertEqual(len(out), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

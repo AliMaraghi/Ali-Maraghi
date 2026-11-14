@@ -6,7 +6,7 @@ from pathlib import Path
 
 from apex import agents_governing as gov
 from apex import agents_registry as legacy
-from apex.agents_impl import CareerIndustry, FinancialIntelligence, HealthLongevity, StrategicIntelligence, income_tax
+from apex.agents_impl import CareerIndustry, EvidenceVerification, FinancialIntelligence, HealthLongevity, StrategicIntelligence, income_tax
 from apex.agents_runtime import AgentContext, AgentResult, AgentRunner, BaseAgent, contract
 from apex.kernel.approvals import ApprovalBook
 from apex.kernel.budget import Budget
@@ -49,9 +49,9 @@ class RuntimeBase(unittest.TestCase):
 
 
 class RosterTests(unittest.TestCase):
-    def test_eighteen_roles_five_implemented(self):
+    def test_eighteen_roles_six_implemented(self):
         self.assertEqual([r.agent_id for r in gov.ROLES], [f"A-{n}" for n in range(1, 19)])
-        self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL], ["A-1", "A-2", "A-5", "A-8", "A-15"])
+        self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL], ["A-1", "A-2", "A-3", "A-5", "A-8", "A-15"])
         self.assertEqual(gov.get("A-3").legacy_slot, "8-12")
         self.assertEqual(gov.get("A-5").name, "Career & Industry")
 
@@ -155,7 +155,7 @@ class RunnerSafetyTests(RuntimeBase):
 
     def test_spec_only_agents_and_wrong_agent_id_are_refused(self):
         class NotBuilt(BaseAgent):
-            agent_id = "A-3"       # still SPEC_ONLY; A-2 was implemented this session (agents_research.ScientificResearch)
+            agent_id = "A-6"       # still SPEC_ONLY (Operations & Executive)
         class Impostor(BaseAgent):
             agent_id = "A-1"
 
@@ -324,3 +324,30 @@ class HealthLongevityTests(RuntimeBase):
         self.assertTrue(gov.check_inputs("A-15", [legacy.PUBLIC, legacy.MEDICAL]))
         with self.assertRaises(legacy.IsolationError):
             gov.check_inputs("A-15", [legacy.FINANCE])
+
+
+class EvidenceVerificationTests(RuntimeBase):
+    """A-3, promoted from SPEC_ONLY this session (SUPERIOR_OS_PLAN_20261113.md Phase C, second
+    role): a read-only scan of the fact store for genuine contradictions."""
+    def test_empty_fact_store_means_no_contradictions_high_confidence(self):
+        agent = EvidenceVerification(self.ledger)
+        out = agent.run(self.ctx).contract
+        self.assertEqual((out["confidence"], out["claims"]), (1.0, []))
+
+    def test_contradicting_facts_become_one_claim_with_provenance(self):
+        from apex.kernel import facts
+        facts.assert_fact(self.ledger, "owner", "city", "London", "voice", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "city", "Paris", "voice", now=2.0)
+        agent = EvidenceVerification(self.ledger)
+        out = agent.run(self.ctx).contract
+        self.assertEqual(len(out["claims"]), 1)
+        self.assertIn("2 distinct", out["claims"][0]["text"])
+        self.assertIn("resolves nothing", " ".join(out["risks"]))
+
+    def test_agent_runs_through_the_real_runner(self):
+        from apex.kernel import facts
+        facts.assert_fact(self.ledger, "owner", "x", "a", "voice", now=1.0)
+        facts.assert_fact(self.ledger, "owner", "x", "b", "voice", now=2.0)
+        out = self.runner([EvidenceVerification(self.ledger)]).run_once(self.ctx)[0]
+        self.assertEqual(out["status"], "OK")
+        self.assertEqual(out["claims"], 1)

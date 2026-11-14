@@ -28,7 +28,8 @@ _PUBLIC = frozenset({legacy.PUBLIC})
 _ROLES = (
     ("Strategic Intelligence", "Monitor macro trends and build scenarios", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
     ("Scientific Research", "Search scientific papers and separate evidence", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
-    ("Evidence & Verification", "Find contradictions and audit data", "opportunity", _PUBLIC, SPEC_ONLY),
+    ("Evidence & Verification", "Scan the fact store for genuine contradictions (resolves nothing, picks no value as correct)",
+     "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
     ("Personal Context", "Manage the personal dossier and causal goals", "personal", _PUBLIC, SPEC_ONLY),
     ("Career & Industry", "Analyse the job market and opportunities (NVIDIA, Amazon, AMD)", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
     ("Operations & Executive", "Analyse e-mail and manage administrative projects", "personal", _PUBLIC, SPEC_ONLY),

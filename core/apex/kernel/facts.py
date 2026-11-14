@@ -114,3 +114,19 @@ def recent_outcomes_for_predicate_prefix(ledger, subject: str, predicate_prefix:
         "ORDER BY o.recorded_at DESC LIMIT ?",
         (subject, predicate_prefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%", limit)).fetchall()
     return [{"claim_text": r[0], "outcome": r[1], "note": r[2], "recorded_at": r[3]} for r in rows]
+
+
+def find_contradictions(ledger, limit: int = 100) -> list:
+    """Every (subject, predicate) pair with more than one DISTINCT asserted value - a genuine
+    contradiction (two different claims about the same thing), not just the same value re-
+    asserted. A read-only scan of the existing facts table; nothing here is inferred, resolved,
+    or silently picked as "the real one" - that judgement call stays with whoever reads this."""
+    _ensure_facts_table(ledger)
+    if not 1 <= limit <= 1000:
+        raise ValueError("limit out of bounds")
+    pairs = ledger.db.execute(
+        "SELECT subject, predicate, COUNT(DISTINCT object) AS n FROM facts "
+        "GROUP BY subject, predicate HAVING n > 1 ORDER BY subject, predicate LIMIT ?", (limit,)).fetchall()
+    return [{"subject": subject, "predicate": predicate,
+             "history": fact_history(ledger, subject, predicate, limit=50)}
+            for subject, predicate, _n in pairs]

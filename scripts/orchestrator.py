@@ -357,6 +357,12 @@ def job_cv_reply(root: Path) -> str:
 
 
 _AGENT_META = {
+    "A-3": {"name": "Evidence & Verification", "interval": 24 * 3600,
+            "task": "Scanning the fact store for genuine contradictions",
+            "workflow": ["Read every (subject, predicate) pair in the fact store (facts.py)",
+                         "Flag pairs with more than one distinct asserted value",
+                         "Resolve nothing, pick no value as correct - a human judges",
+                         "No LLM call, no network - free, rule-based"]},
     "A-1": {"name": "Strategic Intelligence", "interval": 3600,
             "task": "Monitoring public arXiv feeds for macro/AI trends",
             "workflow": ["Fetch arXiv + MIT News RSS (urllib, allowlisted hosts)", "Parse titles (xml.etree)",

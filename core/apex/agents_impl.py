@@ -263,3 +263,38 @@ class HealthLongevity(BaseAgent):
                              "unit or printed range could not be parsed with certainty")
         confidence = round((len(rows) - needs_review_count) / len(rows), 2) if rows else 0.0
         return AgentResult(contract(self.agent_id, f"A15-{ctx.today}", claims, risks, unknowns, confidence, evidence))
+
+
+class EvidenceVerification(BaseAgent):
+    """A-3 (promoted from SPEC_ONLY this session - SUPERIOR_OS_PLAN_20261113.md Phase C, second
+    role). "Find contradictions and audit data" done honestly: a read-only scan of the existing
+    fact store (core/apex/kernel/facts.py) for (subject, predicate) pairs with more than one
+    DISTINCT asserted value - a genuine contradiction over time (e.g. two different finance
+    scenarios, or a re-stated personal fact). It resolves nothing and picks no "correct" value;
+    it only surfaces what already contradicts itself, with full provenance, for a human to
+    judge. Pure read of the Ledger - no model call, no network, no new table."""
+    agent_id = "A-3"
+    min_interval_seconds = 24 * 3600
+    data_classes = ("public",)
+
+    def __init__(self, ledger):
+        self.ledger = ledger
+
+    def run(self, ctx: AgentContext) -> AgentResult:
+        from .kernel import facts
+        found = facts.find_contradictions(self.ledger, limit=50)
+        if not found:
+            return AgentResult(contract(self.agent_id, f"A3-{ctx.today}", [],
+                                        ["Audits only the existing fact store - a claim never asserted as a fact is invisible here"],
+                                        ["No (subject, predicate) pair currently has more than one distinct asserted value"], 1.0, []))
+        claims, evidence = [], []
+        for item in found:
+            eid = evidence_id("contradiction", item["subject"] + item["predicate"])
+            evidence.append(eid)
+            values = "; ".join(f"{h['object']!r} (source: {h['source']})" for h in item["history"][:5])
+            claims.append({"text": f"{item['subject']}/{item['predicate']} has {len(item['history'])} distinct "
+                                    f"asserted value(s) over time, most recent first: {values}",
+                           "kind": "fact", "evidence_ids": [eid]})
+        return AgentResult(contract(self.agent_id, f"A3-{ctx.today}", claims,
+                                    ["Surfaces contradictions only - resolves nothing and picks no value as correct"],
+                                    [], 1.0, evidence))
