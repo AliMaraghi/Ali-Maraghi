@@ -34,3 +34,18 @@ digital-twin page), and zero real decisions run end-to-end with the
 owner. This freeze is the mechanism, not just a stated intention, that
 stops a 19th thing from being built before the first thing has been
 measured for real.
+
+## Status, 2026-11-15 (Phase 7)
+
+- A-10 remains the one active system. The digital twin, the marketing
+  funnel, the mutual-match platform, and the adult social assist module
+  are frozen (`core/apex/agents_governing.FROZEN`; see
+  `docs/FROZEN_SYSTEMS.md` for the honest gap on what this does and does
+  not change in `agents_runner.py`'s actual execution today).
+- A-12 and A-13 are deleted from the manifest, not commented out
+  (`core/apex/agents_governing.py`).
+- The next step is choosing a narrow domain: `scripts/choose_domain.py`
+  prints the three candidates (email, bills, calendar) and the one
+  question only the owner can answer. This is the one genuinely
+  owner-gated piece of this whole mission — not a technical fact, a
+  preference about the owner's own real life.
