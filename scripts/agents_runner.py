@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT / "core"))
 
 from apex import agents_governing, private_token, rss, telegram_bot    # noqa: E402
 from apex.action_domains import bills, calendar, email as email_domain, router  # noqa: E402
+from apex.api import telemetry                                          # noqa: E402
 from apex.agents_impl import CareerIndustry, EvidenceVerification, FinancialIntelligence, HealthLongevity, SocialRelational, StrategicIntelligence      # noqa: E402
 from apex.agents_research import ScientificResearch                     # noqa: E402
 from apex.agents_runtime import AgentContext, AgentRunner               # noqa: E402
@@ -61,12 +62,20 @@ _DOMAIN_MODULES = {
 }
 
 
-def run_domains():
+def run_domains(inbox_root=None, bus=None):
     """Multi-domain scaffolding, single-domain activation (mission 2026-11-15). For each of
     the 3 domains, either skip it (printing the exact [SKIPPED] line the mission specifies,
     if it is not router.ACTIVE_DOMAIN) or run its planner/generator/evaluator against its
     synthetic inbox file (if present) and print the resulting proposal. Returns the list of
-    printed lines for the caller's own log, in case it wants them."""
+    printed lines for the caller's own log, in case it wants them.
+
+    Also publishes read-only telemetry (mission 2026-11-15, observability/HITL phase): a
+    KERNEL event describing what was parsed, and - because every domain proposal already has
+    requires_owner_review=True - a HITL_REQUIRED event naming the thing waiting on the
+    owner. `inbox_root`/`bus` default to the real ROOT/telemetry.DEFAULT_BUS; tests pass a
+    temp dir and a throwaway EventBus so they never touch real files or global state."""
+    inbox_root = ROOT if inbox_root is None else inbox_root
+    bus = telemetry.DEFAULT_BUS if bus is None else bus
     printed = []
     for domain, (module, rel_path) in _DOMAIN_MODULES.items():
         if not router.is_active(domain):
@@ -74,11 +83,17 @@ def run_domains():
             print(line, flush=True)
             printed.append(line)
             continue
-        proposal = module.make_proposal(ROOT / rel_path)
+        proposal = module.make_proposal(inbox_root / rel_path)
         if proposal is None:
             line = f"[ACTIVE] Domain {domain.value} has no synthetic input at {rel_path} - nothing to propose"
         else:
             line = json.dumps({"domain": domain.value, "proposal": proposal.__dict__})
+            if domain == router.Domain.BILLS:
+                amount = f"£{proposal.amount_pence / 100:.2f}"
+                bus.publish(telemetry.KERNEL_EVENT, {"message": f"Bill parsed: {proposal.vendor} {amount}"})
+                if proposal.requires_owner_review:
+                    bus.publish(telemetry.HITL_REQUIRED, {"action_id": proposal.proposal_id,
+                                                          "description": f"Approve {proposal.vendor} Bill {amount}"})
         print(line, flush=True)
         printed.append(line)
     return printed
