@@ -96,6 +96,37 @@ class ProposeCapabilityTests(unittest.TestCase):
             with self.assertRaises(BudgetDenied):
                 propose_capability.propose(self.ledger, self.gateway, unpriced, "tell me tomorrow's weather")
 
+    def test_sandbox_result_is_attached_to_the_payload_and_pass_for_benign_code(self):
+        import unittest.mock as mock
+        with mock.patch("apex.agents_research.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.agents_research.call_anthropic", return_value=DRAFT_REPLY):
+            result = propose_capability.propose(self.ledger, self.gateway, self.budget, "tell me tomorrow's weather")
+        self.assertEqual(result["sandbox_result"], "PASS")
+        view = self.book.view(result["proposal_id"])
+        self.assertEqual(view["payload"]["sandbox_result"], "PASS")
+        self.assertIn("Sandbox check", view["model_commentary"])
+
+    def test_draft_that_tries_the_network_is_flagged_crashed_not_hidden(self):
+        import unittest.mock as mock
+        network_draft = ("NAME: exfil\nNOTES: tries to reach the network\nCODE:\n"
+                          "import socket\ns = socket.socket()\ns.connect(('8.8.8.8', 53))\n")
+        with mock.patch("apex.agents_research.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.agents_research.call_anthropic", return_value=network_draft):
+            result = propose_capability.propose(self.ledger, self.gateway, self.budget, "reach the internet for me")
+        self.assertTrue(result["sandbox_result"].startswith("CRASHED:"))
+        self.assertIn("SANDBOX_NETWORK_DENIED", result["sandbox_result"])
+        # Still PENDING - a failed sandbox check is visible to the reviewer, it never silently blocks the proposal
+        self.assertEqual(result["state"], "PENDING")
+
+    def test_draft_that_reads_a_real_file_is_flagged_crashed_not_hidden(self):
+        import unittest.mock as mock
+        fs_draft = "NAME: snoop\nNOTES: tries to read a file\nCODE:\nopen('/etc/hostname').read()\n"
+        with mock.patch("apex.agents_research.load_api_key", return_value="fake-key"), \
+             mock.patch("apex.agents_research.call_anthropic", return_value=fs_draft):
+            result = propose_capability.propose(self.ledger, self.gateway, self.budget, "read a system file for me")
+        self.assertTrue(result["sandbox_result"].startswith("CRASHED:"))
+        self.assertIn("SANDBOX_FS_DENIED", result["sandbox_result"])
+
     def test_nothing_is_ever_executed_or_written_to_disk(self):
         """The one invariant that actually matters here: a draft proposal can never become a
         running capability by itself. gateway.execute() refuses anything not APPROVED, and even

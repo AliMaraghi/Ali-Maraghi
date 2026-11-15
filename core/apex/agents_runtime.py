@@ -15,6 +15,7 @@ from typing import Callable
 
 from . import agents_governing as governing
 from .agent_contract import ContractError, parse_output
+from .kernel import tiering
 from .kernel.policy import enforce_durable_stop
 from .kernel.schema import identifier
 
@@ -98,7 +99,12 @@ class AgentRunner:
                     state = self.gateway.submit(pid, spec.domain, item["kind"], f"agent:{agent.agent_id}", item["payload"], item["evidence_ids"])
                 except sqlite3.IntegrityError:
                     state = "DUPLICATE"
-                summary["proposals"].append({"id": pid, "state": state})
+                tier = None
+                if state in ("PENDING", "DEFERRED"):
+                    decision = tiering.tier_for(item["kind"], self.gateway.kinds.get(item["kind"]))
+                    tiering.journal_decision(self.ledger, pid, spec.domain, decision)
+                    tier = decision.tier
+                summary["proposals"].append({"id": pid, "state": state, "tier": tier})
                 if state == "PENDING" and self.notifier is not None:
                     try:
                         self.notifier(pid, item["kind"])

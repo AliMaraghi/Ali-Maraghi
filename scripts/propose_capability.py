@@ -35,6 +35,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "core"))
 
 from apex.kernel import facts as factstore                           # noqa: E402
+from apex.kernel import sandbox, tiering                              # noqa: E402
 from apex.kernel.budget import Budget, BudgetDenied                  # noqa: E402
 from apex.kernel.approvals import ApprovalBook                       # noqa: E402
 from apex.kernel.gateway import ActionGateway, KindSpec               # noqa: E402
@@ -45,7 +46,21 @@ PROVIDER, SKU = "anthropic", "capability-draft-step"
 
 CAPABILITY_PROPOSAL_KIND = KindSpec(
     frozenset({"opportunity"}),
-    {"capability_name": str, "trigger_text": str, "draft_code": str, "draft_notes": str})
+    {"capability_name": str, "trigger_text": str, "draft_code": str, "draft_notes": str, "sandbox_result": str})
+
+
+def sandbox_check(draft_code: str) -> str:
+    """Phase F: every drafted capability runs inside core/apex/kernel/sandbox.py (no network,
+    no inherited secrets, filesystem confined) BEFORE it becomes a reviewable proposal. This is
+    a hard "did not crash" signal, never "safe to auto-deploy" - promotion from proposal to a
+    real capability stays a separate, manual, owner-reviewed step with its own test suite."""
+    if not draft_code.strip():
+        return "CRASHED:NO_CODE"
+    out = sandbox.run_in_sandbox(draft_code)
+    if not out["crashed"]:
+        return "PASS"
+    detail = (out.get("stderr") or "").strip().splitlines()[-1] if out.get("stderr") else ""
+    return f"CRASHED:{out['reason']}:{detail}"[:500]
 
 
 def draft_capability(budget, text: str) -> dict:
@@ -105,13 +120,21 @@ def propose(ledger, gateway, budget, text: str) -> dict:
     now = time.time()
     fact_id = factstore.assert_fact(ledger, "owner", "capability_gap", text, "voice:unmet_request", now=now)
     draft = draft_capability(budget, text)
+    result = sandbox_check(draft["draft_code"])
     payload = {"capability_name": draft["capability_name"], "trigger_text": text[:500],
-               "draft_code": draft["draft_code"], "draft_notes": draft["draft_notes"]}
+               "draft_code": draft["draft_code"], "draft_notes": draft["draft_notes"], "sandbox_result": result}
     proposal_id = identifier(f"capability-{hashlib.sha256(text.encode()).hexdigest()[:16]}")
+    commentary = ("DRAFT ONLY - not reviewed, adopted, or wired in. Owner must write/adopt a real "
+                  f"test and capability by hand. Sandbox check (network denied, no inherited "
+                  f"secrets, fs confined): {result}")
     state = gateway.submit(proposal_id, "opportunity", "capability_proposal", "agent:capability-proposer",
-                            payload, [f"fact:{fact_id}"],
-                            commentary="DRAFT ONLY - not reviewed, tested, or wired in. Owner must write/adopt a real test and capability by hand.")
-    return {"fact_id": fact_id, "proposal_id": proposal_id, "state": state}
+                            payload, [f"fact:{fact_id}"], commentary=commentary)
+    tier = None
+    if state in ("PENDING", "DEFERRED"):
+        decision = tiering.tier_for("capability_proposal", gateway.kinds.get("capability_proposal"))
+        tiering.journal_decision(ledger, proposal_id, "opportunity", decision)
+        tier = decision.tier
+    return {"fact_id": fact_id, "proposal_id": proposal_id, "state": state, "sandbox_result": result, "tier": tier}
 
 
 def main():
