@@ -1,13 +1,17 @@
 """Persona-card memory (Digital Twin extension, subsystem 2.E, 2026-11-15). All synthetic
-fixtures. Proves: append-only persona cards with a mandatory disclosure field (DPIF critical
-control 2), the shared-vs-private memory boundary as a REAL deny-by-default check, export,
-and that no deletion function pretends to delete anything it cannot."""
+fixtures. Proves: append-only, SIGNED persona cards with a mandatory disclosure field (DPIF
+critical control 2), the shared-vs-private memory boundary plus the data_class/grants
+boundary as REAL deny-by-default checks (including signature-verified grants - the HOLE
+closed 2026-11-15), export, and that no deletion function pretends to delete anything it
+cannot."""
 import tempfile
 import unittest
 from pathlib import Path
 
-from apex.kernel import persona
+from apex.kernel import budget_signing, persona
 from apex.kernel.memory import Ledger
+
+TEST_PRIVATE_KEY, TEST_PUBLIC_KEY = budget_signing.generate_keypair()      # synthetic test key
 
 
 class PersonaBase(unittest.TestCase):
@@ -24,38 +28,79 @@ class PersonaBase(unittest.TestCase):
 class PersonaCardTests(PersonaBase):
     def test_disclosure_text_is_mandatory(self):
         with self.assertRaises(ValueError):
-            persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True, "", "owner")
+            persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True, "", "owner", TEST_PRIVATE_KEY)
         with self.assertRaises(ValueError):
-            persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True, "   ", "owner")
+            persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True, "   ", "owner", TEST_PRIVATE_KEY)
 
     def test_voice_authorized_must_be_an_explicit_boolean(self):
         with self.assertRaises(ValueError):
             persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", "yes",
-                                       "I am a synthetic representation of the owner.", "owner")
+                                       "I am a synthetic representation of the owner.", "owner", TEST_PRIVATE_KEY)
+
+    def test_private_key_bytes_is_mandatory(self):
+        with self.assertRaises(ValueError):
+            persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True,
+                                       "disclosure", "owner", b"too short")
 
     def test_card_round_trips_and_history_is_append_only(self):
-        persona.write_persona_card(self.ledger, "companion", "Nova", "female",
-                                   False, "I am a synthetic companion persona, not a real person.", "owner", now=1.0)
+        persona.write_persona_card(self.ledger, "companion", "Nova", "female", False,
+                                   "I am a synthetic companion persona, not a real person.", "owner",
+                                   TEST_PRIVATE_KEY, now=1.0)
         card = persona.read_persona_card(self.ledger, "companion")
         self.assertEqual(card["display_name"], "Nova")
         self.assertFalse(card["voice_authorized"])
-        persona.write_persona_card(self.ledger, "companion", "Nova v2", "female",
-                                   False, "I am a synthetic companion persona, not a real person.", "owner", now=2.0)
+        self.assertEqual(card["version"], 1)
+        self.assertIsNone(card["prev_card_sig"])
+        persona.write_persona_card(self.ledger, "companion", "Nova v2", "female", False,
+                                   "I am a synthetic companion persona, not a real person.", "owner",
+                                   TEST_PRIVATE_KEY, now=2.0)
         history = persona.persona_card_history(self.ledger, "companion")
         self.assertEqual(len(history), 2)                          # old version preserved, not overwritten
-        self.assertEqual(persona.read_persona_card(self.ledger, "companion")["display_name"], "Nova v2")
+        current = persona.read_persona_card(self.ledger, "companion")
+        self.assertEqual(current["display_name"], "Nova v2")
+        self.assertEqual(current["version"], 2)
+        self.assertEqual(current["prev_card_sig"], history[1]["card"]["owner_sig"])    # chains to v1's own sig
 
     def test_unconfigured_persona_has_no_card(self):
         self.assertIsNone(persona.read_persona_card(self.ledger, "nobody"))
+
+
+class CardSignatureTests(PersonaBase):
+    """The HOLE, closed: grants (and every other card field) are now signed, so DB-level
+    tampering is detectable - the gate is no longer enforced by unsigned data."""
+    def test_a_freshly_written_card_verifies(self):
+        persona.write_persona_card(self.ledger, "companion", "Nova", "female", False,
+                                   "disclosure", "owner", TEST_PRIVATE_KEY, grants=[], now=1.0)
+        self.assertTrue(persona.verify_persona_card(self.ledger, "companion", TEST_PUBLIC_KEY))
+
+    def test_tampering_grants_directly_in_the_db_fails_verification(self):
+        import json
+        fact_id = persona.write_persona_card(self.ledger, "companion", "Nova", "female", False,
+                                             "disclosure", "owner", TEST_PRIVATE_KEY, grants=[], now=1.0)
+        card = persona.read_persona_card(self.ledger, "companion")
+        card["grants"] = ["MEDICAL"]      # the attack: add a grant without re-signing
+        self.ledger.db.execute("UPDATE facts SET object=? WHERE id=?", (json.dumps(card), fact_id))
+        self.assertFalse(persona.verify_persona_card(self.ledger, "companion", TEST_PUBLIC_KEY))
+
+    def test_wrong_public_key_fails_verification(self):
+        persona.write_persona_card(self.ledger, "companion", "Nova", "female", False,
+                                   "disclosure", "owner", TEST_PRIVATE_KEY, now=1.0)
+        _, wrong_public_key = budget_signing.generate_keypair()
+        self.assertFalse(persona.verify_persona_card(self.ledger, "companion", wrong_public_key))
+
+    def test_an_unconfigured_persona_fails_verification_not_raises(self):
+        self.assertFalse(persona.verify_persona_card(self.ledger, "nobody", TEST_PUBLIC_KEY))
 
 
 class MemoryIsolationTests(PersonaBase):
     def setUp(self):
         super().setUp()
         persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True,
-                                   "I am an authorised synthetic representation of the owner.", "owner", now=1.0)
+                                   "I am an authorised synthetic representation of the owner.", "owner",
+                                   TEST_PRIVATE_KEY, now=1.0)
         persona.write_persona_card(self.ledger, "companion", "Nova", "female", False,
-                                   "I am a synthetic companion persona, not a real person.", "owner", now=1.0)
+                                   "I am a synthetic companion persona, not a real person.", "owner",
+                                   TEST_PRIVATE_KEY, now=1.0)
 
     def test_cannot_remember_for_a_persona_with_no_card(self):
         with self.assertRaises(persona.PersonaIsolationError):
@@ -73,13 +118,23 @@ class MemoryIsolationTests(PersonaBase):
         self.assertEqual(persona.recall_fact(self.ledger, "owner_twin", private_id)["object"],
                          "owner's private worry about work")
 
-    def test_another_persona_can_read_only_what_was_shared(self):
+    def test_another_persona_can_read_only_what_was_shared_and_public(self):
         shared_id = persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
         private_id = persona.remember(self.ledger, "owner_twin", "owner's private worry about work",
                                       persona.PRIVATE, "voice", now=3.0)
         self.assertEqual(persona.recall_fact(self.ledger, "companion", shared_id)["object"], "owner likes climbing")
         with self.assertRaises(persona.PersonaIsolationError):
             persona.recall_fact(self.ledger, "companion", private_id)     # the enforced boundary
+
+    def test_shared_financial_fact_requires_a_verified_grant(self):
+        fid = persona.remember(self.ledger, "owner_twin", "F_fin content", persona.SHARED, "voice",
+                               data_class="FINANCE", now=2.0)
+        with self.assertRaises(persona.PersonaIsolationError) as ctx:
+            persona.recall_fact(self.ledger, "companion", fid)          # no public_key_bytes at all -> fail closed
+        self.assertIn("PERSONA_CARD_UNVERIFIED", str(ctx.exception))
+        with self.assertRaises(persona.PersonaIsolationError) as ctx:
+            persona.recall_fact(self.ledger, "companion", fid, TEST_PUBLIC_KEY)   # verified card, but no grant
+        self.assertIn("DATA_CLASS_DENIED", str(ctx.exception))
 
     def test_recall_fact_from_an_unregistered_reading_persona_is_refused(self):
         shared_id = persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
@@ -96,7 +151,8 @@ class MemoryIsolationTests(PersonaBase):
 class ExportTests(PersonaBase):
     def test_export_includes_card_history_and_both_visibilities_for_the_owning_persona(self):
         persona.write_persona_card(self.ledger, "owner_twin", "Ario", "male", True,
-                                   "I am an authorised synthetic representation of the owner.", "owner", now=1.0)
+                                   "I am an authorised synthetic representation of the owner.", "owner",
+                                   TEST_PRIVATE_KEY, now=1.0)
         persona.remember(self.ledger, "owner_twin", "shared memory", persona.SHARED, "voice", now=2.0)
         persona.remember(self.ledger, "owner_twin", "private memory", persona.PRIVATE, "voice", now=3.0)
         export = persona.export_persona_memories(self.ledger, "owner_twin")

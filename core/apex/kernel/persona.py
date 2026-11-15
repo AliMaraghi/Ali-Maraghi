@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 
+from . import signing
 from .facts import assert_fact, fact_history, get_fact, query_fact
 
 SHARED, PRIVATE = "shared", "private"
@@ -44,12 +45,30 @@ class PersonaIsolationError(PermissionError):
 _GRANTABLE_DATA_CLASSES = ("FINANCE", "MEDICAL")
 
 
+def _card_signing_payload(persona_id, disclosure_text, voice_authorized, grants, version, prev_card_sig):
+    grants_json = json.dumps(sorted(grants))
+    return (persona_id, disclosure_text, voice_authorized, grants_json, version, prev_card_sig or "")
+
+
 def write_persona_card(ledger, persona_id: str, display_name: str, presentation: str,
                        voice_authorized: bool, disclosure_text: str, created_by: str,
-                       grants: list | None = None, now: float | None = None) -> int:
+                       private_key_bytes: bytes, grants: list | None = None,
+                       now: float | None = None) -> int:
     """Append-only: a persona card is never overwritten, only re-asserted - the full history
     of what a persona WAS configured as stays inspectable via persona_card_history(), the
     same discipline as every other claim in this kernel.
+
+    HOLE CLOSED (brutal-honesty directive, 2026-11-15): grants used to live in a plain,
+    unsigned JSON blob - anyone with DB write access could add 'MEDICAL' to a persona's
+    grants without touching any fact's owner_sig, bypassing DATA_CLASS_DENIED entirely.
+    Every card is now SIGNED: `private_key_bytes` is mandatory (supplied by the caller for
+    this one call only - never read from or written to disk by this function), and the card
+    carries its own `version` (1, 2, 3, ... per persona) and `prev_card_sig` (the previous
+    version's own owner_sig, forming a chain of card versions so a revoke/grant history is
+    itself auditable - distinct from facts.py's global prev_hash chain, which does not know
+    anything about "this is a persona card" or "this supersedes that version"). The signed
+    payload is (persona_id, disclosure_text, voice_authorized, grants_json, version,
+    prev_card_sig) - grants included, so a grants-only edit invalidates the signature.
 
     disclosure_text is MANDATORY and non-empty: DPIF critical control 2 ("clear disclosure
     of synthetic identity") is enforced here structurally, not left to a UI convention that
@@ -59,22 +78,51 @@ def write_persona_card(ledger, persona_id: str, display_name: str, presentation:
 
     `grants`: the sensitive data classes (FINANCE/MEDICAL) THIS persona is explicitly
     entitled to read from another persona's SHARED memories - empty by default. PUBLIC needs
-    no grant. Granting is per-reading-persona, not per-fact: a grant of "FINANCE" lets this
-    persona read ANY shared FINANCE fact from any owning persona, not one specific fact."""
+    no grant. Granting is per-reading-persona, not per-fact."""
     if not isinstance(persona_id, str) or not persona_id.strip():
         raise ValueError("persona_id required")
     if not disclosure_text or not disclosure_text.strip():
         raise ValueError("disclosure_text is mandatory (DPIF critical control 2)")
     if type(voice_authorized) is not bool:
         raise ValueError("voice_authorized must be an explicit True/False attestation")
+    if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
+        raise ValueError("private_key_bytes must be 32 raw bytes")
     grants = [] if grants is None else list(grants)
     if any(g not in _GRANTABLE_DATA_CLASSES for g in grants):
         raise ValueError(f"grants must be a subset of {_GRANTABLE_DATA_CLASSES}")
+    previous = read_persona_card(ledger, persona_id)
+    version = 1 if previous is None else previous["version"] + 1
+    prev_card_sig = None if previous is None else previous["owner_sig"]
+    owner_sig = signing.sign_payload(private_key_bytes, *_card_signing_payload(
+        persona_id, disclosure_text, voice_authorized, grants, version, prev_card_sig)).hex()
     card = {"persona_id": persona_id, "display_name": display_name, "presentation": presentation,
             "voice_authorized": voice_authorized, "disclosure_text": disclosure_text,
-            "created_by": created_by, "grants": grants}
+            "created_by": created_by, "grants": grants, "version": version,
+            "owner_sig": owner_sig, "prev_card_sig": prev_card_sig}
     return assert_fact(ledger, f"persona:{persona_id}", "card", json.dumps(card),
                        f"persona_card:{created_by}", now=now)
+
+
+def verify_persona_card(ledger, persona_id: str, public_key_bytes: bytes) -> bool:
+    """Re-reads the CURRENT card (read_persona_card always returns the latest version by
+    construction - there is no way to pass an old version into recall_fact, so "old version
+    not current" is true by design, not by a special case here) and recomputes the signature
+    over its CURRENT fields, grants included. Returns False - never raises - for: no card,
+    a card written before signing was required (owner_sig/version/prev_card_sig missing), or
+    any tampering of persona_id/disclosure_text/voice_authorized/grants/version/prev_card_sig."""
+    card = read_persona_card(ledger, persona_id)
+    if card is None:
+        return False
+    try:
+        signature = bytes.fromhex(card["owner_sig"])
+    except (KeyError, ValueError, TypeError):
+        return False
+    try:
+        payload = _card_signing_payload(card["persona_id"], card["disclosure_text"], card["voice_authorized"],
+                                        card["grants"], card["version"], card.get("prev_card_sig"))
+    except KeyError:
+        return False
+    return signing.verify_payload(public_key_bytes, signature, *payload)
 
 
 def read_persona_card(ledger, persona_id: str) -> dict | None:
@@ -116,7 +164,7 @@ def recall(*args, **kwargs):
                               "access-denied as empty")
 
 
-def recall_fact(ledger, reading_persona_id: str, fact_id: int) -> dict:
+def recall_fact(ledger, reading_persona_id: str, fact_id: int, public_key_bytes: bytes | None = None) -> dict:
     """Per-fact isolation check: looks up ONE specific fact by id and raises
     PersonaIsolationError - never returns an empty/absent result - when the reading persona
     is not entitled to see it. A fact not shaped like a persona memory (wrong subject prefix
@@ -125,10 +173,13 @@ def recall_fact(ledger, reading_persona_id: str, fact_id: int) -> dict:
 
     A persona reading its OWN memory always succeeds, regardless of visibility or
     data_class - "FINANCE and MEDICAL stay with" the owning persona; they are not blocked
-    from itself, only from others. For a CROSS-persona read, TWO gates apply in order
-    (GAP 1, brutal-honesty directive 2026-11-15): (1) the fact must be `shared`, and (2) if
-    its data_class is FINANCE or MEDICAL, the READING persona's card must explicitly list
-    that data_class in `grants` - PUBLIC needs no grant."""
+    from itself, only from others. For a CROSS-persona read, gates apply in order (GAP 1,
+    brutal-honesty directive 2026-11-15): (1) the fact must be `shared`, and then, only if
+    its data_class is FINANCE or MEDICAL: (2) the READING persona's own CARD must verify
+    (verify_persona_card(), closing the HOLE where grants lived in unsigned data - `public_
+    key_bytes` is required to reach this far; omitting it fails closed as unverified, never
+    silently treated as "no grants to check"), and only then (3) the data_class must be
+    present in that card's grants. PUBLIC needs no grant and no card verification at all."""
     if read_persona_card(ledger, reading_persona_id) is None:
         raise PersonaIsolationError(f"NO_PERSONA_CARD:{reading_persona_id}")
     fact = get_fact(ledger, fact_id)
@@ -138,12 +189,14 @@ def recall_fact(ledger, reading_persona_id: str, fact_id: int) -> dict:
     visibility = fact["predicate"][len("memory_"):]
     if owning_persona_id == reading_persona_id:
         return fact                                   # self-access: never gated
-    # Cross-persona read: GATE A (shared), then GATE B (data_class grant).
+    # Cross-persona read: GATE A (shared), then (for sensitive classes) card verification, then grant.
     if visibility != SHARED:
         raise PersonaIsolationError(f"NOT_SHARED:persona={owning_persona_id}:fact={fact_id}")
     if fact["data_class"] == "PUBLIC":
         return fact
     if fact["data_class"] in _GRANTABLE_DATA_CLASSES:
+        if public_key_bytes is None or not verify_persona_card(ledger, reading_persona_id, public_key_bytes):
+            raise PersonaIsolationError(f"PERSONA_CARD_UNVERIFIED:persona={reading_persona_id}")
         reading_card = read_persona_card(ledger, reading_persona_id)
         if fact["data_class"] not in reading_card.get("grants", []):
             raise PersonaIsolationError(f"DATA_CLASS_DENIED:{fact['data_class']}:fact={fact_id}")

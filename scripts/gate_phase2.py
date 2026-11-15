@@ -39,7 +39,8 @@ def step1():
     public_key = budget_signing.public_key_for(private_key)
     with Ledger(GATE_ROOT) as ledger:
         persona.write_persona_card(ledger, "owner", "Owner", "male", True,
-                                   "I am an authorised synthetic representation of the owner.", "owner")
+                                   "I am an authorised synthetic representation of the owner.", "owner",
+                                   private_key)
         fact_id = facts.assert_signed_fact(ledger, "owner", "preference", "prefers British English",
                                            "owner", "PUBLIC", private_key, now=1000.0)
     PUBKEY_FILE.write_text(public_key.hex())
@@ -92,7 +93,8 @@ def chain_test():
     private_key = secrets.token_bytes(32)        # EPHEMERAL test key - never persisted anywhere
     with Ledger(chain_root) as ledger:
         persona.write_persona_card(ledger, "owner", "Owner", "male", True,
-                                   "I am an authorised synthetic representation of the owner.", "owner")
+                                   "I am an authorised synthetic representation of the owner.", "owner",
+                                   private_key)
         f1 = facts.assert_signed_fact(ledger, "owner", "preference_1", "likes tea", "owner", "PUBLIC", private_key, now=1.0)
         f2 = facts.assert_signed_fact(ledger, "owner", "preference_2", "likes rain", "owner", "PUBLIC", private_key, now=2.0)
         public_key = budget_signing.public_key_for(private_key)
