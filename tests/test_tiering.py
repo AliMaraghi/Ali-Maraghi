@@ -113,6 +113,34 @@ class TieringNeverApprovesTests(unittest.TestCase):
         self.assertEqual(rows[0]["tier"], tiering.ALWAYS_ALLOW)
         self.assertIn("allowlist", rows[0]["reason"])
 
+    def test_always_allow_cannot_reach_ledger_write(self):
+        """APEX Build Order step 4 gate: an always_allow-classified proposal still cannot
+        reach ActionGateway.execute() (a ledger write/dispatch) without the real human-gated
+        issue()/approve() flow - classification never substitutes for approval."""
+        state = self.gateway.submit("p3", "opportunity", "record_decision", "agent:test",
+                                    {"note": "a harmless local note"}, ["fact:1"])
+        decision = tiering.tier_for("record_decision", self.gateway.kinds["record_decision"])
+        self.assertEqual(decision.tier, tiering.ALWAYS_ALLOW)
+        self.assertEqual(state, "PENDING")
+        with self.assertRaises(Exception):
+            self.gateway.execute("p3")      # NOT_APPROVED - always_allow granted no execute path
+        self.assertEqual(self.book.view("p3")["state"], "PENDING")
+
+    def test_always_ask_carries_verdict(self):
+        """APEX Build Order step 4 gate: the tiering verdict is embedded in the approval
+        request itself (commentary), not only in a separate audit event - the human approver
+        sees WHY a tier was assigned without a second query."""
+        decision = tiering.tier_for("finance_action_proposal", self.gateway.kinds["finance_action_proposal"])
+        self.assertEqual(decision.tier, tiering.ALWAYS_ASK)
+        commentary = f"Tiering verdict: {decision.tier} - {decision.reason}"
+        self.gateway.submit("p4", "personal", "finance_action_proposal", "agent:test",
+                            {"action_name": "exercise_espp_now", "scenario_text": "x", "gain_pence": 1,
+                             "tax_pence": 0, "net_pence_clamped": 1, "evaluator_verdict": "{}", "fact_id": 0},
+                            ["fact:1"], commentary=commentary)
+        view = self.book.view("p4")
+        self.assertIn("Tiering verdict: always_ask", view["model_commentary"])
+        self.assertIn("PINNED", view["model_commentary"])
+
 
 if __name__ == "__main__":
     unittest.main()

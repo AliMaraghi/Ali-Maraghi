@@ -95,13 +95,18 @@ class AgentRunner:
             summary.update(confidence=out.confidence, claims=len(out.claims), unknowns=list(out.unknowns), risks=list(out.risks))
             for item in result.proposals:
                 pid = identifier(f"{agent.agent_id}-{hashlib.sha256(repr(sorted(item['payload'].items())).encode()).hexdigest()[:14]}")
+                # Computed BEFORE submit() so the verdict can be embedded in the approval
+                # request itself (commentary) - the human approver sees WHY a tier was
+                # assigned without having to separately query the audit journal.
+                decision = tiering.tier_for(item["kind"], self.gateway.kinds.get(item["kind"]))
+                commentary = f"Tiering verdict: {decision.tier} - {decision.reason}"
                 try:
-                    state = self.gateway.submit(pid, spec.domain, item["kind"], f"agent:{agent.agent_id}", item["payload"], item["evidence_ids"])
+                    state = self.gateway.submit(pid, spec.domain, item["kind"], f"agent:{agent.agent_id}",
+                                                item["payload"], item["evidence_ids"], commentary=commentary)
                 except sqlite3.IntegrityError:
                     state = "DUPLICATE"
                 tier = None
                 if state in ("PENDING", "DEFERRED"):
-                    decision = tiering.tier_for(item["kind"], self.gateway.kinds.get(item["kind"]))
                     tiering.journal_decision(self.ledger, pid, spec.domain, decision)
                     tier = decision.tier
                 summary["proposals"].append({"id": pid, "state": state, "tier": tier})

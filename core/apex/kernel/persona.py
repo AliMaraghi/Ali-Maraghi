@@ -43,6 +43,8 @@ class PersonaIsolationError(PermissionError):
 
 
 _GRANTABLE_DATA_CLASSES = ("FINANCE", "MEDICAL")
+OWNER_IDENTITY = "owner"       # DPIF v1 critical control 1 (voice ownership): the only
+                                # identity ever allowed to author a card with voice_authorized=True
 
 
 def _card_signing_payload(persona_id, disclosure_text, voice_authorized, grants, version, prev_card_sig):
@@ -85,6 +87,11 @@ def write_persona_card(ledger, persona_id: str, display_name: str, presentation:
         raise ValueError("disclosure_text is mandatory (DPIF critical control 2)")
     if type(voice_authorized) is not bool:
         raise ValueError("voice_authorized must be an explicit True/False attestation")
+    if voice_authorized and created_by != OWNER_IDENTITY:
+        # DPIF v1 critical control 1 (voice ownership): no identity other than the owner's
+        # own may ever author a card claiming voice authorization - closes the path where
+        # an agent, a driver, or another persona could self-attest voice rights.
+        raise PersonaIsolationError(f"VOICE_OWNERSHIP_DENIED:created_by={created_by!r}")
     if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
         raise ValueError("private_key_bytes must be 32 raw bytes")
     grants = [] if grants is None else list(grants)
@@ -152,6 +159,8 @@ def remember(ledger, persona_id: str, memory_text: str, visibility: str, source:
         raise ValueError("visibility must be 'shared' or 'private'")
     if read_persona_card(ledger, persona_id) is None:
         raise PersonaIsolationError(f"NO_PERSONA_CARD:{persona_id}")
+    if is_killed(ledger, persona_id):
+        raise PersonaIsolationError(f"KILL_SWITCH_ACTIVE:{persona_id}")
     if data_class in _GRANTABLE_DATA_CLASSES:
         if private_key_bytes is None:
             raise ValueError(f"{data_class} memories must be signed - supply private_key_bytes "
@@ -193,6 +202,8 @@ def recall_fact(ledger, reading_persona_id: str, fact_id: int, public_key_bytes:
     present in that card's grants. PUBLIC needs no grant and no card verification at all."""
     if read_persona_card(ledger, reading_persona_id) is None:
         raise PersonaIsolationError(f"NO_PERSONA_CARD:{reading_persona_id}")
+    if is_killed(ledger, reading_persona_id):
+        raise PersonaIsolationError(f"KILL_SWITCH_ACTIVE:{reading_persona_id}")
     fact = get_fact(ledger, fact_id)
     if fact is None or not fact["subject"].startswith("persona:") or not fact["predicate"].startswith("memory_"):
         raise PersonaIsolationError(f"NOT_A_PERSONA_MEMORY:{fact_id}")
@@ -231,3 +242,33 @@ def export_persona_memories(ledger, persona_id: str) -> dict:
     return {"persona_id": persona_id, "card": card, "card_history": persona_card_history(ledger, persona_id),
             "shared_memories": fact_history(ledger, f"persona:{persona_id}", f"memory_{SHARED}", limit=500),
             "private_memories": fact_history(ledger, f"persona:{persona_id}", f"memory_{PRIVATE}", limit=500)}
+
+
+def session_disclosure(ledger, persona_id: str) -> str:
+    """DPIF v1 critical control 2 (clear disclosure of synthetic identity, 'present each
+    session'): the ONE function any real conversational session (subsystem B, not built
+    yet) would call at session start and must surface before a word is spoken. Always
+    re-reads the CURRENT card - never caches across calls/sessions - so a disclosure text
+    correction (a new card version) is picked up on the very next call, never stale."""
+    card = read_persona_card(ledger, persona_id)
+    if card is None:
+        raise PersonaIsolationError(f"NO_PERSONA_CARD:{persona_id}")
+    return card["disclosure_text"]
+
+
+def activate_kill_switch(ledger, persona_id: str, activated_by: str, now: float | None = None) -> int:
+    """DPIF v1 critical control 3 (immediate, owner-controlled shutdown): a single append-
+    only fact write - no avatar/voice runtime exists yet to actually halt (subsystems A-D
+    are not built), so this is the record-keeping half of the kill switch: the thing every
+    other read in this module checks. is_killed() below is what makes it load-bearing."""
+    if read_persona_card(ledger, persona_id) is None:
+        raise PersonaIsolationError(f"NO_PERSONA_CARD:{persona_id}")
+    return assert_fact(ledger, f"persona:{persona_id}", "kill_switch", "ACTIVATED", activated_by, now=now)
+
+
+def is_killed(ledger, persona_id: str) -> bool:
+    """O(1) check (query_fact's own indexed lookup) - the latest kill_switch fact for this
+    persona, if one exists, is authoritative: append-only means a later "deactivate" would
+    be a NEW fact, not an edit, so this always reflects the most recent real decision."""
+    row = query_fact(ledger, f"persona:{persona_id}", "kill_switch")
+    return row is not None and row["object"] == "ACTIVATED"

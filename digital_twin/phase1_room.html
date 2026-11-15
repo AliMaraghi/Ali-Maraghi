@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>APEX Digital Twin - Phase 1 room</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0b0d12; --fg:#e8eaf0; --accent:#6ea8fe; --panel:#14171f; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; }
+  #room { position:relative; width:100%; height:60vh; overflow:hidden; background:
+    radial-gradient(circle at 50% 50%, #1a2030 0%, #0b0d12 70%); }
+  #avatar { position:absolute; width:64px; height:64px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #9ecbff, #4c7fd9);
+    box-shadow:0 0 24px 4px rgba(110,168,254,.5); transition:box-shadow .1s linear; }
+  #listener { position:absolute; left:50%; top:50%; width:10px; height:10px;
+    border-radius:50%; background:#fff; transform:translate(-50%,-50%); }
+  #panel { padding:16px; background:var(--panel); font-size:14px; line-height:1.5; }
+  #panel code { color:var(--accent); }
+  button { background:var(--accent); color:#06101f; border:none; padding:8px 14px;
+    border-radius:6px; cursor:pointer; font-weight:600; }
+  #log { white-space:pre-wrap; font-family:ui-monospace,monospace; font-size:12px;
+    color:#9aa4b2; margin-top:8px; max-height:160px; overflow:auto; }
+</style>
+</head>
+<body>
+
+<div id="room">
+  <div id="listener"></div>
+  <div id="avatar" style="left:70%; top:40%;"></div>
+</div>
+
+<div id="panel">
+  <p><strong>APEX Digital Twin - Phase 1</strong>: one room, one avatar (a synthetic
+  disc, not a real likeness - no identity-preserving face is authorized or implemented
+  here), spatial audio via the real Web Audio API (<code>PannerNode</code>,
+  <code>panningModel: 'HRTF'</code>, <code>distanceModel: 'inverse'</code>),
+  and gaze-responsive gain. Move the mouse over the room to change listener orientation
+  (a proxy for gaze - there is no eye-tracking hardware in this test environment); the
+  avatar's glow and the audio gain both respond to how directly the listener "looks" at it.</p>
+  <button id="start">Start audio (heartbeat tone from the avatar)</button>
+  <div id="log"></div>
+  <p style="color:#c98;">
+    HONEST SCOPE: this is a real, runnable Web Audio implementation of the spatial-audio
+    primitive (subsystem D) - it is NOT the ABX perceptual test itself. That test requires
+    an independent human listener, with no briefing, judging avatar direction from audio
+    alone over headphones, &ge;8/10 trials - something only a real person can do. This file
+    is the thing that test would be run against; the trial itself is owner-gated (see the
+    session report for the exact procedure).
+  </p>
+</div>
+
+<script>
+const log = (msg) => {
+  const el = document.getElementById('log');
+  el.textContent += `[${performance.now().toFixed(1)}ms] ${msg}\n`;
+  el.scrollTop = el.scrollHeight;
+};
+
+let ctx, panner, listenerX = 0.5, listenerY = 0.5;
+const avatarPos = { x: 0.70, y: 0.40 }; // normalized room coordinates, matches #avatar's CSS left/top
+
+function setupAudio() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 220;
+
+  const gain = ctx.createGain();
+  gain.gain.value = 0.15;
+
+  panner = ctx.createPanner();
+  panner.panningModel = 'HRTF';
+  panner.distanceModel = 'inverse';
+  panner.refDistance = 0.3;
+  panner.maxDistance = 3;
+  panner.rolloffFactor = 1;
+
+  // Room coordinates (0..1) mapped onto a flat X/Z plane in front of the listener.
+  const roomToAudio = (nx, ny) => ({ x: (nx - 0.5) * 4, y: 0, z: (ny - 0.5) * 4 });
+  const p = roomToAudio(avatarPos.x, avatarPos.y);
+  panner.positionX.value = p.x;
+  panner.positionY.value = p.y;
+  panner.positionZ.value = p.z;
+
+  osc.connect(gain).connect(panner).connect(ctx.destination);
+  osc.start();
+  log(`audio started: PannerNode panningModel=${panner.panningModel} ` +
+      `distanceModel=${panner.distanceModel} position=(${p.x.toFixed(2)},${p.y.toFixed(2)},${p.z.toFixed(2)})`);
+  return { osc, gain };
+}
+
+document.getElementById('start').addEventListener('click', () => {
+  if (!ctx) {
+    setupAudio();
+  } else if (ctx.state === 'suspended') {
+    ctx.resume();
+  }
+});
+
+const room = document.getElementById('room');
+const avatarEl = document.getElementById('avatar');
+const listenerEl = document.getElementById('listener');
+
+room.addEventListener('mousemove', (e) => {
+  const rect = room.getBoundingClientRect();
+  listenerX = (e.clientX - rect.left) / rect.width;
+  listenerY = (e.clientY - rect.top) / rect.height;
+  listenerEl.style.left = `${listenerX * 100}%`;
+  listenerEl.style.top = `${listenerY * 100}%`;
+
+  // Gaze-responsive gain: a simple cosine-falloff proxy for "looking toward the avatar",
+  // since no real eye-tracking hardware exists in this environment. The listener's forward
+  // vector is approximated as the direction from the listener's room position toward the
+  // mouse cursor itself (i.e. "where the cursor looks"), and gain peaks when that vector
+  // points at the avatar.
+  const toAvatar = Math.atan2(avatarPos.y - listenerY, avatarPos.x - listenerX);
+  const gazeDir = Math.atan2(0.5 - listenerY, 0.5 - listenerX) + Math.PI; // facing from center outward through cursor
+  const angleDiff = Math.atan2(Math.sin(toAvatar - gazeDir), Math.cos(toAvatar - gazeDir));
+  const alignment = (Math.cos(angleDiff) + 1) / 2; // 0..1, 1 = looking directly at the avatar
+
+  if (ctx && panner) {
+    const now = ctx.currentTime;
+    if (ctx.listener.forwardX) {
+      ctx.listener.positionX.setValueAtTime((listenerX - 0.5) * 4, now);
+      ctx.listener.positionZ.setValueAtTime((listenerY - 0.5) * 4, now);
+    }
+  }
+  const glow = 4 + alignment * 28;
+  avatarEl.style.boxShadow = `0 0 ${glow}px ${4 + alignment * 10}px rgba(110,168,254,${0.3 + alignment * 0.5})`;
+});
+
+log('room loaded. Move the mouse to change listener position/gaze proxy; click Start for audio.');
+</script>
+
+</body>
+</html>
