@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "core"))
 
-from apex import private_token, rss, telegram_bot                     # noqa: E402
+from apex import agents_governing, private_token, rss, telegram_bot    # noqa: E402
 from apex.agents_impl import CareerIndustry, EvidenceVerification, FinancialIntelligence, HealthLongevity, SocialRelational, StrategicIntelligence      # noqa: E402
 from apex.agents_research import ScientificResearch                     # noqa: E402
 from apex.agents_runtime import AgentContext, AgentRunner               # noqa: E402
@@ -64,6 +64,9 @@ def main():
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--interval", type=int, default=300)
+    parser.add_argument("--include-frozen", action="append", default=[],
+                         help="Explicitly run a frozen system anyway (see docs/FROZEN_SYSTEMS.md); "
+                              "repeatable. Logged on every use.")
     args = parser.parse_args()
     if args.once == args.loop or not 60 <= args.interval <= 86400:
         sys.exit("Use exactly one of --once / --loop, with 60 <= --interval <= 86400")
@@ -83,9 +86,22 @@ def main():
                 # (confidence 0.0, no proposal) until an operator runs
                 # `python3 core/apex/agents_research.py --set-price-millipence N --set-daily-cap-pence N`
                 # once - zero-budget-by-default is untouched by adding it here.
-                agents = [StrategicIntelligence(), CareerIndustry(), FinancialIntelligence(ledger),
-                          HealthLongevity(), EvidenceVerification(ledger), SocialRelational(),
-                          ScientificResearch(budget, ledger)]
+                agent_factories = {
+                    "strategic_intelligence": lambda: StrategicIntelligence(),
+                    "career_industry": lambda: CareerIndustry(),
+                    "financial_intelligence": lambda: FinancialIntelligence(ledger),
+                    "health_longevity": lambda: HealthLongevity(),
+                    "evidence_verification": lambda: EvidenceVerification(ledger),
+                    "social_relational": lambda: SocialRelational(),
+                    "scientific_research": lambda: ScientificResearch(budget, ledger),
+                }
+                active_names, skipped = agents_governing.select_active(agent_factories, args.include_frozen)
+                for name, reason in skipped.items():
+                    print(json.dumps({"skipped_frozen": name, "reason": reason}), flush=True)
+                for name in args.include_frozen:
+                    if name in agents_governing.FROZEN:
+                        print(json.dumps({"override_frozen": name, "reason": agents_governing.FROZEN[name]}), flush=True)
+                agents = [agent_factories[name]() for name in active_names]
                 runner = AgentRunner(ledger, gateway, agents, notifier=make_notifier())
                 print(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "runs": cycle(ledger, runner)}), flush=True)
             except PermissionError as exc:

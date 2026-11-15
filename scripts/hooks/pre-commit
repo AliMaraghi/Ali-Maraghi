@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# DATA_BOUNDARY enforcement (mission 2026-11-15). See docs/DATA_BOUNDARY.md.
+# Blocks a commit if any staged path matches a forbidden real-data pattern.
+set -euo pipefail
+
+PATTERNS=(
+  '^runtime/inbox/'
+  '^runtime/rules/'
+  '\.sqlite3$'
+  '\.db$'
+  '\.db-journal$'
+  '(^|/)\.env$'
+  '(^|/)\.env\.[^/]*$'
+  '^secrets/'
+  '^user_data/'
+  '^Owner_Handoff_.*\.log$'
+  '^biometrics/'
+)
+
+violation=""
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  for pattern in "${PATTERNS[@]}"; do
+    if echo "$file" | grep -qE "$pattern"; then
+      violation="$file"
+      break 2
+    fi
+  done
+done < <(git diff --cached --name-only)
+
+if [ -n "$violation" ]; then
+  echo "DATA_BOUNDARY_VIOLATION: $violation. Real data cannot enter this repo."
+  echo "See docs/DATA_BOUNDARY.md."
+  exit 1
+fi
+
+exit 0

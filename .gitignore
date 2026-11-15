@@ -14,3 +14,14 @@ runtime/
 .devdeps/
 node_modules/
 apex-ui/dist/
+
+# Data boundary (docs/DATA_BOUNDARY.md) - mission 2026-11-15, enforced by
+# .git/hooks/pre-commit and the CI data-boundary job, not just this list.
+runtime/inbox/
+runtime/rules/
+*.sqlite3
+*.db-journal
+secrets/
+user_data/
+Owner_Handoff_*.log
+biometrics/

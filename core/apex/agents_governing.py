@@ -53,6 +53,41 @@ ROLES = tuple(RoleSpec(f"A-{n}", name, mission, domain, allowed, status, "8-12" 
 BY_ID = {r.agent_id: r for r in ROLES}
 assert len(ROLES) == 18
 
+# FROZEN (mission 2026-11-15, docs/ACTIVE_SYSTEM.md / docs/FROZEN_SYSTEMS.md): A-10 is the
+# sole active system during the 21-day measurement window. Freezing is NOT a status change
+# (no RoleSpec.status here is touched - "do not flip any role") and not deletion: the code
+# stays, scripts/agents_runner.py --once simply skips a frozen name unless --include-frozen
+# names it explicitly. Keyed by the system name agents_runner.py's AGENT_FACTORIES uses, not
+# by agent_id, because two of the four named systems (mutual_match_platform, marketing_funnel,
+# webxr_twin) are not agents_runner.py roles at all - see docs/FROZEN_SYSTEMS.md for why.
+FROZEN = {
+    "financial_intelligence": "Not the active system per docs/ACTIVE_SYSTEM.md - A-10 is the "
+                               "sole active system during the 21-day measurement window.",
+    "mutual_match_platform": "Never registered as a runtime agent in agents_runner.py (a "
+                              "separate standalone prototype module, mutual_match_platform/) "
+                              "- frozen here means marked inactive in docs, not disabled code.",
+    "marketing_funnel": "Static content only (docs/marketing_funnel_apex.md), never a "
+                         "runtime agent - frozen here means marked inactive in docs, not "
+                         "disabled code.",
+    "webxr_twin": "Static page only (digital_twin/phase1_room.html), never a runtime agent "
+                  "- frozen here means marked inactive in docs, not disabled code.",
+}
+
+
+def select_active(names, include_frozen=()):
+    """Partition `names` into (active, skipped) against FROZEN. `include_frozen` names are
+    treated as active anyway (the explicit override), proving freeze is reversible per-call,
+    not a deletion. Pure function - no I/O, no ledger, no agent construction - so it is
+    testable without the protected approvals file or a real ledger."""
+    include_frozen = set(include_frozen)
+    active, skipped = [], {}
+    for name in names:
+        if name in FROZEN and name not in include_frozen:
+            skipped[name] = FROZEN[name]
+        else:
+            active.append(name)
+    return active, skipped
+
 
 def get(agent_id):
     spec = BY_ID.get(agent_id)

@@ -10,7 +10,47 @@ on:
     - cron: '0 4 * * *'
 
 jobs:
+  data-boundary:
+    runs-on: ubuntu-latest
+    # Runs before every other job (see `needs:` below). Fails fast - no test job
+    # runs if this fails. Same forbidden-path list as .git/hooks/pre-commit and
+    # docs/DATA_BOUNDARY.md; kept here as a literal list, not sourced from the
+    # hook script, so this check does not depend on the hook being installed.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refuse to run if a forbidden real-data path exists in the checkout
+        run: |
+          PATTERNS=(
+            'runtime/inbox/'
+            'runtime/rules/'
+            '*.sqlite3'
+            '*.db'
+            '*.db-journal'
+            '.env'
+            '.env.*'
+            'secrets/'
+            'user_data/'
+            'Owner_Handoff_*.log'
+            'biometrics/'
+          )
+          violation=""
+          for pattern in "${PATTERNS[@]}"; do
+            match=$(find . -path ./.git -prune -o -path "*${pattern}*" -print 2>/dev/null | head -1)
+            if [ -n "$match" ]; then
+              violation="$match"
+              break
+            fi
+          done
+          if [ -n "$violation" ]; then
+            echo "DATA_BOUNDARY_VIOLATION: $violation. Real data cannot enter this repo."
+            echo "See docs/DATA_BOUNDARY.md."
+            exit 1
+          fi
+          echo "OK: no forbidden real-data path found in the checkout"
+
   gates:
+    needs: data-boundary
     runs-on: ubuntu-latest
     # No secrets are declared or referenced anywhere in this workflow. If a future
     # change needs one, that change is wrong - remove it instead (brutal-honesty
