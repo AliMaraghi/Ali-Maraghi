@@ -65,7 +65,7 @@ def ooda_cycle():
         # ScientificResearch (A-2) reserves its own LLM spend (see agents_runner.py's own comment
         # on the same line) - stays a no-op until an operator prices it, same zero-budget-by-
         # default guarantee as every other paid call in this project.
-        agents = [runner.StrategicIntelligence(), runner.CareerIndustry(), runner.FinancialIntelligence(),
+        agents = [runner.StrategicIntelligence(), runner.CareerIndustry(), runner.FinancialIntelligence(ledger),
                   runner.HealthLongevity(), runner.EvidenceVerification(ledger), runner.SocialRelational(),
                   runner.ScientificResearch(budget, ledger)]
         agent_runner = runner.AgentRunner(ledger, gateway, agents, notifier=runner.make_notifier())

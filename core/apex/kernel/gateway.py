@@ -78,6 +78,13 @@ DEFAULT_KINDS = {
     # adapter=None: local record only. A-2's Planner->Researcher->Executor->Critic pipeline
     # proposes a draft here; nothing is ever posted, published or sent automatically.
     "research_brief_proposal": KindSpec(frozenset({"opportunity"}), {"topic": str, "draft": str, "critic_notes": str}),
+    # adapter=None: local record only. A-8's planner->generator->evaluator harness (brutal-honesty
+    # directive, 2026-11-15) proposes exactly ONE concrete one-click action here, only after an
+    # evaluator pass on a written rubric; this never moves money by itself - the owner still
+    # exercises/declines the real ESPP action manually after approving this record.
+    "finance_action_proposal": KindSpec(frozenset({"personal"}),
+        {"action_name": str, "scenario_text": str, "gain_pence": int, "tax_pence": int,
+         "net_pence_clamped": int, "evaluator_verdict": str, "fact_id": int}),
 }
 
 

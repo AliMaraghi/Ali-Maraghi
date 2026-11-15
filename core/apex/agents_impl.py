@@ -162,10 +162,105 @@ def mortgage_affordability_indicator(income_pence, rules):
     return income_pence * mortgage["income_multiplier_bp"] // 10000
 
 
+def plan_finance_checks(data: dict) -> list:
+    """PLANNER (brutal-honesty directive, 2026-11-15): decomposes the owner's actual supplied
+    data into an ordered list of checks - deterministic, not an LLM call. Tax/NIC arithmetic is
+    exact integer math; delegating it to a model would turn a verifiable calculation into a
+    guess, which this project has never done and will not start doing here. "Planning" in this
+    harness means deciding WHICH checks the owner's data calls for, not guessing numbers."""
+    checks = ["espp_scenario"]
+    if data.get("capital_pence") is not None:
+        checks.append("universal_credit")
+    checks.append("mortgage_reference")
+    return checks
+
+
+def generate_finance_action(data: dict, rules: dict, calibration_note: str = "") -> dict:
+    """GENERATOR: drafts exactly ONE concrete, one-click proposed action from the owner's ESPP
+    scenario - never a paragraph of commentary. Every number traces back to a specific
+    owner-supplied field (data["espp"][...]) or a sourced rule (rules["source"]/["verified_on"]);
+    nothing here is invented. Still pure arithmetic, no LLM call. `calibration_note`, when the
+    caller supplies one, is the real-outcomes feedback loop (facts.recent_outcomes_for_predicate_prefix)
+    made visible in the text the owner and the evaluator both see - never invented, always
+    either empty or built from an actual recorded owner decision."""
+    salary, espp = data["annual_salary_pence"], data["espp"]
+    price = min(espp["fmv_start_pence_per_share"], espp["fmv_end_pence_per_share"]) * (10000 - espp["discount_bp"]) // 10000
+    shares = espp["contribution_pence"] // price if price > 0 else 0
+    gain = shares * (espp["fmv_end_pence_per_share"] - price)
+    tax_extra = income_tax(salary + gain, rules) - income_tax(salary, rules)
+    nic_now, nic_after = employee_nic(salary, rules), employee_nic(salary + gain, rules)
+    nic_extra = 0 if nic_now is None else nic_after - nic_now
+    net = gain - tax_extra - nic_extra
+    action_name = "exercise_espp_now" if net > 0 else "hold_espp_do_not_exercise"
+    scenario_text = (
+        f"From owner-supplied espp.contribution_pence={espp['contribution_pence']}, "
+        f"fmv_start_pence_per_share={espp['fmv_start_pence_per_share']}, "
+        f"fmv_end_pence_per_share={espp['fmv_end_pence_per_share']}, discount_bp={espp['discount_bp']}: "
+        f"{shares} whole shares, gain {gain}p, extra income tax {tax_extra}p, extra employee NIC "
+        f"{'not modelled' if nic_now is None else str(nic_extra) + 'p'}, net {net}p "
+        f"({rules['tax_year']} rules, source {rules['source']}, verified {rules['verified_on']}). "
+        f"One-click action: {action_name}." + (f" {calibration_note}" if calibration_note else ""))
+    return {"action_name": action_name, "scenario_text": scenario_text[:1900],
+            "gain_pence": gain, "tax_pence": tax_extra, "net_pence_clamped": max(net, 0),
+            "net_true_pence": net, "contribution_used_pence": espp["contribution_pence"],
+            "nic_modelled": nic_now is not None}
+
+
+def evaluate_finance_action(proposal: dict, data: dict) -> dict:
+    """EVALUATOR (brutal-honesty directive, 2026-11-15, hardened per section 4.2): runs in a
+    SEPARATE CONTEXT from the generator. "Separate context" is made real, not asserted, by the
+    very first line below: both arguments are round-tripped through json.dumps/json.loads before
+    anything else touches them, which severs any shared Python object identity, closure or
+    reference to the generator's internal state - the evaluator can see only the same plain
+    JSON-serializable facts a second, independent process would receive over a wire. It cannot
+    rubber-stamp reasoning it was never given. Grades exactly the three rubric criteria from the
+    directive: (1) the action cites exact line items from the owner-supplied file, (2) it does
+    not exceed the owner's declared contribution without flagging it, (3) it names the one-click
+    action the owner will take. Returns a per-criterion VERDICT LIST (never a single boolean) plus
+    a separate overall_pass; a FAIL on any criterion means run() never submits this as a proposal."""
+    proposal = json.loads(json.dumps(proposal))      # the "separate context" cut - see docstring
+    data = json.loads(json.dumps(data))
+    espp = data.get("espp", {})
+    text = proposal.get("scenario_text", "")
+    cites = all(str(espp.get(k)) in text for k in
+                ("contribution_pence", "fmv_start_pence_per_share", "fmv_end_pence_per_share", "discount_bp"))
+    within_budget = (isinstance(proposal.get("contribution_used_pence"), int)
+                      and isinstance(espp.get("contribution_pence"), int)
+                      and proposal["contribution_used_pence"] <= espp["contribution_pence"])
+    names_action = proposal.get("action_name") in ("exercise_espp_now", "hold_espp_do_not_exercise")
+    criteria = [
+        {"criterion": "cites_exact_line_items", "pass": cites,
+         "detail": "scenario_text contains the owner's own contribution/fmv/discount figures" if cites
+                   else "scenario_text is missing one or more owner-supplied figures"},
+        {"criterion": "within_declared_budget", "pass": within_budget,
+         "detail": f"uses {proposal.get('contribution_used_pence')}p against the owner's declared "
+                   f"{espp.get('contribution_pence')}p contribution" if within_budget
+                   else "proposed action uses more than the owner's declared contribution, with no explicit approval-required flag"},
+        {"criterion": "names_one_click_action", "pass": names_action,
+         "detail": f"action_name='{proposal.get('action_name')}'" if names_action
+                   else "no recognised one-click action was named"},
+    ]
+    return {"criteria": criteria, "overall_pass": all(c["pass"] for c in criteria)}
+
+
 class FinancialIntelligence(BaseAgent):
+    """A-8. ESPP/tax scenario analysis. Rebuilt 2026-11-15 (brutal-honesty directive) into a
+    planner -> generator -> evaluator harness: plan_finance_checks() decomposes the task,
+    generate_finance_action() drafts ONE concrete one-click action, evaluate_finance_action()
+    grades it against a written rubric using only the generator's output (never its reasoning).
+    Only an evaluator PASS becomes a submitted proposal; a FAIL is reported as an unknown and
+    nothing is proposed - fail-closed, never a simulated recommendation."""
     agent_id = "A-8"
     min_interval_seconds = 12 * 3600   # every 12 hours
     data_classes = ("public", "finance")
+    OUTCOME_PREDICATE = "finance_action_0"       # one proposal per run; see facts.py's finance_claim_N convention
+
+    def __init__(self, ledger=None):
+        """`ledger` is optional ONLY so unit tests that don't need the outcome loop can skip it;
+        every real deployment (scripts/agents_runner.py, scripts/worker_loop.py) injects the real
+        Ledger, exactly like EvidenceVerification(ledger) already does, so the calibration read
+        and the fact assertion below are real, not a stub, in production."""
+        self.ledger = ledger
 
     def run(self, ctx: AgentContext) -> AgentResult:
         rules_path, inputs_path = ctx.rules / "uk_tax_rules.json", ctx.inbox / "espp_inputs.json"
@@ -185,21 +280,47 @@ class FinancialIntelligence(BaseAgent):
         price = min(espp["fmv_start_pence_per_share"], espp["fmv_end_pence_per_share"]) * (10000 - espp["discount_bp"]) // 10000
         if price <= 0:
             raise ValueError("purchase price must be positive")
-        shares = espp["contribution_pence"] // price
-        gain = shares * (espp["fmv_end_pence_per_share"] - price)
-        tax_extra = income_tax(salary + gain, rules) - income_tax(salary, rules)
-        nic_now, nic_after = employee_nic(salary, rules), employee_nic(salary + gain, rules)
-        nic_extra = None if nic_now is None else nic_after - nic_now
-        net = gain - tax_extra - (nic_extra or 0)
         eid = evidence_id("rules", rules["source"] + rules["verified_on"] + rules["tax_year"])
-        claims = [{"text": f"Scenario ({rules['tax_year']} rules verified {rules['verified_on']}): {shares} whole shares, gain {gain}p, extra income tax {tax_extra}p, "
-                           f"extra employee NIC {'not modelled' if nic_extra is None else str(nic_extra) + 'p'}, net after those {net}p", "kind": "inference", "evidence_ids": [eid]}]
+
+        plan = plan_finance_checks(data)
+        proposals = []
+        calibration_note = ""
+        if self.ledger is not None:
+            from .kernel import facts
+            past = facts.recent_outcomes_for_predicate_prefix(self.ledger, "owner", "finance_action_", limit=3)
+            if past:
+                calibration_note = ("Calibration - the owner's last recorded decision(s) on prior "
+                                     "finance_action proposals: " + "; ".join(
+                                         f"{p['outcome']} ({p['note'][:60]})" if p["note"] else p["outcome"]
+                                         for p in past) + ".")
+        proposal = generate_finance_action(data, rules, calibration_note)
+        verdict = evaluate_finance_action(proposal, data)
+        claims = [{"text": proposal["scenario_text"], "kind": "inference", "evidence_ids": [eid]}]
+        if verdict["overall_pass"]:
+            verdict_str = json.dumps({c["criterion"]: c["pass"] for c in verdict["criteria"]})[:400]
+            fact_id = 0
+            if self.ledger is not None:
+                from .kernel import facts
+                fact_id = facts.assert_fact(self.ledger, "owner", self.OUTCOME_PREDICATE, proposal["scenario_text"],
+                                             "A-8:FinancialIntelligence", now=ctx.now)
+            payload = {"action_name": proposal["action_name"], "scenario_text": proposal["scenario_text"],
+                       "gain_pence": proposal["gain_pence"], "tax_pence": proposal["tax_pence"],
+                       "net_pence_clamped": proposal["net_pence_clamped"], "evaluator_verdict": verdict_str,
+                       "fact_id": fact_id}
+            proposals.append({"kind": "finance_action_proposal", "payload": payload, "evidence_ids": [eid]})
+            if fact_id:
+                unknowns.append(f"Record the owner's real decision with: python3 scripts/record_outcome.py "
+                                 f"--fact-id {fact_id} --outcome accepted|rejected|acted_on|ignored")
+        else:
+            failed = [c for c in verdict["criteria"] if not c["pass"]]
+            unknowns.append(f"Evaluator rejected the drafted action on {[c['criterion'] for c in failed]} - "
+                             "fail-closed, nothing proposed: " + "; ".join(c["detail"] for c in failed))
 
         # Both below are OPTIONAL: only computed if the owner supplied the matching rules section
         # (uk_tax_rules.json's "universal_credit"/"mortgage" keys, same source+verified_on
         # discipline) - absent by default, never silently assumed.
         capital_pence = data.get("capital_pence")
-        if capital_pence is not None:
+        if "universal_credit" in plan:
             deduction = uc_capital_deduction(capital_pence, rules)
             if deduction == "NOT_MODELLED":
                 unknowns.append("capital_pence was supplied but uk_tax_rules.json has no 'universal_credit' section - not modelled")
@@ -219,7 +340,7 @@ class FinancialIntelligence(BaseAgent):
                                     f"(source: {rules['source']}, verified {rules['verified_on']}) - not a mortgage offer",
                            "kind": "inference", "evidence_ids": [eid]})
 
-        return AgentResult(contract(self.agent_id, f"A8-{ctx.today}", claims, risks, unknowns, 0.5, [eid]))
+        return AgentResult(contract(self.agent_id, f"A8-{ctx.today}", claims, risks, unknowns, 0.5, [eid]), proposals)
 
 
 class HealthLongevity(BaseAgent):

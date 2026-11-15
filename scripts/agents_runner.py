@@ -83,7 +83,7 @@ def main():
                 # (confidence 0.0, no proposal) until an operator runs
                 # `python3 core/apex/agents_research.py --set-price-millipence N --set-daily-cap-pence N`
                 # once - zero-budget-by-default is untouched by adding it here.
-                agents = [StrategicIntelligence(), CareerIndustry(), FinancialIntelligence(),
+                agents = [StrategicIntelligence(), CareerIndustry(), FinancialIntelligence(ledger),
                           HealthLongevity(), EvidenceVerification(ledger), SocialRelational(),
                           ScientificResearch(budget, ledger)]
                 runner = AgentRunner(ledger, gateway, agents, notifier=make_notifier())

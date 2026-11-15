@@ -535,7 +535,7 @@ def dashboard_payload(root: Path) -> dict:
         except _sqlite3.OperationalError:
             espp_fact = None  # facts table doesn't exist yet (no voice finance request has run) - not an error
     if espp_fact:
-        net_gain_match = _re.search(r"net after those (\d+)p", espp_fact["object"])
+        net_gain_match = _re.search(r"\bnet (\d+)p\b", espp_fact["object"])
     if net_gain_match:
         pounds = int(net_gain_match.group(1)) / 100
         finance_metric_en = f"Net ESPP (last run): £{pounds:,.2f}"

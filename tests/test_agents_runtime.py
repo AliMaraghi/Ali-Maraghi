@@ -112,10 +112,100 @@ class FinancialTests(RuntimeBase):
         (self.root / "inbox" / "espp_inputs.json").write_text(json.dumps(INPUTS))
         agent = FinancialIntelligence()
         text = agent.run(self.ctx).contract["claims"][0]["text"]
-        for part in ("35 whole shares", "gain 61250p", "extra income tax 24500p", "extra employee NIC 1225p", "net after those 35525p"):
+        for part in ("35 whole shares", "gain 61250p", "extra income tax 24500p", "extra employee NIC 1225p", "net 35525p"):
             self.assertIn(part, text)
         self.assertEqual(income_tax(6_000_000, RULES), 1_143_200)
-        self.assertEqual(self.runner([agent]).run_once(self.ctx)[0]["proposals"], [])          # financial output never proposes actions
+
+    def test_evaluator_pass_becomes_one_concrete_one_click_proposal(self):
+        """Brutal-honesty directive (2026-11-15), acceptance criterion A: a concrete one-click
+        action, not a paragraph of commentary, gated on a real evaluator pass."""
+        (self.root / "rules" / "uk_tax_rules.json").write_text(json.dumps(RULES))
+        (self.root / "inbox" / "espp_inputs.json").write_text(json.dumps(INPUTS))
+        agent = FinancialIntelligence()
+        result = agent.run(self.ctx)
+        self.assertEqual(len(result.proposals), 1)
+        payload = result.proposals[0]["payload"]
+        self.assertEqual(result.proposals[0]["kind"], "finance_action_proposal")
+        self.assertEqual(payload["action_name"], "exercise_espp_now")
+        self.assertEqual((payload["gain_pence"], payload["tax_pence"], payload["net_pence_clamped"]), (61250, 24500, 35525))
+        verdict = json.loads(payload["evaluator_verdict"])
+        self.assertTrue(all(verdict.values()))
+        out = self.runner([agent]).run_once(self.ctx)[0]
+        self.assertEqual(len(out["proposals"]), 1)
+        self.assertEqual(out["proposals"][0]["state"], "PENDING")      # still needs the owner's one click - never auto-executed
+
+    def test_proposal_asserts_a_fact_and_the_owners_recorded_outcome_feeds_the_next_proposal(self):
+        """Brutal-honesty directive (2026-11-15), acceptance criterion C: record_outcome.py writes
+        a real decision against this role's own fact, and the NEXT proposal demonstrably reads it -
+        not a passive log nobody consults."""
+        from apex.kernel import facts
+        (self.root / "rules" / "uk_tax_rules.json").write_text(json.dumps(RULES))
+        (self.root / "inbox" / "espp_inputs.json").write_text(json.dumps(INPUTS))
+        agent = FinancialIntelligence(self.ledger)
+        first = agent.run(self.ctx)
+        fact_id = first.proposals[0]["payload"]["fact_id"]
+        self.assertGreater(fact_id, 0)
+        self.assertEqual(facts.query_fact(self.ledger, "owner", "finance_action_0")["id"], fact_id)
+        # The owner's real decision - this is record_outcome.py's own write path, called directly
+        # rather than through argparse/sys.exit, exercising the identical core API.
+        facts.record_outcome(self.ledger, fact_id, "rejected", "waiting for a lower share price", now=2.0)
+        second = agent.run(self.ctx)
+        self.assertIn("Calibration", second.proposals[0]["payload"]["scenario_text"])
+        self.assertIn("rejected", second.proposals[0]["payload"]["scenario_text"])
+
+    def test_without_a_ledger_fact_id_is_zero_and_no_fact_is_fabricated(self):
+        agent = FinancialIntelligence()      # no ledger injected - e.g. a unit test that doesn't need the loop
+        (self.root / "rules" / "uk_tax_rules.json").write_text(json.dumps(RULES))
+        (self.root / "inbox" / "espp_inputs.json").write_text(json.dumps(INPUTS))
+        out = agent.run(self.ctx)
+        self.assertEqual(out.proposals[0]["payload"]["fact_id"], 0)
+
+    def test_evaluator_fail_closed_means_nothing_is_proposed(self):
+        """The evaluator is real, not decorative: feed it a generator whose action uses more than
+        the owner's declared contribution, and confirm the FAIL blocks the proposal."""
+        from apex import agents_impl
+        (self.root / "rules" / "uk_tax_rules.json").write_text(json.dumps(RULES))
+        (self.root / "inbox" / "espp_inputs.json").write_text(json.dumps(INPUTS))
+        proposal = agents_impl.generate_finance_action(INPUTS, RULES)
+        proposal["contribution_used_pence"] = INPUTS["espp"]["contribution_pence"] + 1     # tampered: over budget
+        verdict = agents_impl.evaluate_finance_action(proposal, INPUTS)
+        self.assertFalse(verdict["overall_pass"])
+        by_name = {c["criterion"]: c for c in verdict["criteria"]}
+        self.assertFalse(by_name["within_declared_budget"]["pass"])
+
+    def test_evaluator_returns_a_per_criterion_list_not_a_single_boolean(self):
+        from apex import agents_impl
+        proposal = agents_impl.generate_finance_action(INPUTS, RULES)
+        verdict = agents_impl.evaluate_finance_action(proposal, INPUTS)
+        self.assertIsInstance(verdict["criteria"], list)
+        self.assertEqual(len(verdict["criteria"]), 3)
+        for c in verdict["criteria"]:
+            self.assertEqual(set(c), {"criterion", "pass", "detail"})
+            self.assertIsInstance(c["pass"], bool)
+
+    def test_evaluator_reads_fresh_data_each_call_not_a_cached_or_stale_view(self):
+        """Mutating the proposal AFTER a first evaluation and calling evaluate_finance_action()
+        again must change the verdict - proving the function has no hidden cache and genuinely
+        re-derives its answer from whatever dict it is handed each time."""
+        from apex import agents_impl
+        proposal = agents_impl.generate_finance_action(INPUTS, RULES)
+        first = agents_impl.evaluate_finance_action(proposal, INPUTS)
+        self.assertTrue(first["overall_pass"])
+        proposal["action_name"] = "not_a_real_action"
+        second = agents_impl.evaluate_finance_action(proposal, INPUTS)
+        self.assertFalse(second["overall_pass"])
+        self.assertTrue(first["overall_pass"])     # the EARLIER returned verdict is unaffected by the later mutation
+
+    def test_evaluator_rejects_non_json_safe_input_rather_than_silently_touching_a_live_object(self):
+        """The 'separate context' cut is a hard json.dumps/json.loads boundary (see
+        evaluate_finance_action's docstring) - proof it is real, not decorative: a proposal dict
+        holding a live, non-JSON-serializable object makes the function fail loudly at that
+        boundary, rather than silently operating on a live reference into the generator's state."""
+        from apex import agents_impl
+        proposal = agents_impl.generate_finance_action(INPUTS, RULES)
+        proposal["_live_object"] = object()
+        with self.assertRaises(TypeError):
+            agents_impl.evaluate_finance_action(proposal, INPUTS)
 
     def test_rule_table_without_source_is_rejected(self):
         (self.root / "rules" / "uk_tax_rules.json").write_text(json.dumps({**RULES, "source": ""}))
