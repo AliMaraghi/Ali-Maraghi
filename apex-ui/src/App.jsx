@@ -132,11 +132,29 @@ async function getReply(transcript, lang) {
     });
     const data = await response.json();
     if (!response.ok) {
-      const message = lang === "fa" ? `خطا: ${data.error || response.status}` : `Error: ${data.error || response.status}`;
+      // Mission 2026-11-15 "reconciliation" fix: a 402 from voice_api.py's own Budget
+      // circuit breaker (see its docstring - "fails closed until its daily spend cap is
+      // configured") was previously shown as a generic "Error: 402", easy to mistake for an
+      // unreachable server. It is the opposite: the server IS reachable and IS enforcing the
+      // real spend cap correctly - that is the circuit breaker working as designed, not a bug.
+      const budgetDenied = response.status === 402 || String(data.error || "").startsWith("BUDGET_DENIED");
+      const message = budgetDenied
+        ? (lang === "fa" ? "سقف بودجه روزانه پر شده است." : "Budget Cap Reached.")
+        : (lang === "fa" ? `خطا: ${data.error || response.status}` : `Error: ${data.error || response.status}`);
+      console.error(`apex-ui chat request failed: HTTP ${response.status}`, data.error || "(no error field)");
       return { reply: message, steps: [], isError: true };
     }
     return { reply: data.reply, steps: Array.isArray(data.steps) ? data.steps : [], isError: false };
-  } catch {
+  } catch (err) {
+    // A thrown fetch (as opposed to a non-ok HTTP response above) means the request never
+    // got a response at all - true network failure, DNS failure, OR a CORS preflight
+    // rejection (the browser throws the SAME generic TypeError for all three; it does not
+    // expose which one happened, by design, for security reasons - this is a real browser
+    // limitation, not something this code can see around). Logging the real error object
+    // (not just this generic message) is the one thing that actually helps distinguish them:
+    // a CORS rejection's err.message mentions "CORS" or "Access-Control" on most browsers;
+    // plain network/DNS failure does not.
+    console.error("apex-ui chat request never reached the server (network/DNS/CORS):", err);
     const message = lang === "fa" ? "اتصال به سرور برقرار نشد." : "Could not reach the server.";
     return { reply: message, steps: [], isError: true };
   }

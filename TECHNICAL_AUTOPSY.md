@@ -1,5 +1,15 @@
 # Technical autopsy — digital-twin UI, 2026-11-15
 
+## CORRECTION, appended 2026-11-15, same day
+
+Prior audits claimed the UI and Backend were fake mockups. This was a false conclusion
+caused by incorrect file searching. The `apex-ui` and `voice_api.py` are real, functional
+assets. The frontend connection error was a network/CORS issue, not a structural absence.
+This correction does not change anything below about `digital_twin/phase1_room.html`
+specifically — that file really was what this document says it was, and really was
+deleted. It corrects only the broader claim (made elsewhere in this session, not in this
+file's own text below) that nothing real existed anywhere in the repository.
+
 ## What was deleted
 
 `ARCHIVED_digital_twin_20261115/phase1_room.html` and `test_voice.wav`

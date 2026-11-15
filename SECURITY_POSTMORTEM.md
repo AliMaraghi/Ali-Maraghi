@@ -1,5 +1,21 @@
 # Security/capability postmortem — digital twin UI claims, 2026-11-15
 
+## CORRECTION, appended 2026-11-15, same day
+
+Prior audits in this document (and in `TECHNICAL_AUTOPSY.md`) claimed the UI and backend
+were fake mockups with nothing real connected anywhere in this repository. **This was a
+false conclusion, caused by incorrect file searching** — the audits grepped for specific
+strings and the `digital_twin/` directory only, and never searched `apex-ui/` or
+`scripts/voice_api.py`. `apex-ui/` (a real React/Three.js/VRM/face-api.js/SpeechRecognition
+frontend) and `scripts/voice_api.py` (a real WSGI backend routing through
+`scripts/orchestrator.py` to the real Anthropic API, with real `Budget`/`Ledger`
+enforcement) **are real, functional assets**, confirmed by direct read and by live `curl`
+against their real deployed domains this session. The frontend's "Could not reach the
+server" error was a network/CORS/budget-cap condition, not evidence of a structural
+absence — see `docs/apex_status/COMPANION_PRESENCE_ADDENDUM_20261113.md`'s
+`[CRITICAL SECURITY PATCH]` section for the real, separate finding this correction
+surfaced (no Cloudflare Access gate on `ui.apexcorelab.uk`) and its fix.
+
 ## What actually exists
 
 `ARCHIVED_digital_twin_20261115/phase1_room.html` (previously `digital_twin/phase1_room.html`,

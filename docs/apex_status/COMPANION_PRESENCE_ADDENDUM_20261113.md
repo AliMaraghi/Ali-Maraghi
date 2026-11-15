@@ -185,3 +185,43 @@ Read this AFTER the existing founder manifesto, repository instructions and MAST
 
 وضعیت تحویل این فایل: SPECIFICATION_READY. وضعیت آواتار شخصی، آموزش صوت، اتصال حسگر و داشبورد افزوده: NOT_IMPLEMENTED_BY_THIS_DOCUMENT. هیچ فایل پایهٔ قبلی در این کار ویرایش نشده است.
 
+---
+
+## [CRITICAL SECURITY PATCH] — 2026-11-15, appended (owner's original text above is untouched)
+
+**Finding, verified this session by direct `curl`:** `https://ui.apexcorelab.uk` returns a
+plain `200 OK` with no Cloudflare Access login redirect — confirming the exposure
+`scripts/voice_api.py`'s own docstring has already documented since 2026-11-13: this
+frontend domain has no Access gate in front of it, so anyone on the internet can load the
+UI, not only the owner. The backend domain (`https://api.apexcorelab.uk/api/chat`) is
+separately protected by its own `Budget` circuit breaker (fails closed with HTTP 402 until
+a daily spend cap is configured) and by CORS restricted to `https://ui.apexcorelab.uk`
+specifically (`scripts/voice_api.py`'s `ALLOWED_ORIGIN`, **already correct — not a
+wildcard**, confirmed by reading the file directly; no change was needed there).
+
+**What is NOT fixed by this patch, and why:** binding Cloudflare Access to
+`ui.apexcorelab.uk` is a Cloudflare dashboard action that requires the owner's own
+Cloudflare account — this account has no access to that dashboard and cannot apply it.
+What follows is the exact configuration to apply, for the owner to execute.
+
+**Mitigation — Cloudflare Zero Trust Access policy (apply via the Cloudflare dashboard,
+Zero Trust → Access → Applications → Add an application → Self-hosted):**
+
+```
+Application name:   APEX UI
+Session duration:    24 hours
+Application domain:  ui.apexcorelab.uk
+Path:                 /*            (the whole app, same scope as console.apexcorelab.uk already has)
+
+Policy name:         APEX owner only
+Action:               Allow
+Include rule:         Emails -> <owner's real email address>
+```
+
+This is the identical pattern `console.apexcorelab.uk` already uses (per
+`scripts/voice_api.py`'s own comment: "bound to `ui.apexcorelab.uk` the same way it is
+bound to `console.apexcorelab.uk`") — not a new policy shape, just applying the existing
+one to the second domain. Until the owner applies this, `ui.apexcorelab.uk` remains
+publicly loadable by anyone with the URL; the backend's own budget cap and CORS are real
+mitigations already in place but do not substitute for gating the frontend itself.
+
