@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "core"))
 
 from apex import agents_governing, private_token, rss, telegram_bot    # noqa: E402
+from apex.action_domains import bills, calendar, email as email_domain, router  # noqa: E402
 from apex.agents_impl import CareerIndustry, EvidenceVerification, FinancialIntelligence, HealthLongevity, SocialRelational, StrategicIntelligence      # noqa: E402
 from apex.agents_research import ScientificResearch                     # noqa: E402
 from apex.agents_runtime import AgentContext, AgentRunner               # noqa: E402
@@ -51,6 +52,36 @@ def make_notifier():
         text = telegram_bot.approval_notification(proposal_id, kind.replace("_", " "), "within 24 hours", CONSOLE)
         telegram_bot.send_message(token, chat_id, text, telegram_bot.live_transport, {chat_id})
     return notify
+
+
+_DOMAIN_MODULES = {
+    router.Domain.BILLS: (bills, "runtime/inbox/bills.json"),
+    router.Domain.EMAIL: (email_domain, "runtime/inbox/email_inbox.json"),
+    router.Domain.CALENDAR: (calendar, "runtime/inbox/calendar_conflict.json"),
+}
+
+
+def run_domains():
+    """Multi-domain scaffolding, single-domain activation (mission 2026-11-15). For each of
+    the 3 domains, either skip it (printing the exact [SKIPPED] line the mission specifies,
+    if it is not router.ACTIVE_DOMAIN) or run its planner/generator/evaluator against its
+    synthetic inbox file (if present) and print the resulting proposal. Returns the list of
+    printed lines for the caller's own log, in case it wants them."""
+    printed = []
+    for domain, (module, rel_path) in _DOMAIN_MODULES.items():
+        if not router.is_active(domain):
+            line = router.skip_message(domain)
+            print(line, flush=True)
+            printed.append(line)
+            continue
+        proposal = module.make_proposal(ROOT / rel_path)
+        if proposal is None:
+            line = f"[ACTIVE] Domain {domain.value} has no synthetic input at {rel_path} - nothing to propose"
+        else:
+            line = json.dumps({"domain": domain.value, "proposal": proposal.__dict__})
+        print(line, flush=True)
+        printed.append(line)
+    return printed
 
 
 def cycle(ledger, runner):
@@ -115,6 +146,7 @@ def main():
                     observability.record_run(ROOT / "runtime" / "observability.jsonl",
                                              [r["agent"] for r in runs], ok, (time.time() - start) * 1000)
                 print(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "runs": runs}), flush=True)
+                run_domains()
             except PermissionError as exc:
                 observability.record_run(ROOT / "runtime" / "observability.jsonl", [], False, 0.0)
                 print(json.dumps({"stopped": str(exc)}), flush=True)
