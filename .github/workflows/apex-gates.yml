@@ -1,0 +1,48 @@
+name: apex-gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Nightly, code-only - no real data, no secrets. See deploy/user/apex-nightly.*
+    # for the SEPARATE, owner-machine-only layer that runs against real data.
+    - cron: '0 4 * * *'
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    # No secrets are declared or referenced anywhere in this workflow. If a future
+    # change needs one, that change is wrong - remove it instead (brutal-honesty
+    # directive, 2026-11-15, Layer 2 hard boundary).
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refuse to run if runtime/ exists in the checkout (hard fail, not a warning)
+        run: |
+          if [ -d runtime ]; then
+            echo "HARD FAIL: runtime/ exists in this checkout - refusing to run (data-leak boundary)"
+            exit 1
+          fi
+          echo "OK: runtime/ does not exist in this checkout"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install cryptography
+
+      - name: Full offline test suite
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -B scripts/test_offline.py
+
+      - name: Sandbox tests (Phase F)
+        run: PYTHONPATH=core PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest tests.test_sandbox -v
+
+      - name: Isolation / tiering / capability-token tests
+        run: |
+          PYTHONPATH=core PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest \
+            tests.test_tiering tests.test_capability_tokens tests.test_persona tests.test_dpif_v1 -v
+
+      - name: Gate check (always_allow, synthetic disclosure, kill switch - hard fail on regression)
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -B .github/scripts/gate_check.py

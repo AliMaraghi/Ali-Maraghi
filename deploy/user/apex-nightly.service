@@ -1,0 +1,7 @@
+[Unit]
+Description=APEX nightly agents run + outcome check (user-level, no root, no sudo)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/nightly_run.py
+Environment=PYTHONDONTWRITEBYTECODE=1
