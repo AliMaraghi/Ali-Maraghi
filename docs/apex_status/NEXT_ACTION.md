@@ -44,3 +44,15 @@ directive commits 56802ce..2ba34ae). Do not invent the next work item; return to
 idle and wait for the owner. See docs/capability_ledger.md for Section II tool
 status (zero external tools connected) and AGENTS.md's "Communication style"
 section for the binding response style.
+
+2026-11-15 (kernel/runtime phases 1-4, commits 80ef0e0..08fb146): audit-chain
+tamper detection + signed Budget pricing (Phase 4), scheduler with pluggable
+event sources/priority queue/cooperative preemption/crash-resumption (Phase 1,
+proven on an accelerated clock; real 7-day soak is owner-gated, see
+SCHEDULER_7_DAY_SOAK_RUNBOOK.md), driver model with manifest registration/
+permission check/hot-swap, A-10 migrated as proof only (Phase 2), and capability
+tokens named/proven against the ALREADY-EXISTING ApprovalBook issue()/approve()
+mechanism, not a new parallel system (Phase 3). 695 tests run, 693 passed, 2
+skipped, 0 failures. A and C remain owner-gated, untouched. Known un-enumerated
+gap carried forward: I4 (every IsolationError read path) was never separately
+enumerated across these four phases - do not claim it closed.
