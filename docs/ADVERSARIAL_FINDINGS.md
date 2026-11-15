@@ -1,4 +1,4 @@
-# Adversarial findings — A-17, 2026-11-15
+# Adversarial findings — A-17, 2026-11-15 (P-4 CLOSED same day, see bottom)
 
 Still SPEC_ONLY in `core/apex/agents_governing.py` (this module exists and is tested; it is
 not wired into `agents_runner.py` and that status was not flipped). Code:
@@ -74,3 +74,32 @@ explicit denylist for non-Python subtrees under the same prefix.
 - **P-7/P-8:** attempting execution of an unapproved proposal is blocked independently at
   both `ActionGateway.execute` and `ApprovalBook.execute` — confirms the defense-in-depth
   property an earlier session's own audit first identified still holds.
+
+## P-4 CLOSED — Phase 5, same day
+
+Fixed in `core/apex/kernel/sandbox.py`: the allowlist no longer uses
+`(sys.base_prefix, sys.prefix, sys.exec_prefix)` (a coarse prefix match that happened to
+equal `/usr` on this machine). It now uses `sysconfig.get_paths()`'s `stdlib`,
+`platstdlib`, `purelib`, `platlib`, `include`, `platinclude` entries specifically —
+deliberately excluding `sysconfig`'s own `data` and `scripts` entries, which point at
+`sys.prefix`-rooted directories (`/usr/local`, `/usr/local/bin`) just as broad as the bug
+being fixed.
+
+**Before (same probe, same machine):**
+```
+sandbox.run_in_sandbox("print(open('/usr/share/zoneinfo/UTC', 'rb').read(8))")
+-> crashed=False, exit_code=0, stdout="b'TZif2\x00\x00\x00'\n"
+```
+
+**After:**
+```
+sandbox.run_in_sandbox("print(open('/usr/share/zoneinfo/UTC', 'rb').read(8))")
+-> crashed=True, exit_code=1
+   stderr: PermissionError: SANDBOX_FS_DENIED:/usr/share/zoneinfo/Etc/UTC
+```
+
+Regression check: all 11 pre-existing `tests/test_sandbox.py` tests still pass unchanged
+(ordinary stdlib imports inside the sandbox still work — the fix narrows the allowlist to
+the real stdlib paths, it doesn't remove stdlib access). All 8 `tests/test_adversarial_evaluation.py`
+probes now PASS, including P-4 itself, confirmed by actually rerunning the probe against the
+patched code, not by inspection.

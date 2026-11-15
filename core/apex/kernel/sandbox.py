@@ -34,6 +34,7 @@ from __future__ import annotations
 import resource
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import time
 from pathlib import Path
@@ -78,6 +79,20 @@ def _limits():
     return _set
 
 
+def _stdlib_allowlist() -> tuple[str, ...]:
+    """FINDING P-4 fix (docs/ADVERSARIAL_FINDINGS.md, 2026-11-15): the previous allowlist was
+    `(sys.base_prefix, sys.prefix, sys.exec_prefix)`, a PREFIX check - on a standard Linux
+    install these are frequently "/usr", which let sandboxed code read any world-readable
+    file anywhere under /usr (e.g. /usr/share/zoneinfo/UTC), not just Python's own files, in
+    direct contradiction of this module's own docstring. `sysconfig.get_paths()` gives the
+    actual stdlib/platstdlib/purelib/platlib/include directories specifically - deliberately
+    EXCLUDING its 'data' and 'scripts' entries, which point at sys.prefix-rooted directories
+    (e.g. /usr/local, /usr/local/bin) just as broad as the bug being fixed."""
+    paths = sysconfig.get_paths()
+    keys = ("stdlib", "platstdlib", "purelib", "platlib", "include", "platinclude")
+    return tuple(sorted({paths[k] for k in keys if k in paths}))
+
+
 def run_in_sandbox(code: str, timeout: float = TIMEOUT_SECONDS) -> dict:
     """Runs `code` as the entire body of a throwaway subprocess with no network,
     no inherited secrets and filesystem access confined to a fresh scratch
@@ -92,7 +107,7 @@ def run_in_sandbox(code: str, timeout: float = TIMEOUT_SECONDS) -> dict:
         real_dir = str(Path(sandbox_dir).resolve())
         candidate_path = Path(sandbox_dir) / "candidate.py"
         candidate_path.write_text(code, encoding="utf-8")
-        allowed = (real_dir, sys.base_prefix, sys.prefix, sys.exec_prefix)
+        allowed = (real_dir,) + _stdlib_allowlist()
         preamble = _PREAMBLE.format(allowed=allowed, network=_BLOCKED_NETWORK, shell=_BLOCKED_SHELL)
         wrapper_path = Path(sandbox_dir) / "_run.py"
         wrapper_path.write_text(

@@ -43,25 +43,27 @@ class AdversarialEvaluationTests(unittest.TestCase):
         self._probe_tmps = getattr(self, "_probe_tmps", []) + [probe_tmp]
         return Ledger(Path(probe_tmp.name))
 
-    def test_suite_runs_and_finds_at_least_one_real_finding(self):
+    def test_suite_runs_all_eight_probes(self):
         results = a17.run_all(sandbox, facts, self.ledger_factory, self.gateway, self.priv, self.pub)
         self.assertEqual(len(results), 8)
-        findings = [r for r in results if r.verdict == "FINDING"]
-        self.assertGreaterEqual(len(findings), 1, "probe suite found zero findings - too weak, per the mission's own gate")
         for r in results:
             self.assertIn(r.verdict, ("PASS", "FINDING"))
             self.assertTrue(r.detail)
 
-    def test_the_specific_finding_is_the_sandbox_fs_prefix_overbreadth(self):
+    def test_p4_is_now_closed_after_the_sandbox_fix(self):
+        """P-4 found a real MEDIUM finding (docs/ADVERSARIAL_FINDINGS.md) - sandbox.py's
+        FS allowlist was fixed (Phase 5, same day) to use sysconfig's specific stdlib paths
+        instead of the overbroad sys.prefix family. Rerunning the same probe now PASSes -
+        this is the expected post-fix state, not a weaker gate: the probe still actually
+        attempts the same read and would re-report FINDING if the fix regressed."""
         results = a17.run_all(sandbox, facts, self.ledger_factory, self.gateway, self.priv, self.pub)
         by_id = {r.probe_id: r for r in results}
-        self.assertEqual(by_id["P-4"].verdict, "FINDING")
-        self.assertEqual(by_id["P-4"].severity, "MEDIUM")
+        self.assertEqual(by_id["P-4"].verdict, "PASS", by_id["P-4"].detail)
 
-    def test_the_seven_other_probes_pass_against_the_real_kernel(self):
+    def test_all_eight_probes_pass_against_the_patched_kernel(self):
         results = a17.run_all(sandbox, facts, self.ledger_factory, self.gateway, self.priv, self.pub)
         by_id = {r.probe_id: r for r in results}
-        for pid in ("P-1", "P-2", "P-3", "P-5", "P-6", "P-7", "P-8"):
+        for pid in ("P-1", "P-2", "P-3", "P-4", "P-5", "P-6", "P-7", "P-8"):
             self.assertEqual(by_id[pid].verdict, "PASS", f"{pid}: {by_id[pid].detail}")
 
 
