@@ -25,19 +25,24 @@ _OUTCOMES = frozenset({"accepted", "rejected", "acted_on", "ignored"})
 _GENESIS = "0" * 64
 
 
+_DATA_CLASSES = ("PUBLIC", "FINANCE", "MEDICAL")
+
+
 def _ensure_facts_table(ledger):
-    ledger.db.execute("""
+    ledger.db.execute(f"""
         CREATE TABLE IF NOT EXISTS facts (
           id INTEGER PRIMARY KEY, subject TEXT NOT NULL, predicate TEXT NOT NULL,
           object TEXT NOT NULL, source TEXT NOT NULL, asserted_at REAL NOT NULL,
-          owner_sig TEXT, prev_hash TEXT)
+          owner_sig TEXT, prev_hash TEXT,
+          data_class TEXT NOT NULL DEFAULT 'PUBLIC' CHECK (data_class IN {_DATA_CLASSES}))
     """)
     ledger.db.execute("CREATE INDEX IF NOT EXISTS facts_subject_predicate ON facts(subject, predicate, asserted_at DESC)")
-    # Additive, idempotent migration for a facts table created before owner_sig/prev_hash
-    # existed - CREATE TABLE IF NOT EXISTS above is a no-op on an existing table, so these
-    # columns would otherwise never appear on it. "Already exists" is swallowed; anything
-    # else is a real error and must surface.
-    for column in ("owner_sig TEXT", "prev_hash TEXT"):
+    # Additive, idempotent migration for a facts table created before these columns existed -
+    # CREATE TABLE IF NOT EXISTS above is a no-op on an existing table, so they would
+    # otherwise never appear on it. "Already exists" is swallowed; anything else is a real
+    # error and must surface. Existing rows default to PUBLIC, same as the CREATE above.
+    for column in ("owner_sig TEXT", "prev_hash TEXT",
+                   f"data_class TEXT NOT NULL DEFAULT 'PUBLIC' CHECK (data_class IN {_DATA_CLASSES})"):
         try:
             ledger.db.execute(f"ALTER TABLE facts ADD COLUMN {column}")
         except sqlite3.OperationalError as exc:
@@ -45,14 +50,16 @@ def _ensure_facts_table(ledger):
                 raise
 
 
-def _chain_value(fact_id, subject, predicate, obj, source, asserted_at, prev_hash) -> str:
+def _chain_value(fact_id, subject, predicate, obj, source, asserted_at, prev_hash, data_class) -> str:
     """The facts-table hash chain, reusing memory.py's Ledger.digest() VERBATIM (same
     staticmethod, same sha256(canonical([...])) pattern already proven for the events
     table) rather than a redesigned algorithm - just fed fact-shaped values instead of
     event-shaped ones. digest() performs no domain/kind validation of its own; it is a pure
-    hash function over whatever five-plus-previous values it is given."""
+    hash function over whatever five-plus-previous values it is given. data_class is part
+    of the chained content so a classification cannot be silently edited without breaking
+    the chain either, same as every other field here."""
     return _LedgerForDigest.digest(fact_id, f"{subject}|{predicate}", "fact", "fact",
-                                   canonical([obj, source, asserted_at]), prev_hash)
+                                   canonical([obj, source, asserted_at, data_class]), prev_hash)
 
 
 def _ensure_outcomes_table(ledger):
@@ -69,14 +76,21 @@ def _nonempty_str(value, name):
     return value
 
 
-def assert_fact(ledger, subject: str, predicate: str, obj: str, source: str, now: float | None = None) -> int:
+def assert_fact(ledger, subject: str, predicate: str, obj: str, source: str,
+                data_class: str = "PUBLIC", now: float | None = None) -> int:
+    """data_class is OPTIONAL here (defaults to PUBLIC, the table's own column default) -
+    unlike assert_signed_fact, where it is mandatory with no default. Every pre-existing
+    caller of this function is unaffected: passing nothing still yields PUBLIC exactly as
+    before this parameter existed."""
     _nonempty_str(subject, "subject"), _nonempty_str(predicate, "predicate")
     _nonempty_str(obj, "object"), _nonempty_str(source, "source")
+    if data_class not in _DATA_CLASSES:
+        raise ValueError(f"data_class must be one of {_DATA_CLASSES}")
     _ensure_facts_table(ledger)
     now = time.time() if now is None else now
     cur = ledger.db.execute(
-        "INSERT INTO facts (subject, predicate, object, source, asserted_at) VALUES (?,?,?,?,?)",
-        (subject, predicate, obj, source, now))
+        "INSERT INTO facts (subject, predicate, object, source, asserted_at, data_class) VALUES (?,?,?,?,?,?)",
+        (subject, predicate, obj, source, now, data_class))
     return cur.lastrowid
 
 
@@ -85,21 +99,23 @@ def get_fact(ledger, fact_id: int) -> dict | None:
     against a SPECIFIC fact rather than scanning a whole history list."""
     _ensure_facts_table(ledger)
     row = ledger.db.execute(
-        "SELECT subject, predicate, object, source, asserted_at FROM facts WHERE id=?", (fact_id,)).fetchone()
+        "SELECT subject, predicate, object, source, asserted_at, data_class FROM facts WHERE id=?", (fact_id,)).fetchone()
     if row is None:
         return None
-    return {"id": fact_id, "subject": row[0], "predicate": row[1], "object": row[2], "source": row[3], "asserted_at": row[4]}
+    return {"id": fact_id, "subject": row[0], "predicate": row[1], "object": row[2], "source": row[3],
+            "asserted_at": row[4], "data_class": row[5]}
 
 
 def query_fact(ledger, subject: str, predicate: str) -> dict | None:
     """The CURRENT value: the most recent assertion, or None if nothing was ever asserted."""
     _ensure_facts_table(ledger)
     row = ledger.db.execute(
-        "SELECT id, object, source, asserted_at FROM facts WHERE subject=? AND predicate=? "
+        "SELECT id, object, source, asserted_at, data_class FROM facts WHERE subject=? AND predicate=? "
         "ORDER BY asserted_at DESC, id DESC LIMIT 1", (subject, predicate)).fetchone()
     if row is None:
         return None
-    return {"id": row[0], "subject": subject, "predicate": predicate, "object": row[1], "source": row[2], "asserted_at": row[3]}
+    return {"id": row[0], "subject": subject, "predicate": predicate, "object": row[1], "source": row[2],
+            "asserted_at": row[3], "data_class": row[4]}
 
 
 def fact_history(ledger, subject: str, predicate: str, limit: int = 50) -> list:
@@ -109,22 +125,28 @@ def fact_history(ledger, subject: str, predicate: str, limit: int = 50) -> list:
     if not 1 <= limit <= 500:
         raise ValueError("limit out of bounds")
     rows = ledger.db.execute(
-        "SELECT id, object, source, asserted_at FROM facts WHERE subject=? AND predicate=? "
+        "SELECT id, object, source, asserted_at, data_class FROM facts WHERE subject=? AND predicate=? "
         "ORDER BY asserted_at DESC, id DESC LIMIT ?", (subject, predicate, limit)).fetchall()
-    return [{"id": r[0], "subject": subject, "predicate": predicate, "object": r[1], "source": r[2], "asserted_at": r[3]} for r in rows]
+    return [{"id": r[0], "subject": subject, "predicate": predicate, "object": r[1], "source": r[2],
+            "asserted_at": r[3], "data_class": r[4]} for r in rows]
 
 
 def assert_signed_fact(ledger, subject: str, predicate: str, obj: str, source: str,
-                       private_key_bytes: bytes, now: float | None = None) -> int:
+                       data_class: str, private_key_bytes: bytes, now: float | None = None) -> int:
     """Opt-in signed variant of assert_fact() - no existing caller of assert_fact() is
     affected; owner_sig/prev_hash stay NULL on every unsigned fact exactly as before.
+    `data_class` is MANDATORY and has no default - callers must declare PUBLIC/FINANCE/
+    MEDICAL explicitly; there is no silent fallback that could leave a sensitive fact
+    miscategorised by omission.
 
     Ordering, made explicit per the brutal-honesty directive's Amendment 3: the timestamp is
     finalized FIRST (`now` resolved to a concrete float before anything else runs), then the
     hash-chain link is read, THEN the signature is computed over the now-fixed tuple
-    (subject, predicate, obj, source, asserted_at, prev_hash), and only then is the row
-    inserted. Signing over a value that could still change after the fact would make the
-    signature meaningless; this function cannot do that by construction.
+    (subject, predicate, obj, source, data_class, asserted_at, prev_hash), and only then is
+    the row inserted. Signing over a value that could still change after the fact would make
+    the signature meaningless; this function cannot do that by construction. data_class is
+    included in the signed payload (and the chain value) so a classification cannot be
+    silently downgraded (e.g. FINANCE -> PUBLIC) without invalidating the signature.
 
     `private_key_bytes` is supplied by the CALLER for this one call only. This function
     never reads a key from disk, never writes one to disk, and never logs one - the real
@@ -132,6 +154,8 @@ def assert_signed_fact(ledger, subject: str, predicate: str, obj: str, source: s
     machine and is handed in by whatever process already holds it."""
     _nonempty_str(subject, "subject"), _nonempty_str(predicate, "predicate")
     _nonempty_str(obj, "object"), _nonempty_str(source, "source")
+    if data_class not in _DATA_CLASSES:
+        raise ValueError(f"data_class must be one of {_DATA_CLASSES}")
     if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
         raise ValueError("private_key_bytes must be 32 raw bytes")
     _ensure_facts_table(ledger)
@@ -141,55 +165,63 @@ def assert_signed_fact(ledger, subject: str, predicate: str, obj: str, source: s
         # assert_fact() call carries no chain link at all - see verify_fact_chain's
         # matching skip-unsigned behaviour below); this keeps the two in agreement.
         last_signed = ledger.db.execute(
-            "SELECT id, subject, predicate, object, source, asserted_at, prev_hash "
+            "SELECT id, subject, predicate, object, source, asserted_at, prev_hash, data_class "
             "FROM facts WHERE owner_sig IS NOT NULL ORDER BY id DESC LIMIT 1").fetchone()
         prev_hash = _GENESIS if last_signed is None else _chain_value(*last_signed)
         owner_sig = signing.sign_payload(private_key_bytes, subject, predicate, obj, source,
-                                         asserted_at, prev_hash).hex()
+                                         data_class, asserted_at, prev_hash).hex()
         cur = ledger.db.execute(
-            "INSERT INTO facts (subject, predicate, object, source, asserted_at, owner_sig, prev_hash) "
-            "VALUES (?,?,?,?,?,?,?)",
-            (subject, predicate, obj, source, asserted_at, owner_sig, prev_hash))
+            "INSERT INTO facts (subject, predicate, object, source, asserted_at, owner_sig, prev_hash, data_class) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            (subject, predicate, obj, source, asserted_at, owner_sig, prev_hash, data_class))
         return cur.lastrowid
 
 
 def verify_fact_signature(ledger, fact_id: int, public_key_bytes: bytes) -> bool:
     """Re-queries the CURRENT row from the database (Amendment 3: not a cached value from
     assertion time), recomputes the signature payload over the row's current
-    (subject, predicate, obj, source, asserted_at, prev_hash), and compares to the stored
-    owner_sig. Returns False - never raises, never "unverifiable" - for: no such fact, an
-    unsigned fact (owner_sig is NULL), or any tampering of any one of those six fields."""
+    (subject, predicate, obj, source, data_class, asserted_at, prev_hash), and compares to
+    the stored owner_sig. Returns False - never raises, never "unverifiable" - for: no such
+    fact, an unsigned fact (owner_sig is NULL), or any tampering of any one of those seven
+    fields, data_class included."""
     _ensure_facts_table(ledger)
     row = ledger.db.execute(
-        "SELECT subject, predicate, object, source, asserted_at, owner_sig, prev_hash "
+        "SELECT subject, predicate, object, source, asserted_at, owner_sig, prev_hash, data_class "
         "FROM facts WHERE id=?", (fact_id,)).fetchone()
     if row is None or row[5] is None:
         return False
-    subject, predicate, obj, source, asserted_at, owner_sig, prev_hash = row
+    subject, predicate, obj, source, asserted_at, owner_sig, prev_hash, data_class = row
     try:
         signature = bytes.fromhex(owner_sig)
     except ValueError:
         return False
     return signing.verify_payload(public_key_bytes, signature, subject, predicate, obj,
-                                  source, asserted_at, prev_hash)
+                                  source, data_class, asserted_at, prev_hash)
 
 
-def verify_fact_chain(ledger) -> dict:
+def verify_fact_chain(ledger, public_key_bytes: bytes) -> dict:
     """The facts-table counterpart to Ledger.audit_chain() (Phase 4): an O(n) walk from
     genesis that NEVER raises, returning {"ok","length","first_broken_id","reason"} - the
-    first broken id, not a boolean. Detects an in-place edit (DIGEST_MISMATCH via the next
-    row's prev_hash no longer matching), a deleted row (GAP, since the deletion removes the
-    link the next row's prev_hash depended on) and reordering (PREV_HASH_MISMATCH)."""
+    first broken id, not a boolean. Each SIGNED record must pass TWO checks, in order:
+    (1) its stored prev_hash matches the chain value computed from the previous signed
+    record (hash-chain continuity - catches deletion/reordering, reason PREV_HASH_MISMATCH),
+    and (2) verify_fact_signature() against the given public key (content authenticity -
+    catches an in-place edit whose downstream prev_hash was ALSO recomputed to stay
+    consistent, which defeats the hash chain alone but not a signature computed over the
+    ORIGINAL content; reason SIGNATURE_INVALID). An unsigned fact (owner_sig IS NULL) carries
+    no chain link and is skipped, exactly as before - neither check applies to it."""
     expected_prev, length = _GENESIS, 0
     rows = ledger.db.execute(
-        "SELECT id, subject, predicate, object, source, asserted_at, prev_hash "
+        "SELECT id, subject, predicate, object, source, asserted_at, prev_hash, data_class "
         "FROM facts ORDER BY id").fetchall()
     for row in rows:
-        fact_id, subject, predicate, obj, source, asserted_at, prev_hash = row
+        fact_id, subject, predicate, obj, source, asserted_at, prev_hash, data_class = row
         if prev_hash is None:
             continue                     # an unsigned fact carries no chain link - skipped, not a break
         if prev_hash != expected_prev:
             return {"ok": False, "length": length, "first_broken_id": fact_id, "reason": "PREV_HASH_MISMATCH"}
+        if not verify_fact_signature(ledger, fact_id, public_key_bytes):
+            return {"ok": False, "length": length, "first_broken_id": fact_id, "reason": "SIGNATURE_INVALID"}
         expected_prev = _chain_value(*row)
         length += 1
     return {"ok": True, "length": length, "first_broken_id": None, "reason": None}

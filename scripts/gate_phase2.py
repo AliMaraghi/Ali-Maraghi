@@ -41,7 +41,7 @@ def step1():
         persona.write_persona_card(ledger, "owner", "Owner", "male", True,
                                    "I am an authorised synthetic representation of the owner.", "owner")
         fact_id = facts.assert_signed_fact(ledger, "owner", "preference", "prefers British English",
-                                           "owner", private_key, now=1000.0)
+                                           "owner", "PUBLIC", private_key, now=1000.0)
     PUBKEY_FILE.write_text(public_key.hex())
     FACT_ID_FILE.write_text(str(fact_id))
     print(f"STEP1 fact_id={fact_id} public_key_hex={public_key.hex()}")
@@ -93,9 +93,10 @@ def chain_test():
     with Ledger(chain_root) as ledger:
         persona.write_persona_card(ledger, "owner", "Owner", "male", True,
                                    "I am an authorised synthetic representation of the owner.", "owner")
-        f1 = facts.assert_signed_fact(ledger, "owner", "preference_1", "likes tea", "owner", private_key, now=1.0)
-        f2 = facts.assert_signed_fact(ledger, "owner", "preference_2", "likes rain", "owner", private_key, now=2.0)
-        clean = facts.verify_fact_chain(ledger)
+        f1 = facts.assert_signed_fact(ledger, "owner", "preference_1", "likes tea", "owner", "PUBLIC", private_key, now=1.0)
+        f2 = facts.assert_signed_fact(ledger, "owner", "preference_2", "likes rain", "owner", "PUBLIC", private_key, now=2.0)
+        public_key = budget_signing.public_key_for(private_key)
+        clean = facts.verify_fact_chain(ledger, public_key)
     print(f"CHAINTEST before_delete f1={f1} f2={f2} chain={clean}")
     print("CHAINTEST clean_chain_ok=" + str(clean["ok"]))
 
@@ -106,7 +107,7 @@ def chain_test():
     raw.close()
 
     with Ledger.read_only(chain_root) as ledger:
-        broken = facts.verify_fact_chain(ledger)
+        broken = facts.verify_fact_chain(ledger, public_key)
     print(f"CHAINTEST after_delete_f1 chain={broken}")
     detected = (not broken["ok"]) and broken["first_broken_id"] == f2
     print(f"CHAINTEST deletion_detected={not broken['ok']} first_broken_id={broken['first_broken_id']} expected={f2}")

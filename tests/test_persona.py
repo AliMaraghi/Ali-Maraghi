@@ -66,28 +66,31 @@ class MemoryIsolationTests(PersonaBase):
             persona.remember(self.ledger, "owner_twin", "x", "public", "voice")
 
     def test_a_persona_always_reads_its_own_shared_and_private_memories(self):
-        persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
-        persona.remember(self.ledger, "owner_twin", "owner's private worry about work", persona.PRIVATE, "voice", now=3.0)
-        own = persona.recall(self.ledger, "owner_twin", "owner_twin")
-        texts = [m["object"] for m in own]
-        self.assertIn("owner likes climbing", texts)
-        self.assertIn("owner's private worry about work", texts)
+        shared_id = persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
+        private_id = persona.remember(self.ledger, "owner_twin", "owner's private worry about work",
+                                      persona.PRIVATE, "voice", now=3.0)
+        self.assertEqual(persona.recall_fact(self.ledger, "owner_twin", shared_id)["object"], "owner likes climbing")
+        self.assertEqual(persona.recall_fact(self.ledger, "owner_twin", private_id)["object"],
+                         "owner's private worry about work")
 
     def test_another_persona_can_read_only_what_was_shared(self):
-        persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
-        persona.remember(self.ledger, "owner_twin", "owner's private worry about work", persona.PRIVATE, "voice", now=3.0)
-        companion_view = persona.recall(self.ledger, "companion", "owner_twin")
-        texts = [m["object"] for m in companion_view]
-        self.assertIn("owner likes climbing", texts)
-        self.assertNotIn("owner's private worry about work", texts)     # the enforced boundary
-
-    def test_recall_from_an_unregistered_reading_persona_is_refused_not_silently_empty(self):
+        shared_id = persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
+        private_id = persona.remember(self.ledger, "owner_twin", "owner's private worry about work",
+                                      persona.PRIVATE, "voice", now=3.0)
+        self.assertEqual(persona.recall_fact(self.ledger, "companion", shared_id)["object"], "owner likes climbing")
         with self.assertRaises(persona.PersonaIsolationError):
-            persona.recall(self.ledger, "unregistered_persona", "owner_twin")
+            persona.recall_fact(self.ledger, "companion", private_id)     # the enforced boundary
 
-    def test_recall_of_an_unregistered_owning_persona_is_refused_not_silently_empty(self):
+    def test_recall_fact_from_an_unregistered_reading_persona_is_refused(self):
+        shared_id = persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)
         with self.assertRaises(persona.PersonaIsolationError):
-            persona.recall(self.ledger, "owner_twin", "unregistered_persona")
+            persona.recall_fact(self.ledger, "unregistered_persona", shared_id)
+
+    def test_recall_is_removed_and_raises_not_implemented(self):
+        """GAP 2 (brutal-honesty directive, 2026-11-15): the old whole-history recall()
+        silently filtered access-denied into an empty list - removed outright."""
+        with self.assertRaises(NotImplementedError):
+            persona.recall(self.ledger, "owner_twin", "owner_twin")
 
 
 class ExportTests(PersonaBase):
