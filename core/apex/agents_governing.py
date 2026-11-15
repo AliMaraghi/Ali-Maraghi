@@ -61,16 +61,24 @@ assert len(ROLES) == 18
 # by agent_id, because two of the four named systems (mutual_match_platform, marketing_funnel,
 # webxr_twin) are not agents_runner.py roles at all - see docs/FROZEN_SYSTEMS.md for why.
 FROZEN = {
-    "financial_intelligence": "Not the active system per docs/ACTIVE_SYSTEM.md - A-10 is the "
-                               "sole active system during the 21-day measurement window.",
-    "mutual_match_platform": "Never registered as a runtime agent in agents_runner.py (a "
-                              "separate standalone prototype module, mutual_match_platform/) "
-                              "- frozen here means marked inactive in docs, not disabled code.",
+    # Superseded 2026-11-15, same day: the prior FROZEN set here was
+    # {financial_intelligence, mutual_match_platform, marketing_funnel, webxr_twin}.
+    # A later mission this same session named a different exact 4 - digital_twin (renamed
+    # from webxr_twin), marketing_funnel, mutual_match_platform, adult_social_assist - and
+    # did not name financial_intelligence, so financial_intelligence is UNFROZEN below. This
+    # replaces, not adds to, the earlier set - see docs/FROZEN_SYSTEMS.md for the correction.
+    "digital_twin": "High-risk identity mimicry (face/voice); replaced by a lower-risk "
+                     "textual behavioral signature (core/apex/kernel/behavioral_signature.py) "
+                     "- frozen, will not be unfrozen.",
     "marketing_funnel": "Static content only (docs/marketing_funnel_apex.md), never a "
                          "runtime agent - frozen here means marked inactive in docs, not "
                          "disabled code.",
-    "webxr_twin": "Static page only (digital_twin/phase1_room.html), never a runtime agent "
-                  "- frozen here means marked inactive in docs, not disabled code.",
+    "mutual_match_platform": "Never registered as a runtime agent in agents_runner.py (a "
+                              "separate standalone prototype module, mutual_match_platform/) "
+                              "- frozen here means marked inactive in docs, not disabled code.",
+    "adult_social_assist": "Never registered as a runtime agent in agents_runner.py (a "
+                            "separate module, core/apex/adult_social_assist.py) - frozen here "
+                            "means marked inactive in docs, not disabled code.",
 }
 
 
