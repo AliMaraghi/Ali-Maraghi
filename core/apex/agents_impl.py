@@ -12,10 +12,11 @@ import json
 import re
 from collections import Counter
 
-from . import health_labs, rss
+from . import health_labs, relationship_assist, rss
 from .agents_runtime import AgentContext, AgentResult, BaseAgent, contract, evidence_id
 
 MAX_LAB_RESULTS = 500
+MAX_SOCIAL_ITEMS = 50
 
 STOP = frozenset("with from that this their into using based towards toward over under between via for and the are our how can new use study analysis approach method model models learning".split())
 JOB_TITLE_WEIGHTS = {"procurement": 3, "sourcing": 2, "supply chain": 2, "operations": 2, "purchasing": 2, "category": 1, "vendor": 1}
@@ -298,3 +299,81 @@ class EvidenceVerification(BaseAgent):
         return AgentResult(contract(self.agent_id, f"A3-{ctx.today}", claims,
                                     ["Surfaces contradictions only - resolves nothing and picks no value as correct"],
                                     [], 1.0, evidence))
+
+
+class SocialRelational(BaseAgent):
+    """A-10 (promoted from SPEC_ONLY this session - SUPERIOR_OS_PLAN_20261113.md Phase C, third
+    role). Wraps the already-written, already-tested core/apex/relationship_assist.py as a real
+    agent: reads an owner-supplied JSON request file (runtime/inbox/relationship_requests.json)
+    describing notes to record, draft text to prepare, or a bio to checklist - and reports exactly
+    what that module allows, nothing more. relationship_assist.guard() refuses anything that smells
+    like automation, impersonation, swiping or session/cookie handling before this agent ever sees
+    it. Every draft is text only, always requires_owner_review, and is never sent, swiped or posted
+    by this or any other code path. No account access, no network, no messaging."""
+    agent_id = "A-10"
+    min_interval_seconds = 3600
+    data_classes = ("public",)
+
+    def run(self, ctx: AgentContext) -> AgentResult:
+        path = ctx.inbox / "relationship_requests.json"
+        risks = ["Advisory only: every note/draft/checklist is text the owner reviews and sends by "
+                 "hand; nothing here can message, swipe, log in or post anywhere",
+                 "relationship_assist.guard() refuses automation/impersonation/session-handling "
+                 "requests outright, before any draft is prepared"]
+        if not path.is_file():
+            return AgentResult(contract(self.agent_id, f"A10-{ctx.today}", [], risks,
+                                        ["No request file is configured "
+                                         "(runtime/inbox/relationship_requests.json is absent)"], 0.0, []))
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            return AgentResult(contract(self.agent_id, f"A10-{ctx.today}", [], risks,
+                                        [f"Request file could not be read ({type(exc).__name__})"], 0.0, []))
+        if not isinstance(raw, dict):
+            return AgentResult(contract(self.agent_id, f"A10-{ctx.today}", [], risks,
+                                        ["Request file is not a JSON object"], 0.0, []))
+        claims, evidence, unknowns = [], [], []
+        for note in (raw.get("notes") or [])[:MAX_SOCIAL_ITEMS]:
+            if not isinstance(note, dict):
+                continue
+            try:
+                n = relationship_assist.make_note(note.get("person_label", ""), note.get("text", ""),
+                                                   note.get("created", ""))
+            except (ValueError, relationship_assist.AssistRefused) as exc:
+                unknowns.append(f"Note skipped: {exc}")
+                continue
+            eid = evidence_id("relationship-note", f"{n.person_label}:{n.created}")
+            evidence.append(eid)
+            claims.append({"text": f"Note recorded for '{n.person_label}' on {n.created}",
+                           "kind": "fact", "evidence_ids": [eid]})
+        for draft in (raw.get("drafts") or [])[:MAX_SOCIAL_ITEMS]:
+            if not isinstance(draft, dict):
+                continue
+            try:
+                d = relationship_assist.draft_package(draft.get("purpose", ""), draft.get("context", ""),
+                                                        draft.get("tone", "warm"))
+            except (ValueError, relationship_assist.AssistRefused) as exc:
+                unknowns.append(f"Draft skipped: {exc}")
+                continue
+            eid = evidence_id("relationship-draft", d.purpose + d.context)
+            evidence.append(eid)
+            claims.append({"text": f"Draft package prepared ({d.tone} tone) for: {d.purpose}. "
+                                    "Owner must review and send manually.",
+                           "kind": "inference", "evidence_ids": [eid]})
+        for bio in (raw.get("bios") or [])[:MAX_SOCIAL_ITEMS]:
+            if not isinstance(bio, dict):
+                continue
+            try:
+                items = relationship_assist.bio_checklist(bio.get("bio", ""))
+            except relationship_assist.AssistRefused as exc:
+                unknowns.append(f"Bio skipped: {exc}")
+                continue
+            label = str(bio.get("label", "bio"))[:80]
+            eid = evidence_id("relationship-bio", label + str(bio.get("bio", "")))
+            evidence.append(eid)
+            claims.append({"text": f"Bio checklist for '{label}': " + " | ".join(items),
+                           "kind": "inference", "evidence_ids": [eid]})
+        if not claims:
+            unknowns.append("No note, draft or bio in the request file parsed successfully")
+        return AgentResult(contract(self.agent_id, f"A10-{ctx.today}", claims, risks, unknowns,
+                                    0.6 if claims else 0.0, evidence))

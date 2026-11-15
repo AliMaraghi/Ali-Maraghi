@@ -386,6 +386,12 @@ _AGENT_META = {
              "workflow": ["Read owner's runtime/inbox/lab_results.txt", "Parse each line (health_labs.py, regex-based)",
                           "Restate printed reference-range comparison - never a clinical interpretation",
                           "No LLM call, no network - free, rule-based"]},
+    "A-10": {"name": "Social & Relational", "interval": 3600,
+             "task": "Preparing owner-reviewed relationship notes/drafts/bio checklists",
+             "workflow": ["Read owner's runtime/inbox/relationship_requests.json",
+                          "relationship_assist.guard() refuses automation/impersonation/session text outright",
+                          "Record notes, prepare draft text, or checklist a bio - advisory only",
+                          "No LLM call, no network, nothing ever sent/swiped/posted - free, rule-based"]},
 }
 
 
@@ -414,6 +420,8 @@ def _blocked_reason(agent_id: str, root: Path) -> str | None:
         return "Missing: " + ", ".join(missing) if missing else None
     if agent_id == "A-15":
         return None if (inbox / "lab_results.txt").is_file() else "No runtime/inbox/lab_results.txt"
+    if agent_id == "A-10":
+        return None if (inbox / "relationship_requests.json").is_file() else "No runtime/inbox/relationship_requests.json"
     return None
 
 

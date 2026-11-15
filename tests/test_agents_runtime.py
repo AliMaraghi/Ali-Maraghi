@@ -6,7 +6,7 @@ from pathlib import Path
 
 from apex import agents_governing as gov
 from apex import agents_registry as legacy
-from apex.agents_impl import CareerIndustry, EvidenceVerification, FinancialIntelligence, HealthLongevity, StrategicIntelligence, income_tax
+from apex.agents_impl import CareerIndustry, EvidenceVerification, FinancialIntelligence, HealthLongevity, SocialRelational, StrategicIntelligence, income_tax
 from apex.agents_runtime import AgentContext, AgentResult, AgentRunner, BaseAgent, contract
 from apex.kernel.approvals import ApprovalBook
 from apex.kernel.budget import Budget
@@ -49,9 +49,10 @@ class RuntimeBase(unittest.TestCase):
 
 
 class RosterTests(unittest.TestCase):
-    def test_eighteen_roles_six_implemented(self):
+    def test_eighteen_roles_seven_implemented(self):
         self.assertEqual([r.agent_id for r in gov.ROLES], [f"A-{n}" for n in range(1, 19)])
-        self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL], ["A-1", "A-2", "A-3", "A-5", "A-8", "A-15"])
+        self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL],
+                          ["A-1", "A-2", "A-3", "A-5", "A-8", "A-10", "A-15"])
         self.assertEqual(gov.get("A-3").legacy_slot, "8-12")
         self.assertEqual(gov.get("A-5").name, "Career & Industry")
 
@@ -351,3 +352,51 @@ class EvidenceVerificationTests(RuntimeBase):
         out = self.runner([EvidenceVerification(self.ledger)]).run_once(self.ctx)[0]
         self.assertEqual(out["status"], "OK")
         self.assertEqual(out["claims"], 1)
+
+
+class SocialRelationalTests(RuntimeBase):
+    """A-10, promoted from SPEC_ONLY this session (SUPERIOR_OS_PLAN_20261113.md Phase C, third
+    role) by wrapping the already-tested core/apex/relationship_assist.py as a real agent."""
+    def test_no_request_file_no_claims(self):
+        out = self.runner([SocialRelational()]).run_once(self.ctx)[0]
+        self.assertEqual((out["status"], out["claims"]), ("OK", 0))
+
+    def test_note_and_draft_and_bio_become_claims(self):
+        (self.root / "inbox" / "relationship_requests.json").write_text(json.dumps({
+            "notes": [{"person_label": "A", "text": "Met at a meetup, into climbing", "created": "2027-01-10"}],
+            "drafts": [{"purpose": "reply to their message", "context": "they asked about my weekend", "tone": "playful"}],
+            "bios": [{"label": "mine", "bio": "short"}],
+        }))
+        agent = SocialRelational()
+        out = agent.run(self.ctx).contract
+        texts = [c["text"] for c in out["claims"]]
+        self.assertTrue(any("Note recorded for 'A'" in t for t in texts))
+        self.assertTrue(any("Draft package prepared" in t for t in texts))
+        self.assertTrue(any("Bio checklist for 'mine'" in t for t in texts))
+        self.assertIn("nothing here can message", " ".join(out["risks"]))
+
+    def test_forbidden_automation_request_is_refused_not_drafted(self):
+        (self.root / "inbox" / "relationship_requests.json").write_text(json.dumps({
+            "drafts": [{"purpose": "auto-reply to everyone for me", "context": "just send it automatically", "tone": "warm"}],
+        }))
+        out = SocialRelational().run(self.ctx).contract
+        self.assertEqual(out["claims"], [])
+        self.assertTrue(any("Draft skipped" in u for u in out["unknowns"]))
+
+    def test_malformed_request_file_is_reported_not_crashed(self):
+        (self.root / "inbox" / "relationship_requests.json").write_text("not json")
+        out = SocialRelational().run(self.ctx).contract
+        self.assertEqual((out["confidence"], out["claims"]), (0.0, []))
+        self.assertIn("could not be read", out["unknowns"][-1])
+
+    def test_agent_runs_through_the_real_runner_data_class_gate(self):
+        (self.root / "inbox" / "relationship_requests.json").write_text(json.dumps(
+            {"notes": [{"person_label": "A", "text": "note", "created": "2027-01-10"}]}))
+        out = self.runner([SocialRelational()]).run_once(self.ctx)[0]
+        self.assertEqual(out["status"], "OK")
+        self.assertEqual(out["claims"], 1)
+
+    def test_registry_grants_public_only(self):
+        self.assertTrue(gov.check_inputs("A-10", [legacy.PUBLIC]))
+        with self.assertRaises(legacy.IsolationError):
+            gov.check_inputs("A-10", [legacy.FINANCE])
