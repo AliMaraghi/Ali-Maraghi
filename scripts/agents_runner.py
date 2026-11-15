@@ -26,6 +26,7 @@ from apex.kernel.approvals import ApprovalBook                          # noqa: 
 from apex.kernel.budget import Budget                                   # noqa: E402
 from apex.kernel.gateway import ActionGateway                           # noqa: E402
 from apex.kernel.memory import Ledger                                   # noqa: E402
+from apex.kernel import observability                                   # noqa: E402
 from apex.kernel.policy import enforce_durable_stop                     # noqa: E402
 from apex.sources import public_http                                    # noqa: E402
 
@@ -103,8 +104,19 @@ def main():
                         print(json.dumps({"override_frozen": name, "reason": agents_governing.FROZEN[name]}), flush=True)
                 agents = [agent_factories[name]() for name in active_names]
                 runner = AgentRunner(ledger, gateway, agents, notifier=make_notifier())
-                print(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "runs": cycle(ledger, runner)}), flush=True)
+                start = time.time()
+                try:
+                    runs = cycle(ledger, runner)
+                    ok = True
+                except Exception:
+                    runs, ok = [], False
+                    raise
+                finally:
+                    observability.record_run(ROOT / "runtime" / "observability.jsonl",
+                                             [r["agent"] for r in runs], ok, (time.time() - start) * 1000)
+                print(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "runs": runs}), flush=True)
             except PermissionError as exc:
+                observability.record_run(ROOT / "runtime" / "observability.jsonl", [], False, 0.0)
                 print(json.dumps({"stopped": str(exc)}), flush=True)
         if args.once:
             return
