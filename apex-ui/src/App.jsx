@@ -118,7 +118,10 @@ function Scene({ listening, speaking, thinking, mouthIntensityRef, faceDetected,
 // Recognized speech and the reply text both flow through here. Backed by scripts/voice_api.py
 // (POST /api/chat); that service fails closed (HTTP 402) until its daily spend cap is configured,
 // so an unanswered/odd-looking reply during setup is expected, not a bug in this fetch call.
-const CHAT_ENDPOINT = "https://api.apexcorelab.uk/api/chat";
+// VITE_CHAT_ENDPOINT lets start_apex_local.sh point this build at the real local backend
+// (http://localhost:8000/api/chat) instead of the hosted one - unset (the normal hosted
+// build), this is unchanged from before.
+const CHAT_ENDPOINT = import.meta.env.VITE_CHAT_ENDPOINT || "https://api.apexcorelab.uk/api/chat";
 
 async function getReply(transcript, lang) {
   // Returns {reply, steps}. "steps" reports what the backend actually ran for THIS request

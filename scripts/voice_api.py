@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -67,7 +68,11 @@ from apex.kernel.budget import Budget, BudgetDenied  # noqa: E402
 from apex.kernel.schema import identifier      # noqa: E402
 import orchestrator                            # noqa: E402
 
-ALLOWED_ORIGIN = "https://ui.apexcorelab.uk"
+ALLOWED_ORIGIN = os.environ.get("APEX_VOICE_ALLOWED_ORIGIN", "https://ui.apexcorelab.uk")
+# Local-dev override only (mission 2026-11-15): APEX_VOICE_ALLOWED_ORIGIN lets
+# start_apex_local.sh point this at http://localhost:5173 (the real apex-ui vite dev
+# server) without ever changing the hosted default above when the env var is unset -
+# the production CORS policy is not weakened by this.
 KEY_FILE = Path("/etc/apex/anthropic-key")
 MODEL = "claude-haiku-5-5"                      # cheapest current model; change if you want a different one
 MAX_INPUT_CHARS = 500
