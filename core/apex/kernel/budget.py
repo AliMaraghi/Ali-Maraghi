@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import time
 
+from . import budget_signing
 from .schema import identifier
 
 POOLS = ("core", "intelligence", "studio", "retry")
@@ -32,13 +33,25 @@ def window_start(period, now):
 
 
 class Budget:
-    def __init__(self, ledger, clock=time.time):
-        self.ledger, self.clock = ledger, clock
+    """Phase 4b (brutal-honesty directive, 2026-11-15): pricing_public_key is OPT-IN signed
+    mode. Default (pricing_public_key=None, every existing caller in this codebase today):
+    unchanged from before - set_price() writes an unsigned row, price() trusts it as before.
+    When a public key IS supplied: set_price() requires the matching private key and refuses
+    to write an unverifiable price; price() refuses (BudgetDenied) any row that is unsigned or
+    whose signature does not verify against this public key - so a price row tampered with
+    directly in the database (bypassing set_price entirely) is detected and rejected, not
+    silently trusted. The agent process only ever needs pricing_public_key (verification only,
+    no forgery power); the private key is never read here."""
+    def __init__(self, ledger, clock=time.time, pricing_public_key: bytes | None = None):
+        self.ledger, self.clock, self.pricing_public_key = ledger, clock, pricing_public_key
         ledger.db.executescript("""
             CREATE TABLE IF NOT EXISTS cost_registry (
               provider TEXT NOT NULL, sku TEXT NOT NULL, effective_from REAL NOT NULL,
               price_millipence INTEGER NOT NULL CHECK(price_millipence>=0), currency TEXT NOT NULL,
               source TEXT NOT NULL, verified_at REAL NOT NULL, PRIMARY KEY(provider,sku,effective_from));
+            CREATE TABLE IF NOT EXISTS cost_registry_signatures (
+              provider TEXT NOT NULL, sku TEXT NOT NULL, effective_from REAL NOT NULL,
+              signature TEXT NOT NULL, PRIMARY KEY(provider,sku,effective_from));
             CREATE TABLE IF NOT EXISTS budget_caps (
               pool TEXT NOT NULL, period TEXT NOT NULL, cap_minor INTEGER NOT NULL CHECK(cap_minor>=0),
               PRIMARY KEY(pool,period));
@@ -49,14 +62,27 @@ class Budget:
         """)
 
     # ---- operator configuration -------------------------------------------
-    def set_price(self, provider, sku, price_millipence, effective_from, source, verified_at=None):
+    def set_price(self, provider, sku, price_millipence, effective_from, source, verified_at=None,
+                  pricing_private_key: bytes | None = None):
         identifier(provider), identifier(sku)
         if type(price_millipence) is not int or price_millipence < 0 or not source:
             raise ValueError("Price must be a non-negative integer (1/1000 pence) with a source")
+        verified_at = float(verified_at if verified_at is not None else self.clock())
+        effective_from = float(effective_from)
+        signature = None
+        if self.pricing_public_key is not None:
+            if pricing_private_key is None:
+                raise ValueError("SIGNED_MODE_REQUIRES_PRIVATE_KEY")
+            if budget_signing.public_key_for(pricing_private_key) != self.pricing_public_key:
+                raise ValueError("PRIVATE_KEY_DOES_NOT_MATCH_CONFIGURED_PUBLIC_KEY")
+            signature = budget_signing.sign_price(pricing_private_key, provider, sku, price_millipence,
+                                                   effective_from, CURRENCY, source, verified_at).hex()
         with self.ledger.transaction():
             self.ledger.db.execute("INSERT OR REPLACE INTO cost_registry VALUES (?,?,?,?,?,?,?)",
-                                   (provider, sku, float(effective_from), price_millipence, CURRENCY, source,
-                                    float(verified_at if verified_at is not None else self.clock())))
+                                   (provider, sku, effective_from, price_millipence, CURRENCY, source, verified_at))
+            if signature is not None:
+                self.ledger.db.execute("INSERT OR REPLACE INTO cost_registry_signatures VALUES (?,?,?,?)",
+                                       (provider, sku, effective_from, signature))
 
     def set_cap(self, pool, period, cap_minor):
         if (pool not in POOLS and pool != "global") or period not in PERIODS or type(cap_minor) is not int or cap_minor < 0:
@@ -67,13 +93,29 @@ class Budget:
     # ---- decision ---------------------------------------------------------
     def price(self, provider, sku, now):
         row = self.ledger.db.execute(
-            "SELECT price_millipence,verified_at FROM cost_registry WHERE provider=? AND sku=? AND effective_from<=? "
-            "ORDER BY effective_from DESC LIMIT 1", (provider, sku, now)).fetchone()
+            "SELECT price_millipence,verified_at,effective_from FROM cost_registry WHERE provider=? AND sku=? "
+            "AND effective_from<=? ORDER BY effective_from DESC LIMIT 1", (provider, sku, now)).fetchone()
         if row is None:
             raise BudgetDenied("UNKNOWN_PRICE")
-        if row[0] > 0 and now - row[1] > STALE_AFTER:
+        price_millipence, verified_at, effective_from = row
+        if self.pricing_public_key is not None:
+            sig_row = self.ledger.db.execute(
+                "SELECT signature FROM cost_registry_signatures WHERE provider=? AND sku=? AND effective_from=?",
+                (provider, sku, effective_from)).fetchone()
+            if sig_row is None:
+                raise BudgetDenied("PRICE_UNSIGNED")
+            if not budget_signing.verify_price(self.pricing_public_key, bytes.fromhex(sig_row[0]), provider, sku,
+                                                price_millipence, effective_from, CURRENCY, source=self._source_for(
+                                                    provider, sku, effective_from), verified_at=verified_at):
+                raise BudgetDenied("PRICE_TAMPERED")
+        if price_millipence > 0 and now - verified_at > STALE_AFTER:
             raise BudgetDenied("STALE_PRICE")
-        return row[0]
+        return price_millipence
+
+    def _source_for(self, provider, sku, effective_from):
+        return self.ledger.db.execute(
+            "SELECT source FROM cost_registry WHERE provider=? AND sku=? AND effective_from=?",
+            (provider, sku, effective_from)).fetchone()[0]
 
     def spent(self, pool, period, now):
         since = window_start(period, now)

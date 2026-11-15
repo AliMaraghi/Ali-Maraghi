@@ -94,14 +94,38 @@ class Ledger:
     def digest(seq, key, kind, domain, payload, previous):
         return hashlib.sha256(canonical([seq, key, kind, domain, payload, previous]).encode()).hexdigest()
 
-    def verify(self) -> int:
-        previous = "0" * 64
-        seq = 0
+    def audit_chain(self) -> dict:
+        """Phase 4a (brutal-honesty directive, 2026-11-15): the O(n) tamper-detection primitive.
+        Walks the WHOLE chain from genesis and returns a structured result - it never raises for
+        a tamper finding, so a caller can report the exact break point instead of catching an
+        exception. {"ok": True, "length": N, "first_broken_seq": None, "reason": None} when
+        intact, or {"ok": False, "length": <rows verified before the break>, "first_broken_seq":
+        k, "reason": "..."} at the FIRST point the chain breaks. verify() below (used throughout
+        this codebase to fail a write closed on a corrupted ledger) is unchanged and now
+        implemented in terms of this walk, so the two can never disagree."""
+        previous, seq = "0" * 64, 0
         for row in self.db.execute("SELECT * FROM events ORDER BY seq"):
-            if row[0] != seq + 1 or row[5] != previous or self.digest(*row[:6]) != row[6]:
-                raise ValueError("Ledger integrity failure")
+            if row[0] != seq + 1:
+                return {"ok": False, "length": seq, "first_broken_seq": row[0], "reason": "SEQUENCE_GAP_OR_OUT_OF_ORDER"}
+            if row[5] != previous:
+                return {"ok": False, "length": seq, "first_broken_seq": row[0], "reason": "PREVIOUS_HASH_MISMATCH"}
+            if self.digest(*row[:6]) != row[6]:
+                return {"ok": False, "length": seq, "first_broken_seq": row[0], "reason": "DIGEST_MISMATCH"}
             seq, previous = row[0], row[6]
-        return seq
+        return {"ok": True, "length": seq, "first_broken_seq": None, "reason": None}
+
+    def chain_head(self) -> dict | None:
+        """O(1) read of the chain head - the 'chain head persisted' requirement. It is the last
+        committed row's own (seq, digest): already durable in the events table itself, never a
+        second denormalised value that could drift out of sync with it."""
+        row = self.db.execute("SELECT seq, digest FROM events ORDER BY seq DESC LIMIT 1").fetchone()
+        return None if row is None else {"seq": row[0], "digest": row[1]}
+
+    def verify(self) -> int:
+        result = self.audit_chain()
+        if not result["ok"]:
+            raise ValueError(f"Ledger integrity failure at seq {result['first_broken_seq']} ({result['reason']})")
+        return result["length"]
 
     def _append(self, key, kind, domain, payload):
         identifier(key)
