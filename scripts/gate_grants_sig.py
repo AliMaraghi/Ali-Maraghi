@@ -33,7 +33,7 @@ def main():
                                                 private_key, grants=[])
         v1_card = persona.read_persona_card(ledger, "companion_f")
         fid_fin = persona.remember(ledger, "owner", "F_fin content", persona.SHARED, "owner",
-                                   data_class="FINANCE", now=1.0)
+                                   data_class="FINANCE", private_key_bytes=private_key, now=1.0)
         print(f"SETUP v1_fact_id={v1_fact_id} v1_card={v1_card} fid_fin={fid_fin}")
 
     # --- Attack: tamper grants directly in the DB, WITHOUT re-signing ---
@@ -83,7 +83,7 @@ def main():
                                    "I am a synthetic companion persona, not a real person.", "owner",
                                    private_key, grants=[])                                  # v1, real, untampered
         fid_fin2 = persona.remember(ledger, "owner", "F_fin content 2", persona.SHARED, "owner",
-                                    data_class="FINANCE", now=2.0)
+                                    data_class="FINANCE", private_key_bytes=private_key, now=2.0)
         try:
             persona.recall_fact(ledger, "companion_clean", fid_fin2, public_key)
             v1_leaked = True

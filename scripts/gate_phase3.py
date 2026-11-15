@@ -40,9 +40,9 @@ def main():
                                    private_key, grants=[])
 
         fid_fin = persona.remember(ledger, "owner", "F_fin: salary details", persona.SHARED, "owner",
-                                   data_class="FINANCE", now=1.0)
+                                   data_class="FINANCE", private_key_bytes=private_key, now=1.0)
         fid_med = persona.remember(ledger, "owner", "F_med: health note", persona.SHARED, "owner",
-                                   data_class="MEDICAL", now=2.0)
+                                   data_class="MEDICAL", private_key_bytes=private_key, now=2.0)
         fid_pub = persona.remember(ledger, "owner", "F_pub: favourite coffee order", persona.SHARED, "owner",
                                    data_class="PUBLIC", now=3.0)
         print(f"ASSERT fid_fin={fid_fin} fid_med={fid_med} fid_pub={fid_pub}")

@@ -128,13 +128,23 @@ class MemoryIsolationTests(PersonaBase):
 
     def test_shared_financial_fact_requires_a_verified_grant(self):
         fid = persona.remember(self.ledger, "owner_twin", "F_fin content", persona.SHARED, "voice",
-                               data_class="FINANCE", now=2.0)
+                               data_class="FINANCE", private_key_bytes=TEST_PRIVATE_KEY, now=2.0)
         with self.assertRaises(persona.PersonaIsolationError) as ctx:
             persona.recall_fact(self.ledger, "companion", fid)          # no public_key_bytes at all -> fail closed
-        self.assertIn("PERSONA_CARD_UNVERIFIED", str(ctx.exception))
+        self.assertIn("UNVERIFIED_FACT", str(ctx.exception))
         with self.assertRaises(persona.PersonaIsolationError) as ctx:
-            persona.recall_fact(self.ledger, "companion", fid, TEST_PUBLIC_KEY)   # verified card, but no grant
+            persona.recall_fact(self.ledger, "companion", fid, TEST_PUBLIC_KEY)   # verified fact+card, but no grant
         self.assertIn("DATA_CLASS_DENIED", str(ctx.exception))
+
+    def test_unsigned_finance_fact_cannot_be_created_through_assert_fact(self):
+        """CRITICAL 2 (brutal-honesty directive, 2026-11-15)."""
+        from apex.kernel import facts
+        with self.assertRaises(facts.UnsignedFactError):
+            facts.assert_fact(self.ledger, "owner_twin", "memory_shared", "x", "voice", data_class="FINANCE")
+
+    def test_remember_requires_a_key_for_sensitive_data_classes(self):
+        with self.assertRaises(ValueError):
+            persona.remember(self.ledger, "owner_twin", "x", persona.SHARED, "voice", data_class="MEDICAL")
 
     def test_recall_fact_from_an_unregistered_reading_persona_is_refused(self):
         shared_id = persona.remember(self.ledger, "owner_twin", "owner likes climbing", persona.SHARED, "voice", now=2.0)

@@ -32,7 +32,7 @@ from __future__ import annotations
 import json
 
 from . import signing
-from .facts import assert_fact, fact_history, get_fact, query_fact
+from .facts import assert_fact, assert_signed_fact, fact_history, get_fact, query_fact, verify_fact_signature
 
 SHARED, PRIVATE = "shared", "private"
 _VISIBILITIES = frozenset({SHARED, PRIVATE})
@@ -135,18 +135,29 @@ def persona_card_history(ledger, persona_id: str) -> list:
 
 
 def remember(ledger, persona_id: str, memory_text: str, visibility: str, source: str,
-            data_class: str = "PUBLIC", now: float | None = None) -> int:
+            data_class: str = "PUBLIC", private_key_bytes: bytes | None = None,
+            now: float | None = None) -> int:
     """A memory belongs to exactly one persona and is tagged shared-or-private AND a
     data_class AT WRITE TIME - never silently reclassified later. Raises
     PersonaIsolationError if no card has been written for this persona yet: a memory can
     never exist for an unconfigured persona, closing the "forgot to register the persona
-    first" gap by construction. data_class defaults to PUBLIC (unsigned facts have no
-    mandatory-parameter requirement - that is assert_signed_fact's rule, not this one's -
-    but PUBLIC is never assumed silently for a caller who passes FINANCE/MEDICAL explicitly)."""
+    first" gap by construction.
+
+    CRITICAL 2 (brutal-honesty directive, 2026-11-15): FINANCE/MEDICAL memories MUST be
+    signed - facts.assert_fact() itself now refuses to write them unsigned
+    (UnsignedFactError), so this function routes to facts.assert_signed_fact() and requires
+    private_key_bytes whenever data_class is sensitive. PUBLIC memories are unaffected:
+    data_class defaults to PUBLIC and no key is required, exactly as before."""
     if visibility not in _VISIBILITIES:
         raise ValueError("visibility must be 'shared' or 'private'")
     if read_persona_card(ledger, persona_id) is None:
         raise PersonaIsolationError(f"NO_PERSONA_CARD:{persona_id}")
+    if data_class in _GRANTABLE_DATA_CLASSES:
+        if private_key_bytes is None:
+            raise ValueError(f"{data_class} memories must be signed - supply private_key_bytes "
+                             "(CRITICAL 2, brutal-honesty directive 2026-11-15)")
+        return assert_signed_fact(ledger, f"persona:{persona_id}", f"memory_{visibility}", memory_text,
+                                  source, data_class, private_key_bytes, now=now)
     return assert_fact(ledger, f"persona:{persona_id}", f"memory_{visibility}", memory_text, source,
                        data_class=data_class, now=now)
 
@@ -195,7 +206,13 @@ def recall_fact(ledger, reading_persona_id: str, fact_id: int, public_key_bytes:
     if fact["data_class"] == "PUBLIC":
         return fact
     if fact["data_class"] in _GRANTABLE_DATA_CLASSES:
-        if public_key_bytes is None or not verify_persona_card(ledger, reading_persona_id, public_key_bytes):
+        # CRITICAL 2 (brutal-honesty directive, 2026-11-15): the FACT itself must be signed
+        # before anything else is even checked - an unsigned FINANCE/MEDICAL row (which
+        # assert_fact() now refuses to create, but a raw DB write could still produce) must
+        # never be returned just because it happens to be shared and a grant exists.
+        if public_key_bytes is None or not verify_fact_signature(ledger, fact_id, public_key_bytes):
+            raise PersonaIsolationError(f"UNVERIFIED_FACT:fact={fact_id}")
+        if not verify_persona_card(ledger, reading_persona_id, public_key_bytes):
             raise PersonaIsolationError(f"PERSONA_CARD_UNVERIFIED:persona={reading_persona_id}")
         reading_card = read_persona_card(ledger, reading_persona_id)
         if fact["data_class"] not in reading_card.get("grants", []):

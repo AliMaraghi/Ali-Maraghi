@@ -23,6 +23,11 @@ from . import signing
 
 _OUTCOMES = frozenset({"accepted", "rejected", "acted_on", "ignored"})
 _GENESIS = "0" * 64
+_SENSITIVE_DATA_CLASSES = ("FINANCE", "MEDICAL")
+
+
+class UnsignedFactError(ValueError):
+    pass
 
 
 _DATA_CLASSES = ("PUBLIC", "FINANCE", "MEDICAL")
@@ -81,11 +86,18 @@ def assert_fact(ledger, subject: str, predicate: str, obj: str, source: str,
     """data_class is OPTIONAL here (defaults to PUBLIC, the table's own column default) -
     unlike assert_signed_fact, where it is mandatory with no default. Every pre-existing
     caller of this function is unaffected: passing nothing still yields PUBLIC exactly as
-    before this parameter existed."""
+    before this parameter existed.
+
+    CRITICAL 2 (brutal-honesty directive, 2026-11-15): FINANCE/MEDICAL facts can no longer
+    be written unsigned at all - an unsigned sensitive fact could be shared and granted
+    exactly like a signed one, with no owner authorization behind it whatsoever. Use
+    assert_signed_fact() for FINANCE/MEDICAL; this function refuses outright."""
     _nonempty_str(subject, "subject"), _nonempty_str(predicate, "predicate")
     _nonempty_str(obj, "object"), _nonempty_str(source, "source")
     if data_class not in _DATA_CLASSES:
         raise ValueError(f"data_class must be one of {_DATA_CLASSES}")
+    if data_class in _SENSITIVE_DATA_CLASSES:
+        raise UnsignedFactError(f"use assert_signed_fact for data_class={data_class!r}")
     _ensure_facts_table(ledger)
     now = time.time() if now is None else now
     cur = ledger.db.execute(
@@ -225,6 +237,69 @@ def verify_fact_chain(ledger, public_key_bytes: bytes) -> dict:
         expected_prev = _chain_value(*row)
         length += 1
     return {"ok": True, "length": length, "first_broken_id": None, "reason": None}
+
+
+def _signed_chain_tip(ledger):
+    """The current (length, tip_hash) of the SIGNED-fact chain - length 0 / tip _GENESIS if
+    no signed fact exists yet. Shared by write_chain_anchor and verify_chain_against_anchor
+    so the two can never disagree about what "the tip" means."""
+    rows = ledger.db.execute(
+        "SELECT id, subject, predicate, object, source, asserted_at, prev_hash, data_class "
+        "FROM facts WHERE owner_sig IS NOT NULL ORDER BY id").fetchall()
+    return len(rows), (_chain_value(*rows[-1]) if rows else _GENESIS)
+
+
+def write_chain_anchor(ledger, private_key_bytes: bytes, now: float | None = None) -> dict:
+    """CRITICAL 1 (brutal-honesty directive, 2026-11-15): verify_fact_chain() alone cannot
+    detect a last-record delete or a full-DB wipe - both leave an internally CONSISTENT (if
+    shorter) chain, since the chain only checks relative consistency among whatever rows
+    exist, never how many SHOULD exist. The only real defense is an external anchor - a
+    record of chain length and tip hash that lives OUTSIDE the database, so an attacker with
+    full DB write access still cannot rewrite it without the private key.
+
+    Returns the anchor dict {"chain_length","tip_hash","signed_at","owner_sig"} - this
+    function writes NOTHING to disk itself; the caller decides where the anchor lives and
+    how (a local file, a second medium, printed for the owner to copy - deliberately not
+    this function's decision). private_key_bytes is supplied by the caller for this one
+    call only, never read from or written to disk here."""
+    if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
+        raise ValueError("private_key_bytes must be 32 raw bytes")
+    signed_at = time.time() if now is None else now
+    chain_length, tip_hash = _signed_chain_tip(ledger)
+    owner_sig = signing.sign_payload(private_key_bytes, chain_length, tip_hash, signed_at).hex()
+    return {"chain_length": chain_length, "tip_hash": tip_hash, "signed_at": signed_at, "owner_sig": owner_sig}
+
+
+def verify_chain_against_anchor(ledger, anchor: dict, public_key_bytes: bytes) -> dict:
+    """Checks, IN ORDER (brutal-honesty directive, 2026-11-15):
+    (1) the CURRENT signed-fact count against the anchor's recorded chain_length -
+        'TRUNCATED' - catches a last-record delete AND a full-DB wipe, neither of which
+        verify_fact_chain() alone can see.
+    (2) the CURRENT last fact's chain value against the anchor's recorded tip_hash -
+        'TIP_MISMATCH' - catches tampering the LAST fact's own content in place (no
+        downstream row exists for verify_fact_chain's SIGNATURE_INVALID path to catch it
+        via, but the anchor was signed over the untampered tip and still disagrees).
+    (3) the anchor's OWN signature over (chain_length, tip_hash, signed_at) -
+        'ANCHOR_UNVERIFIED' - catches tampering the anchor record itself (e.g. editing
+        chain_length to match a truncated DB) without the private key to re-sign it.
+    Never raises; always returns a dict with "ok" and "reason"."""
+    required = {"chain_length", "tip_hash", "signed_at", "owner_sig"}
+    if not isinstance(anchor, dict) or not required.issubset(anchor):
+        return {"ok": False, "reason": "MALFORMED_ANCHOR"}
+    current_length, current_tip = _signed_chain_tip(ledger)
+    if current_length != anchor["chain_length"]:
+        return {"ok": False, "reason": "TRUNCATED", "current_length": current_length,
+                "anchor_length": anchor["chain_length"]}
+    if current_tip != anchor["tip_hash"]:
+        return {"ok": False, "reason": "TIP_MISMATCH", "current_tip": current_tip, "anchor_tip": anchor["tip_hash"]}
+    try:
+        signature = bytes.fromhex(anchor["owner_sig"])
+    except (ValueError, TypeError):
+        return {"ok": False, "reason": "ANCHOR_UNVERIFIED"}
+    if not signing.verify_payload(public_key_bytes, signature, anchor["chain_length"],
+                                  anchor["tip_hash"], anchor["signed_at"]):
+        return {"ok": False, "reason": "ANCHOR_UNVERIFIED"}
+    return {"ok": True, "reason": None, "length": current_length}
 
 
 def record_outcome(ledger, fact_id: int, outcome: str, note: str = "", now: float | None = None) -> int:
