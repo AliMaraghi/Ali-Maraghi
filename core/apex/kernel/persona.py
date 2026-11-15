@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import json
 
-from .facts import assert_fact, fact_history, query_fact
+from .facts import assert_fact, fact_history, get_fact, query_fact
 
 SHARED, PRIVATE = "shared", "private"
 _VISIBILITIES = frozenset({SHARED, PRIVATE})
@@ -104,6 +104,25 @@ def recall(ledger, reading_persona_id: str, owning_persona_id: str, limit: int =
         out += fact_history(ledger, f"persona:{owning_persona_id}", predicate, limit=limit)
     out.sort(key=lambda h: (h["asserted_at"], h["id"]), reverse=True)
     return out[:limit]
+
+
+def recall_fact(ledger, reading_persona_id: str, fact_id: int) -> dict:
+    """Per-fact isolation check (added 2026-11-15 alongside the gate_phase3.py demonstration):
+    unlike recall()'s whole-history list, this looks up ONE specific fact by id and raises
+    PersonaIsolationError - never returns an empty/absent result - when the reading persona
+    is not entitled to see it. A fact not shaped like a persona memory (wrong subject prefix
+    or predicate) raises just as hard as a real cross-persona private-memory read; there is
+    no path that looks like "not found" when the real reason is "not allowed"."""
+    if read_persona_card(ledger, reading_persona_id) is None:
+        raise PersonaIsolationError(f"NO_PERSONA_CARD:{reading_persona_id}")
+    fact = get_fact(ledger, fact_id)
+    if fact is None or not fact["subject"].startswith("persona:") or not fact["predicate"].startswith("memory_"):
+        raise PersonaIsolationError(f"NOT_A_PERSONA_MEMORY:{fact_id}")
+    owning_persona_id = fact["subject"][len("persona:"):]
+    visibility = fact["predicate"][len("memory_"):]
+    if owning_persona_id != reading_persona_id and visibility != SHARED:
+        raise PersonaIsolationError(f"PRIVATE_MEMORY_DENIED:persona={owning_persona_id}:fact={fact_id}")
+    return fact
 
 
 def export_persona_memories(ledger, persona_id: str) -> dict:
