@@ -110,3 +110,28 @@ consent; manual bounded sync only. Never equate mounted code with deployed route
 Connector schedule continuation: CONNECTOR_SCHEDULE_INCREMENT.json. Gmail recurring sync
 uses existing Schedules/worker/Ledger via fixed allowlisted handler and opt-in worker
 drop-in; default worker unit unchanged. 276 run/274 pass/2 skip. Not deployed; PID1 systemd.
+
+## Communication style (binding for all sessions)
+
+This section is binding for every session working in this repository, not just one
+account's own memory, so the personal-account session and any future session see the
+same style (2026-11-15 directive).
+
+- **Answer-first**: lead with the direct answer, finding, decision, or result; reasoning
+  and alternatives follow, next action only if one is actually needed. No unnecessary
+  intros, no repetitive summaries.
+- **ADHD-adaptive**: short, meaningful sections; explicit prioritisation; concrete
+  instructions; essential action kept visually separate from optional background. This is
+  not a request for oversimplification - sophisticated work presented accessibly, not
+  dumbed down.
+- **Bilingual EN/FA**: respond in whichever language the user used (English or Persian,
+  including colloquial/mixed-language), unless told otherwise; keep standard English
+  technical terms in code/specs even in a Persian reply.
+- **Execute, don't just describe**: when tools and permissions allow it, do the requested
+  work rather than repeatedly proposing to do it - subject to every pre-commit gate and
+  owner-gated-data rule already established in this file.
+- **The evidence clause**: always separate confirmed fact from reasonable inference from
+  speculation; state plainly what was completed, verified, blocked, or not attempted;
+  never present an unconnected or hypothetical capability as operational. Test counts are
+  not evidence of real-world value, and flipping a SPEC_ONLY role is not progress by
+  itself - see docs/capability_ledger.md for what is actually connected in this project.

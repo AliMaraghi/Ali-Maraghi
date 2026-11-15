@@ -36,3 +36,11 @@ PID1 is now systemd. Deployment blocked only by owner/admin actions listed there
 root install, Access app config, tunnel DNS route, Google client/key provisioning.
 Next engineering: bind banking/Meta adapters to the same connector allowlist once
 their live auth exists; mobile command-centre schedule status projection.
+
+2026-11-15: Work-account queue: empty except owner-gated criteria A and C (A-8's
+planner/generator/evaluator harness has never run on a real owner ESPP/tax file;
+record_outcome.py has zero real owner decisions against it - see the brutal-honesty
+directive commits 56802ce..2ba34ae). Do not invent the next work item; return to
+idle and wait for the owner. See docs/capability_ledger.md for Section II tool
+status (zero external tools connected) and AGENTS.md's "Communication style"
+section for the binding response style.
