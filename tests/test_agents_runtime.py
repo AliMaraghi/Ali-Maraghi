@@ -49,8 +49,15 @@ class RuntimeBase(unittest.TestCase):
 
 
 class RosterTests(unittest.TestCase):
-    def test_eighteen_roles_seven_implemented(self):
-        self.assertEqual([r.agent_id for r in gov.ROLES], [f"A-{n}" for n in range(1, 19)])
+    def test_sixteen_roles_seven_implemented(self):
+        # A-12 (Screenwriting & Film) and A-13 (Publishing & Audience) were removed
+        # 2026-11-15 ("add breadth, not depth") - not renumbered, so A-14..A-18 keep their
+        # original ids and there is a gap at 12/13, not a contiguous 1..16.
+        self.assertEqual([r.agent_id for r in gov.ROLES],
+                          ["A-1", "A-2", "A-3", "A-4", "A-5", "A-6", "A-7", "A-8", "A-9", "A-10",
+                           "A-11", "A-14", "A-15", "A-16", "A-17", "A-18"])
+        self.assertNotIn("A-12", [r.agent_id for r in gov.ROLES])
+        self.assertNotIn("A-13", [r.agent_id for r in gov.ROLES])
         self.assertEqual([r.agent_id for r in gov.ROLES if r.status == gov.IMPLEMENTED_LOCAL],
                           ["A-1", "A-2", "A-3", "A-5", "A-8", "A-10", "A-15"])
         self.assertEqual(gov.get("A-3").legacy_slot, "8-12")

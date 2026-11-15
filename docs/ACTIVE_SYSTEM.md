@@ -23,6 +23,9 @@ questioned, not extended** — adding a second active system would repeat
 the exact pattern this mission exists to stop (width before depth, no
 real decision history before new scope).
 
+A-12 (Screenwriting & Film) and A-13 (Publishing & Audience) were removed
+from the manifest on 2026-11-15 because they add breadth, not depth.
+
 ## Why this, why now
 
 26 turns produced 7 IMPLEMENTED_LOCAL roles, several additional

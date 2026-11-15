@@ -1,4 +1,5 @@
-"""The GOVERNING 18-role federation (A-1 .. A-18, 11 Nov 2026 founder edition) as specifications.
+"""The GOVERNING role federation (originally A-1 .. A-18, 11 Nov 2026 founder edition; A-12
+and A-13 removed 2026-11-15, see below) as specifications.
 
 Source: docs/apex_handoff_20261111/APEX_4_4_MANIFESTO_20261111_FOUNDER_UPLOAD.md section 8 (lines 69-86). The older 8-x slot set (agents_registry.py) is preserved separately; slot 8-12 maps to A-3.
 Nothing here is invented policy: the manifesto does not give per-role data tiers for this roster, so every role defaults to PUBLIC data only and a role is granted more only where the role itself
@@ -24,34 +25,38 @@ class RoleSpec:
     legacy_slot: str | None = None
 
 
+# A-12 (Screenwriting & Film) and A-13 (Publishing & Audience) REMOVED 2026-11-15 per
+# mission directive ("add breadth with no depth") - not commented out, not SPEC_ONLY-marked,
+# removed from the tuple entirely. Every remaining id below is given EXPLICITLY (not via
+# enumerate) so A-14..A-18 keep their original numbers rather than shifting down to fill the
+# gap - code and tests elsewhere (agents_impl.py, test_agents_runtime.py) hardcode A-1, A-2,
+# A-3, A-5, A-8, A-10, A-15 and must not have those meanings change under them.
 _PUBLIC = frozenset({legacy.PUBLIC})
 _ROLES = (
-    ("Strategic Intelligence", "Monitor macro trends and build scenarios", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
-    ("Scientific Research", "Search scientific papers and separate evidence", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
-    ("Evidence & Verification", "Scan the fact store for genuine contradictions (resolves nothing, picks no value as correct)",
-     "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
-    ("Personal Context", "Manage the personal dossier and causal goals", "personal", _PUBLIC, SPEC_ONLY),
-    ("Career & Industry", "Analyse the job market and opportunities (NVIDIA, Amazon, AMD)", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL),
-    ("Operations & Executive", "Analyse e-mail and manage administrative projects", "personal", _PUBLIC, SPEC_ONLY),
-    ("Wealth Discovery", "Find economic and investment opportunities", "opportunity", _PUBLIC, SPEC_ONLY),
-    ("Financial Intelligence", "Tax, ESPP, UC and housing analysis", "personal", frozenset({legacy.PUBLIC, legacy.FINANCE}), IMPLEMENTED_LOCAL),
-    ("Legal & Compliance", "Review UK rules (FCA, HMRC, ICO)", "opportunity", _PUBLIC, SPEC_ONLY),
-    ("Social & Relational", "Prepare owner-reviewed relationship notes/drafts/bio checklists (advisory text only, never sent)",
-     "personal", _PUBLIC, IMPLEMENTED_LOCAL),
-    ("Creative Direction", "Develop artistic ideas and visual identity", "studio", _PUBLIC, SPEC_ONLY),
-    ("Screenwriting & Film", "Screenplay, storyboard and direction", "studio", _PUBLIC, SPEC_ONLY),
-    ("Publishing & Audience", "Publication calendar and audience feedback", "studio", _PUBLIC, SPEC_ONLY),
-    ("Security & Privacy", "Threat modelling and data isolation", "personal", _PUBLIC, SPEC_ONLY),
-    ("Health & Longevity", "Parse owner-exported lab results into provenance-tagged rows (research aid only)",
-     "personal", frozenset({legacy.PUBLIC, legacy.MEDICAL}), IMPLEMENTED_LOCAL),
-    ("Behavioral Ergonomics", "Fit the daily plan to the energy level", "personal", _PUBLIC, SPEC_ONLY),
-    ("Adversarial Evaluation", "Simulate failure and critique strategies (red team)", "opportunity", _PUBLIC, SPEC_ONLY),
-    ("Self-Evolution & Systems", "Controlled code upgrades in a sandbox", "opportunity", _PUBLIC, SPEC_ONLY),
+    ("A-1", "Strategic Intelligence", "Monitor macro trends and build scenarios", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL, None),
+    ("A-2", "Scientific Research", "Search scientific papers and separate evidence", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL, None),
+    ("A-3", "Evidence & Verification", "Scan the fact store for genuine contradictions (resolves nothing, picks no value as correct)",
+     "opportunity", _PUBLIC, IMPLEMENTED_LOCAL, "8-12"),
+    ("A-4", "Personal Context", "Manage the personal dossier and causal goals", "personal", _PUBLIC, SPEC_ONLY, None),
+    ("A-5", "Career & Industry", "Analyse the job market and opportunities (NVIDIA, Amazon, AMD)", "opportunity", _PUBLIC, IMPLEMENTED_LOCAL, None),
+    ("A-6", "Operations & Executive", "Analyse e-mail and manage administrative projects", "personal", _PUBLIC, SPEC_ONLY, None),
+    ("A-7", "Wealth Discovery", "Find economic and investment opportunities", "opportunity", _PUBLIC, SPEC_ONLY, None),
+    ("A-8", "Financial Intelligence", "Tax, ESPP, UC and housing analysis", "personal", frozenset({legacy.PUBLIC, legacy.FINANCE}), IMPLEMENTED_LOCAL, None),
+    ("A-9", "Legal & Compliance", "Review UK rules (FCA, HMRC, ICO)", "opportunity", _PUBLIC, SPEC_ONLY, None),
+    ("A-10", "Social & Relational", "Prepare owner-reviewed relationship notes/drafts/bio checklists (advisory text only, never sent)",
+     "personal", _PUBLIC, IMPLEMENTED_LOCAL, None),
+    ("A-11", "Creative Direction", "Develop artistic ideas and visual identity", "studio", _PUBLIC, SPEC_ONLY, None),
+    ("A-14", "Security & Privacy", "Threat modelling and data isolation", "personal", _PUBLIC, SPEC_ONLY, None),
+    ("A-15", "Health & Longevity", "Parse owner-exported lab results into provenance-tagged rows (research aid only)",
+     "personal", frozenset({legacy.PUBLIC, legacy.MEDICAL}), IMPLEMENTED_LOCAL, None),
+    ("A-16", "Behavioral Ergonomics", "Fit the daily plan to the energy level", "personal", _PUBLIC, SPEC_ONLY, None),
+    ("A-17", "Adversarial Evaluation", "Simulate failure and critique strategies (red team)", "opportunity", _PUBLIC, SPEC_ONLY, None),
+    ("A-18", "Self-Evolution & Systems", "Controlled code upgrades in a sandbox", "opportunity", _PUBLIC, SPEC_ONLY, None),
 )
-ROLES = tuple(RoleSpec(f"A-{n}", name, mission, domain, allowed, status, "8-12" if n == 3 else None)
-              for n, (name, mission, domain, allowed, status) in enumerate(_ROLES, 1))
+ROLES = tuple(RoleSpec(agent_id, name, mission, domain, allowed, status, legacy_slot)
+              for agent_id, name, mission, domain, allowed, status, legacy_slot in _ROLES)
 BY_ID = {r.agent_id: r for r in ROLES}
-assert len(ROLES) == 18
+assert len(ROLES) == 16, "18 minus A-12 (Screenwriting) and A-13 (Publishing), removed 2026-11-15"
 
 # FROZEN (mission 2026-11-15, docs/ACTIVE_SYSTEM.md / docs/FROZEN_SYSTEMS.md): A-10 is the
 # sole active system during the 21-day measurement window. Freezing is NOT a status change
