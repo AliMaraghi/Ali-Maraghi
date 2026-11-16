@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic APEX kernel run on this host (--once per firing, not an infinite loop; A-1's own cooldown prevents redundant fetches if this fires more often than intended)
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=6h
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

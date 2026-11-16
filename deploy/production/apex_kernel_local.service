@@ -1,0 +1,13 @@
+[Unit]
+Description=APEX kernel run on this host (propose-only; --once, no unattended real actions; humans approve in the console)
+After=network.target
+
+[Service]
+Type=oneshot
+User=apexdev
+WorkingDirectory=/home/apexdev/apex-work
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/agents_runner.py --once
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+[Install]
+WantedBy=multi-user.target
