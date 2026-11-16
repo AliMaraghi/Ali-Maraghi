@@ -78,6 +78,7 @@ MODEL = "claude-haiku-5-5"                      # cheapest current model; change
 MAX_INPUT_CHARS = 500
 PRICE_MILLIPENCE_PER_CALL = 2_000               # 2 pence/call - a flat estimate, not metered per-token
 RATE_LIMIT_PER_MINUTE = 10                       # per-process, all callers combined (crude but fails closed)
+BANKING_CSV_MAX_BODY_BYTES = 262_144              # ~256KB JSON body; banking_csv.py bounds the CSV itself further
 SYSTEM_PROMPT = "You are Apex, Ali's personal AI. You have memory of this conversation. Keep replies brief and natural."
 HISTORY_TURNS = 10                               # last 10 messages (user+assistant combined) sent as context
 HISTORY_KEEP_PER_SESSION = 200                    # trimmed after each save so this table cannot grow unbounded
@@ -275,6 +276,11 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._dating_draft(environ, start_response)
+        if path == "/api/banking/parse":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._banking_parse(environ, start_response)
         if path != "/api/chat":
             return self._respond(start_response, 404, {"error": "NOT_FOUND"})
         if method != "POST":
@@ -334,6 +340,45 @@ class VoiceChatApp:
         except dating_agent.ResearchPipelineError as exc:
             return self._respond(start_response, 502, {"error": str(exc)})
         return self._respond(start_response, 200, {"drafts": drafts})
+
+    def _banking_parse(self, environ, start_response):
+        # The owner's own CSV export, parsed in-memory for this one request only - never
+        # stored, no OAuth, no aggregator. Real arithmetic (parsing amounts, summing totals) is
+        # pure Python; the one LLM call only classifies descriptions into a fixed category list
+        # (see scripts/banking_csv.py's own docstring). Budget-gated like every other LLM call.
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= BANKING_CSV_MAX_BODY_BYTES:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        raw = environ["wsgi.input"].read(int(length))
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        csv_text = body.get("csv_text") if isinstance(body, dict) else None
+        if not isinstance(csv_text, str):
+            return self._respond(start_response, 400, {"error": "MISSING_CSV_TEXT"})
+        import banking_csv
+        try:
+            transactions = banking_csv.parse_transactions(csv_text)
+        except banking_csv.CsvParseError as exc:
+            return self._respond(start_response, 400, {"error": f"CSV_PARSE_ERROR:{exc}"})
+        key = identifier(f"voice.banking.{int(time.time() * 1000)}"[:48])
+        try:
+            self.budget.reserve(key, "core", "anthropic", "banking-csv-categorize-step", 1)
+        except BudgetDenied as exc:
+            return self._respond(start_response, 402, {"error": f"BUDGET_DENIED:{exc}"})
+        from apex.agents_research import call_anthropic as research_call_anthropic, load_api_key as research_load_api_key
+        try:
+            api_key = research_load_api_key()
+            result = banking_csv.categorize(research_call_anthropic, api_key, transactions)
+        except Exception as exc:
+            try:
+                self.budget.release(key)
+            except Exception:
+                pass
+            return self._respond(start_response, 502, {"error": f"CATEGORIZE_FAILED:{exc}"})
+        self.budget.settle(key, 1)
+        return self._respond(start_response, 200, result)
 
     def _respond(self, start_response, code, obj):
         labels = {200: "OK", 400: "Bad Request", 402: "Payment Required", 404: "Not Found",
@@ -407,7 +452,7 @@ def set_daily_cap(cap_pence: int):
     # (own reservation key, own audit trail), just at the same flat per-call estimate.
     skus = ("voice-chat-call", "finance-strategy-step", "twitter-draft-step",
              "dating-draft-step", "academic-personalize-step", "intent-router-step", "intent-planner-step",
-             "capability-draft-step")
+             "capability-draft-step", "banking-csv-categorize-step")
     for sku in skus:
         budget.set_price("anthropic", sku, PRICE_MILLIPENCE_PER_CALL, now,
                           "flat per-call estimate, owner-set, not metered per-token")

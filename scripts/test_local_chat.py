@@ -137,6 +137,48 @@ class LocalChatTests(unittest.TestCase):
         self.assertTrue(captured["status"].startswith("200"))
         self.assertIn("drafts", data)
 
+    def test_banking_parse_invalid_csv_is_400_no_budget_touched(self):
+        body = json.dumps({"csv_text": "not,a,real,statement"}).encode()
+        environ = {"PATH_INFO": "/api/banking/parse", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        result = self.app(environ, lambda status, headers: captured.update(status=status))
+        data = json.loads(b"".join(result))
+        self.assertTrue(captured["status"].startswith("400"))
+        self.assertIn("CSV_PARSE_ERROR", data["error"])
+
+    def test_banking_parse_zero_budget_by_default_is_402(self):
+        csv_text = "Date,Description,Amount\n2026-11-01,TESCO,-10.00\n"
+        body = json.dumps({"csv_text": csv_text}).encode()
+        environ = {"PATH_INFO": "/api/banking/parse", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        result = self.app(environ, lambda status, headers: captured.update(status=status))
+        data = json.loads(b"".join(result))
+        self.assertTrue(captured["status"].startswith("402"))
+        self.assertIn("BUDGET_DENIED", data["error"])
+
+    def test_banking_parse_real_categorization_once_priced(self):
+        import time
+        import banking_csv
+        self.app.budget.set_price("anthropic", "banking-csv-categorize-step", 100, time.time(), "test")
+        self.app.budget.set_cap("core", "day", 1000)
+        orig = banking_csv.categorize
+        banking_csv.categorize = lambda call_anthropic, api_key, transactions: {
+            "totals_pence": {"Groceries": -1000}, "transaction_count": 1, "uncategorized_count": 0}
+        try:
+            csv_text = "Date,Description,Amount\n2026-11-01,TESCO,-10.00\n"
+            body = json.dumps({"csv_text": csv_text}).encode()
+            environ = {"PATH_INFO": "/api/banking/parse", "REQUEST_METHOD": "POST",
+                      "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+            captured = {}
+            result = self.app(environ, lambda status, headers: captured.update(status=status))
+            data = json.loads(b"".join(result))
+        finally:
+            banking_csv.categorize = orig
+        self.assertTrue(captured["status"].startswith("200"))
+        self.assertEqual(data["totals_pence"]["Groceries"], -1000)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,12 @@ import { useEffect, useState } from "react";
 const DASHBOARD_ENDPOINT = "https://api.apexcorelab.uk/api/dashboard";
 const ACADEMIC_ENDPOINT = "https://api.apexcorelab.uk/api/academic/latest";
 const DATING_DRAFT_ENDPOINT = "https://api.apexcorelab.uk/api/dating/draft";
+const BANKING_PARSE_ENDPOINT = "https://api.apexcorelab.uk/api/banking/parse";
+// Google OAuth is deliberately mounted ONLY on console.apexcorelab.uk (the one domain with a
+// real Cloudflare Access gate), never on this public dashboard - see
+// docs/apex_status/ for why. This is a link to that already-working page, not a second,
+// unauthenticated way to start the same OAuth flow.
+const GOOGLE_CONSOLE_URL = "https://console.apexcorelab.uk/connections/google";
 const POLL_MS = 5000;
 
 const DOMAINS = ["finance", "academic", "dating", "banking"];
@@ -27,6 +33,15 @@ const COPY = {
         academicNote: "Fetched live just now - there is no stored history of past titles to show instead.",
         financeNote: "This is the same real figure already shown on the card, just with the full detail.",
         errorGeneric: "Something went wrong - nothing was lost, try again.",
+        copy: "Copy", copied: "Copied",
+        csvLabel: "Or upload your own bank CSV export (nothing is stored; parsed once and discarded):",
+        csvUpload: "Upload CSV", csvParsing: "Categorizing...", csvNone: "No breakdown yet.",
+        csvUncategorized: "uncategorized as \"Other\"",
+        googleLabel: "Google Workspace (Gmail metadata only - never Calendar, never message bodies)",
+        googleExplain: "This is mounted and gated on the real Access-protected console, not on this public "
+          + "dashboard - connecting here would mean anyone reaching this page, not just the owner, could "
+          + "start linking a Google account. Manage the real connection on the console instead.",
+        googleOpenConsole: "Open on console.apexcorelab.uk",
       },
   fa: { title: "داشبورد مدیریتی", whereWasI: "کجا بودیم؟", finance: "مالی", academic: "آکادمیک",
         dating: "دیتینگ", banking: "بانکداری", lastThing: "آخرین کاری که کردید:", nothingYet: "هنوز در این جلسه کاری نشده.",
@@ -41,6 +56,15 @@ const COPY = {
         academicNote: "همین الان به‌صورت زنده دریافت شد - تاریخچه ذخیره‌شده‌ای از عناوین قبلی وجود ندارد.",
         financeNote: "این همان رقم واقعی نشان‌داده‌شده روی کارت است، فقط با جزئیات کامل.",
         errorGeneric: "مشکلی پیش آمد - چیزی از دست نرفت، دوباره امتحان کنید.",
+        copy: "کپی", copied: "کپی شد",
+        csvLabel: "یا فایل CSV بانکی خودتان را آپلود کنید (چیزی ذخیره نمی‌شود؛ فقط یک‌بار پردازش و حذف می‌شود):",
+        csvUpload: "آپلود CSV", csvParsing: "در حال دسته‌بندی...", csvNone: "هنوز تفکیکی وجود ندارد.",
+        csvUncategorized: "دسته‌بندی‌نشده (در «سایر»)",
+        googleLabel: "گوگل ورک‌اسپیس (فقط اطلاعات ایمیل - هرگز تقویم، هرگز متن پیام)",
+        googleExplain: "این اتصال فقط روی کنسول واقعی محافظت‌شده نصب شده، نه روی این داشبورد عمومی - "
+          + "اتصال از اینجا یعنی هر کسی که به این صفحه برسد، نه فقط مالک، می‌تواند شروع به اتصال حساب گوگل کند. "
+          + "اتصال واقعی را از کنسول مدیریت کنید.",
+        googleOpenConsole: "باز کردن در console.apexcorelab.uk",
       },
 };
 
@@ -103,6 +127,39 @@ function Modal({ title, color, lang, onClose, children }) {
   );
 }
 
+// Splits the model's raw "1. ...\n2. ...\n3. ..." reply into separate copyable drafts. Falls
+// back to showing the whole raw reply as one block if the numbered format isn't found - never
+// hides or drops the real text just because it didn't parse the way we expected.
+function splitDrafts(raw) {
+  const lines = String(raw || "").split(/\r?\n/).filter((l) => l.trim());
+  const items = lines
+    .map((l) => l.replace(/^\s*\d+[.)]\s*/, "").trim())
+    .filter(Boolean);
+  return items.length > 1 ? items : [String(raw || "").trim()].filter(Boolean);
+}
+
+function CopyButton({ text, label, copiedLabel }) {
+  const [copied, setCopied] = useState(false);
+  const doCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Clipboard API can be blocked (permissions, insecure context); fail silently - the
+      // text is still fully visible and selectable by hand either way.
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button onClick={doCopy} style={{
+      fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #3a3a55",
+      background: "transparent", color: "#fff", cursor: "pointer", opacity: 0.85,
+    }}>
+      {copied ? copiedLabel : label}
+    </button>
+  );
+}
+
 function DatingModal({ lang, color, onClose }) {
   const t = COPY[lang];
   const [bio, setBio] = useState("");
@@ -157,19 +214,60 @@ function DatingModal({ lang, color, onClose }) {
       </button>
       {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{errorMsg}</div>}
       {state === "done" && (
-        <pre style={{
-          whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 14, background: "rgba(255,255,255,0.04)",
-          padding: 12, borderRadius: 8, margin: 0,
-        }}>
-          {drafts}
-        </pre>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {splitDrafts(drafts).map((draft, i) => (
+            <div key={i} style={{
+              display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10,
+              fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8,
+            }}>
+              <div style={{ whiteSpace: "pre-wrap", flex: 1 }}>{draft}</div>
+              <CopyButton text={draft} label={t.copy} copiedLabel={t.copied} />
+            </div>
+          ))}
+        </div>
       )}
     </Modal>
   );
 }
 
+function formatPounds(pence) {
+  return (pence / 100).toLocaleString(undefined, { style: "currency", currency: "GBP" });
+}
+
 function BankingModal({ lang, color, onClose }) {
   const t = COPY[lang];
+  const [csvState, setCsvState] = useState("idle"); // idle | loading | done | error
+  const [breakdown, setBreakdown] = useState(null);
+  const [csvError, setCsvError] = useState("");
+
+  const onFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ""; // allow re-uploading the same filename later
+    if (!file) return;
+    setCsvState("loading");
+    try {
+      const text = await file.text();
+      const res = await fetch(BANKING_PARSE_ENDPOINT, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csv_text: text }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const budgetDenied = res.status === 402 || String(json.error || "").startsWith("BUDGET_DENIED");
+        setCsvError(budgetDenied
+          ? (lang === "fa" ? "سقف بودجه روزانه پر شده است." : "Budget cap reached.")
+          : String(json.error || t.errorGeneric));
+        setCsvState("error");
+        return;
+      }
+      setBreakdown(json);
+      setCsvState("done");
+    } catch {
+      setCsvError(t.errorGeneric);
+      setCsvState("error");
+    }
+  };
+
   return (
     <Modal title={COPY[lang].banking} color={color} lang={lang} onClose={onClose}>
       <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>{t.bankingExplain}</p>
@@ -182,6 +280,30 @@ function BankingModal({ lang, color, onClose }) {
       >
         {t.bankingConnect}
       </button>
+
+      <div style={{ borderTop: "1px solid #2a2a3a", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+        <label style={{ fontSize: 13, opacity: 0.85 }}>{t.csvLabel}</label>
+        <input type="file" accept=".csv,text/csv" onChange={onFile} style={{ fontSize: 13, color: "#fff" }} />
+        {csvState === "loading" && <div style={{ fontSize: 14, opacity: 0.8 }}>{t.csvParsing}</div>}
+        {csvState === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{csvError}</div>}
+        {csvState === "done" && breakdown && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {Object.entries(breakdown.totals_pence)
+              .filter(([, pence]) => pence !== 0)
+              .map(([category, pence]) => (
+                <div key={category} style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
+                  <span>{category}</span>
+                  <span style={{ color: pence < 0 ? "#ff8a8a" : "#7dffb0" }}>{formatPounds(pence)}</span>
+                </div>
+              ))}
+            {breakdown.uncategorized_count > 0 && (
+              <div style={{ fontSize: 12, opacity: 0.6 }}>
+                {breakdown.uncategorized_count} {t.csvUncategorized}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }
@@ -231,6 +353,45 @@ function FinanceModal({ lang, color, data, onClose }) {
         <JudgementLogic text={lang === "fa" ? data.judgement_logic_fa : data.judgement_logic_en} color={color} />
       )}
     </Modal>
+  );
+}
+
+const GOOGLE_COLOR = "#8ab4f8";
+
+// Not a DomainCard: there is no backend "google" entry in dashboard_payload() because this
+// isn't owned by this dashboard at all - it's a real, already-working, Access-gated flow on
+// console.apexcorelab.uk. This card is honest about that: it never claims "Connected"/"Needs
+// setup" here (it would have no way to know without a login this app deliberately doesn't have),
+// it only explains and links out.
+function GoogleModal({ lang, onClose }) {
+  const t = COPY[lang];
+  return (
+    <Modal title={t.googleLabel} color={GOOGLE_COLOR} lang={lang} onClose={onClose}>
+      <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>{t.googleExplain}</p>
+      <a href={GOOGLE_CONSOLE_URL} target="_blank" rel="noreferrer" style={{
+        display: "inline-block", fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8,
+        background: GOOGLE_COLOR, color: "#05060a", textDecoration: "none", textAlign: "center",
+      }}>
+        {t.googleOpenConsole}
+      </a>
+    </Modal>
+  );
+}
+
+function GoogleCard({ lang, onClick }) {
+  const t = COPY[lang];
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        border: `1px solid ${GOOGLE_COLOR}55`, borderRadius: 12, padding: 20, cursor: "pointer",
+        background: "rgba(255,255,255,0.03)", display: "flex", flexDirection: "column", gap: 10,
+      }}
+    >
+      <div style={{ fontSize: 28 }}>{"\u{1F4E7}"}</div>
+      <div style={{ fontSize: 18, fontWeight: 700 }}>{t.googleLabel}</div>
+      <div style={{ fontSize: 14, opacity: 0.75, flex: 1 }}>{t.googleOpenConsole} {"→"}</div>
+    </div>
   );
 }
 
@@ -294,7 +455,7 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
   const [lang, setLang] = useState("en");
   const [data, setData] = useState(null);
   const [unreachable, setUnreachable] = useState(false);
-  const [openModalDomain, setOpenModalDomain] = useState(null); // null | "finance" | "academic" | "dating" | "banking"
+  const [openModalDomain, setOpenModalDomain] = useState(null); // null | "finance" | "academic" | "dating" | "banking" | "google"
 
   useEffect(() => {
     let cancelled = false;
@@ -358,8 +519,12 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
         {data && DOMAINS.map((domain) => (
           <DomainCard key={domain} domain={domain} data={data[domain]} lang={lang} onAction={setOpenModalDomain} />
         ))}
+        <GoogleCard lang={lang} onClick={() => setOpenModalDomain("google")} />
       </div>
 
+      {openModalDomain === "google" && (
+        <GoogleModal lang={lang} onClose={() => setOpenModalDomain(null)} />
+      )}
       {openModalDomain === "dating" && (
         <DatingModal lang={lang} color={DOMAIN_COLOR.dating} onClose={() => setOpenModalDomain(null)} />
       )}
