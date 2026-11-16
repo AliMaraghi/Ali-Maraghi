@@ -10,21 +10,52 @@ import { useEffect, useState } from "react";
 const DASHBOARD_ENDPOINT = "https://api.apexcorelab.uk/api/dashboard";
 const POLL_MS = 5000;
 
-const DOMAIN_COLOR = { finance: "#7dffb0", academic: "#5fe3ff", dating: "#b98fff" };
-const DOMAIN_ICON = { finance: "\u{1F4B0}", academic: "\u{1F4D6}", dating: "\u{1F49C}" };
+const DOMAINS = ["finance", "academic", "dating", "banking"];
+const DOMAIN_COLOR = { finance: "#7dffb0", academic: "#5fe3ff", dating: "#b98fff", banking: "#ffd166" };
+const DOMAIN_ICON = { finance: "\u{1F4B0}", academic: "\u{1F4D6}", dating: "\u{1F49C}", banking: "\u{1F3E6}" };
 const COPY = {
   en: { title: "Executive Dashboard", whereWasI: "Where was I?", finance: "Finance", academic: "Academic",
-        dating: "Dating", lastThing: "Last thing you did:", nothingYet: "Nothing yet this session." },
+        dating: "Dating", banking: "Banking", lastThing: "Last thing you did:", nothingYet: "Nothing yet this session.",
+        howItWorks: "How it works", howItJudges: "How it judges (read this before trusting any number)" },
   fa: { title: "داشبورد مدیریتی", whereWasI: "کجا بودیم؟", finance: "مالی", academic: "آکادمیک",
-        dating: "دیتینگ", lastThing: "آخرین کاری که کردید:", nothingYet: "هنوز در این جلسه کاری نشده." },
+        dating: "دیتینگ", banking: "بانکداری", lastThing: "آخرین کاری که کردید:", nothingYet: "هنوز در این جلسه کاری نشده.",
+        howItWorks: "نحوه کار", howItJudges: "نحوه قضاوت (قبل از اعتماد به هر عدد، این را بخوانید)" },
 };
+
+// Deliberately NOT a progress bar / numeric score: nothing in the real pipeline computes a
+// "respect score", "relevance %" or "tax efficiency %" as a genuine measurement (see
+// judgement_logic_en/fa below, and dating_draft_reply's own comment in scripts/orchestrator.py
+// about never presenting a self-rating as ground truth). A fake percentage bar would be exactly
+// the kind of fabricated precision this whole project has repeatedly refused to ship.
+function Workflow({ steps, lang }) {
+  if (!steps || !steps.length) return null;
+  return (
+    <ol style={{ margin: "4px 0 0", padding: lang === "fa" ? "0 20px 0 0" : "0 0 0 20px", fontSize: 13, opacity: 0.85, lineHeight: 1.5 }}>
+      {steps.map((step, i) => (<li key={i} style={{ marginBottom: 4 }}>{step}</li>))}
+    </ol>
+  );
+}
+
+function JudgementLogic({ text, color }) {
+  if (!text) return null;
+  return (
+    <div style={{
+      fontSize: 12.5, lineHeight: 1.5, padding: 10, borderRadius: 8,
+      background: "rgba(255,255,255,0.04)", borderLeft: `3px solid ${color}`, opacity: 0.9,
+    }}>
+      {text}
+    </div>
+  );
+}
 
 function DomainCard({ domain, data, lang, onAction }) {
   if (!data) return null;
   const color = DOMAIN_COLOR[domain];
+  const t = COPY[lang];
+  const judgementText = lang === "fa" ? data.judgement_logic_fa : data.judgement_logic_en;
   return (
     <div style={{
-      border: `1px solid ${color}55`, borderRadius: 12, padding: 20, flex: 1, minWidth: 220,
+      border: `1px solid ${color}55`, borderRadius: 12, padding: 20,
       background: "rgba(255,255,255,0.03)", display: "flex", flexDirection: "column", gap: 10,
     }}>
       <div style={{ fontSize: 28 }}>{DOMAIN_ICON[domain]}</div>
@@ -38,6 +69,25 @@ function DomainCard({ domain, data, lang, onAction }) {
       <div style={{ fontSize: 16, opacity: 0.9, minHeight: 40 }}>
         {lang === "fa" ? data.metric_fa : data.metric_en}
       </div>
+
+      {data.workflow && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", marginBottom: 2 }}>
+            {t.howItWorks}
+          </div>
+          <Workflow steps={data.workflow} lang={lang} />
+        </div>
+      )}
+
+      {judgementText && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", marginBottom: 4 }}>
+            {t.howItJudges}
+          </div>
+          <JudgementLogic text={judgementText} color={color} />
+        </div>
+      )}
+
       <button
         onClick={() => onAction(domain)}
         style={{
@@ -114,8 +164,8 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        {data && (["finance", "academic", "dating"]).map((domain) => (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        {data && DOMAINS.map((domain) => (
           <DomainCard key={domain} domain={domain} data={data[domain]} lang={lang} onAction={onOpenSwarmPanel} />
         ))}
       </div>

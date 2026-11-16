@@ -405,6 +405,32 @@ class DashboardPayloadTests(unittest.TestCase):
             self.assertIn("metric_fa", payload[domain])
             self.assertIn("action_fa", payload[domain])
 
+    def test_banking_domain_is_honest_needs_setup_with_no_fabricated_score(self):
+        payload = orchestrator.dashboard_payload(self.root)
+        self.assertIn("banking", payload)
+        self.assertEqual(payload["banking"]["status"], "Needs setup")
+        self.assertIn("metric_fa", payload["banking"])
+        self.assertIn("workflow", payload["banking"])
+        self.assertIn("judgement_logic_en", payload["banking"])
+
+    def test_workflow_and_judgement_logic_present_and_bilingual_no_fabricated_scores(self):
+        payload = orchestrator.dashboard_payload(self.root)
+        for domain in ("finance", "academic", "dating", "banking"):
+            d = payload[domain]
+            self.assertIsInstance(d["workflow"], list)
+            self.assertGreaterEqual(len(d["workflow"]), 2)
+            self.assertTrue(all(isinstance(step, str) and step for step in d["workflow"]))
+            self.assertIsInstance(d["judgement_logic_en"], str)
+            self.assertIsInstance(d["judgement_logic_fa"], str)
+            self.assertGreater(len(d["judgement_logic_en"]), 20)
+            self.assertGreater(len(d["judgement_logic_fa"]), 20)
+            # No invented numeric "scores" anywhere in this payload - see
+            # ExecutiveDashboard.jsx's own comment on why.
+            self.assertNotIn("score", d["metric_en"].lower())
+        self.assertNotIn("respect_score", str(payload))
+        self.assertNotIn("relevance", str(payload).lower())
+        self.assertNotIn("tax_efficiency", str(payload))
+
 
 if __name__ == "__main__":
     unittest.main()

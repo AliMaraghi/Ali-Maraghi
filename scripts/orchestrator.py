@@ -549,6 +549,18 @@ def dashboard_payload(root: Path) -> dict:
         "metric_en": finance_metric_en, "metric_fa": finance_metric_fa,
         "action_en": "View Strategy" if finance_ready else "Set Up ESPP",
         "action_fa": "مشاهده استراتژی" if finance_ready else "تنظیم ESPP",
+        "workflow": [
+            "Load your real HMRC ESPP/CGT rules file and ESPP inputs (no LLM, no network)",
+            "Apply fixed UK tax arithmetic to the scenario (A-8, pure calculation)",
+            "Include real past recorded outcomes for calibration, if any exist",
+            "One LLM call only, to phrase the already-computed result in plain language",
+        ],
+        "judgement_logic_en": ("The pound figures are deterministic arithmetic against the rules "
+            "file you provided - the LLM never calculates anything, it only paraphrases a number "
+            "A-8 already produced. This is not AI judgement; it's code you can read."),
+        "judgement_logic_fa": ("ارقام پوندی از محاسبات قطعی روی فایل قوانینی که خودتان وارد کرده‌اید "
+            "به‌دست می‌آیند - مدل زبانی هیچ محاسبه‌ای انجام نمی‌دهد، فقط عددی را که A-8 از قبل "
+            "تولید کرده، به زبان ساده بیان می‌کند. این «قضاوت هوش مصنوعی» نیست؛ کدی است که می‌توانید بخوانید."),
     }
     feed_count = a1["real_metrics"].get("configured_feed_count", 0)
     academic = {
@@ -556,6 +568,18 @@ def dashboard_payload(root: Path) -> dict:
         "metric_en": f"{feed_count} feeds configured" + (f" - last scan: {a1['last_claims']} item(s)" if a1["last_claims"] else ""),
         "metric_fa": f"{feed_count} فید فعال" + (f" - آخرین اسکن: {a1['last_claims']} مورد" if a1["last_claims"] else ""),
         "action_en": "Read Now", "action_fa": "خواندن فوری",
+        "workflow": [
+            "Fetch the configured RSS feeds live over HTTPS (free, no account, allowlisted hosts only)",
+            "Parse real titles and links out of each feed response - nothing invented",
+            "If you've written runtime/inbox/interests.json yourself, one extra LLM call ranks what was fetched",
+            "A dead or blocked feed is reported as a gap, never silently hidden",
+        ],
+        "judgement_logic_en": ("This is extraction, not judgement: every title shown was actually "
+            "present in a feed response from this run. The only subjective step is the optional "
+            "interest ranking, and it can only reorder real items - it cannot invent an article."),
+        "judgement_logic_fa": ("این یک «استخراج» است، نه «قضاوت»: هر عنوانی که نشان داده می‌شود واقعاً "
+            "در پاسخ یک فید در همین اجرا وجود داشته است. تنها مرحله ذهنی، رتبه‌بندی اختیاری بر اساس "
+            "علایق است که فقط می‌تواند موارد واقعی را دوباره مرتب کند - نمی‌تواند مقاله‌ای بسازد."),
     }
     from apex.kernel.memory import Ledger
     from apex.kernel.budget import Budget
@@ -572,8 +596,45 @@ def dashboard_payload(root: Path) -> dict:
         "metric_en": "On-demand - nothing stored (see dating_agent.py)",
         "metric_fa": "درخواستی - چیزی ذخیره نمی‌شود",
         "action_en": "Try It" if dating_ready else "Set Up Pricing", "action_fa": "امتحان کنید" if dating_ready else "تنظیم قیمت",
+        "workflow": [
+            "Read the profile text you paste - never a login, a scrape, or any platform's network",
+            "One LLM call drafts 3 openers grounded only in that pasted text",
+            "A second call, same model, rates its own drafts for respectfulness - a self-rating, not an audit",
+            "You copy and send any draft yourself, from your own device, on your own account",
+        ],
+        "judgement_logic_en": ("There is no independent respect score. Any number shown is the same "
+            "model grading its own output, labelled as a self-rating everywhere it appears - never "
+            "presented as a verified measurement. Nothing is sent automatically; nothing is stored."),
+        "judgement_logic_fa": ("هیچ امتیاز احترام مستقلی وجود ندارد. هر عددی که نشان داده می‌شود، "
+            "همان مدل است که خروجی خودش را نمره می‌دهد و همیشه به‌عنوان «خودارزیابی» برچسب‌گذاری "
+            "شده - هرگز به‌عنوان یک سنجش تأییدشده ارائه نمی‌شود. چیزی به‌طور خودکار ارسال یا ذخیره نمی‌شود."),
     }
-    return {"finance": finance, "academic": academic, "dating": dating, "generated_at": time.time()}
+    banking = {
+        # Honest default, not a guess: core/apex/banking_connect.py exists (see
+        # docs/apex_status/BANKING_SCAFFOLD_REPORT.md) but has no mounted web route and no
+        # reviewed aggregator chosen, so there is no path by which this could ever be "Ready"
+        # yet - reporting anything else here would be exactly the fabricated status this whole
+        # dashboard was built to refuse.
+        "status": "Needs setup",
+        "metric_en": "No aggregator configured - owner consent not yet reachable from any UI",
+        "metric_fa": "هیچ تجمیع‌کننده‌ای تنظیم نشده - رضایت مالک هنوز از هیچ رابط کاربری قابل دسترس نیست",
+        "action_en": "Not Available Yet", "action_fa": "هنوز در دسترس نیست",
+        "workflow": [
+            "Owner completes real OAuth consent with a reviewed FCA-regulated AISP (not built yet)",
+            "Access token stored encrypted in the existing Ledger, same pattern as Meta/Google",
+            "Read-only account list only - id, display name, currency",
+            "Payment Initiation is blocked at the code level (require_read_only), not just by policy",
+        ],
+        "judgement_logic_en": ("There is nothing to judge here yet: no transactions are fetched, "
+            "nothing is categorized, and no score of any kind exists for banking. The only real "
+            "claim this module can make is what it structurally refuses - moving money, and "
+            "sort code / account number leaving the aggregator response."),
+        "judgement_logic_fa": ("در اینجا هنوز چیزی برای قضاوت وجود ندارد: هیچ تراکنشی دریافت "
+            "نمی‌شود، هیچ‌چیز دسته‌بندی نمی‌شود و هیچ نوع امتیازی برای بانکداری وجود ندارد. تنها "
+            "ادعای واقعی این ماژول چیزی است که به‌صورت ساختاری رد می‌کند - انتقال پول، و خروج "
+            "شماره حساب/سورت‌کد از پاسخ تجمیع‌کننده."),
+    }
+    return {"finance": finance, "academic": academic, "dating": dating, "banking": banking, "generated_at": time.time()}
 
 
 def _general_status(ledger, now: float) -> str:
