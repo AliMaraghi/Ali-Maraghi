@@ -102,6 +102,23 @@ class BankingConnectionTests(unittest.TestCase):
         accounts = c.accounts(transport)
         self.assertEqual(set(accounts[0]), {'id', 'display_name', 'currency'})
 
+    def test_transactions_requires_connected_and_projects_bounded_fields(self):
+        config_with_tx = dict(CONFIG, transactions_path='/data/v1/transactions')
+        c = BankingConnection(self.ledger, Fernet.generate_key(), 'owner@example.org', config_with_tx,
+                              ('accounts:read', 'balances:read'))
+        with self.assertRaises(PermissionError):
+            c.transactions()
+        q = parse_qs(urlsplit(c.begin('owner@example.org', SESSION)).query)
+
+        def transport(op, config, **args):
+            if op == 'code':
+                return {'access_token': 'TOK', 'expires_in': 3600}
+            return {'transactions': [{'date': '2026-11-01T00:00:00Z', 'description': 'TESCO',
+                                      'pence': -500, 'account_number': '12345678'}]}
+        c.callback('owner@example.org', SESSION, q['state'][0], 'CODE', transport)
+        rows = c.transactions(transport)
+        self.assertEqual(rows, [{'date': '2026-11-01T00:00:00Z', 'description': 'TESCO', 'pence': -500}])
+
 
 if __name__ == '__main__':
     unittest.main()

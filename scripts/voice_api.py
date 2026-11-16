@@ -281,6 +281,16 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/dating/bulk_queue":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._dating_bulk_queue(environ, start_response)
+        if path == "/api/wealth/analyze":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._wealth_analyze(environ, start_response)
         if path != "/api/chat":
             return self._respond(start_response, 404, {"error": "NOT_FOUND"})
         if method != "POST":
@@ -380,6 +390,62 @@ class VoiceChatApp:
         self.budget.settle(key, 1)
         return self._respond(start_response, 200, result)
 
+    def _dating_bulk_queue(self, environ, start_response):
+        # Up to 10 pasted bios, each run through the SAME single-draft path (same SKU, same
+        # per-call budget gate) in a plain loop - not a new capability, just this one already-
+        # reviewed one applied N times. One bio's budget denial or generation failure never
+        # hides the others' real results; nothing here logs into any dating platform.
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 40960:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        raw = environ["wsgi.input"].read(int(length))
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        bios = body.get("bios") if isinstance(body, dict) else None
+        if not isinstance(bios, list) or not 1 <= len(bios) <= 10 or not all(isinstance(b, str) for b in bios):
+            return self._respond(start_response, 400, {"error": "INVALID_BIOS_LIST_MAX_10"})
+        import dating_agent
+        results = []
+        for i, bio in enumerate(bios):
+            if not bio.strip():
+                results.append({"bio_index": i, "drafts": None, "error": "EMPTY_BIO"})
+                continue
+            try:
+                drafts = dating_agent.generate_openers(self.budget, bio.strip())
+                results.append({"bio_index": i, "drafts": drafts, "error": None})
+            except BudgetDenied as exc:
+                results.append({"bio_index": i, "drafts": None, "error": f"BUDGET_DENIED:{exc}"})
+            except dating_agent.ResearchPipelineError as exc:
+                results.append({"bio_index": i, "drafts": None, "error": str(exc)})
+        return self._respond(start_response, 200, {"results": results})
+
+    def _wealth_analyze(self, environ, start_response):
+        # Structural ISA/pension observation only - see core/apex/wealth_engine.py's own
+        # docstring for exactly what this is NOT (not a trade, not asset selection, not advice).
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 4096:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        raw = environ["wsgi.input"].read(int(length))
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        portfolio_text = body.get("portfolio_text") if isinstance(body, dict) else None
+        if not isinstance(portfolio_text, str) or not portfolio_text.strip():
+            return self._respond(start_response, 400, {"error": "EMPTY_PORTFOLIO_TEXT"})
+        from apex.wealth_engine import propose_action, WealthEngineError
+        try:
+            result = propose_action(self.budget, self.ledger, portfolio_text)
+        except WealthEngineError as exc:
+            return self._respond(start_response, 400, {"error": str(exc)})
+        except BudgetDenied as exc:
+            return self._respond(start_response, 402, {"error": f"BUDGET_DENIED:{exc}"})
+        except Exception as exc:
+            return self._respond(start_response, 502, {"error": f"ANALYSIS_FAILED:{exc}"})
+        return self._respond(start_response, 200, result)
+
     def _respond(self, start_response, code, obj):
         labels = {200: "OK", 400: "Bad Request", 402: "Payment Required", 404: "Not Found",
                   429: "Too Many Requests", 502: "Bad Gateway"}
@@ -452,7 +518,7 @@ def set_daily_cap(cap_pence: int):
     # (own reservation key, own audit trail), just at the same flat per-call estimate.
     skus = ("voice-chat-call", "finance-strategy-step", "twitter-draft-step",
              "dating-draft-step", "academic-personalize-step", "intent-router-step", "intent-planner-step",
-             "capability-draft-step", "banking-csv-categorize-step")
+             "capability-draft-step", "banking-csv-categorize-step", "wealth-analysis-step")
     for sku in skus:
         budget.set_price("anthropic", sku, PRICE_MILLIPENCE_PER_CALL, now,
                           "flat per-call estimate, owner-set, not metered per-token")

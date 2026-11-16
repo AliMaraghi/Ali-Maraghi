@@ -73,6 +73,8 @@ from .approvals_web import is_approvals_path
 from .bridge_web import is_bridge_path
 
 META_PATHS=frozenset({'/connections/meta','/connections/meta/sync','/auth/meta/start','/auth/meta/callback','/auth/meta/disconnect'})
+BANKING_PATHS=frozenset({'/connections/banking','/connections/banking/accounts','/connections/banking/transactions',
+                         '/auth/banking/start','/auth/banking/callback','/auth/banking/disconnect'})
 
 
 class ReloadingVerifier:
@@ -95,9 +97,9 @@ class ReloadingVerifier:
 
 
 class ConsoleApp:
-    def __init__(self,root,verifier,google_routes=None,meta_routes=None,finance_routes=None,approval_routes=None,bridge_routes=None):
+    def __init__(self,root,verifier,google_routes=None,meta_routes=None,finance_routes=None,approval_routes=None,bridge_routes=None,banking_routes=None):
         self.root=Path(root);self.verifier=verifier;self.google_routes=google_routes;self.meta_routes=meta_routes;self.finance_routes=finance_routes
-        self.approval_routes=approval_routes;self.bridge_routes=bridge_routes
+        self.approval_routes=approval_routes;self.bridge_routes=bridge_routes;self.banking_routes=banking_routes
         self.lock=threading.Lock();self.requests=deque()
     def __call__(self,environ,start_response):
         now=time.monotonic()
@@ -147,6 +149,17 @@ class ConsoleApp:
                              'targets':[{'name':t['name'],'status':'NOT_CONNECTED'} for t in FINANCE_TARGETS]}).encode()
         elif not self.meta_routes and path_info=='/connections/meta' and environ.get('REQUEST_METHOD')=='GET':
             body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected Meta app configuration"}'
+        elif self.banking_routes and path_info in BANKING_PATHS:
+            form_action="'self'"
+            try:
+                if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.banking_routes.owner:
+                    raise PermissionError('Access owner configuration changed')
+                code,body,extra,kind=self.banking_routes.handle(environ)
+            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
+        elif not self.banking_routes and path_info=='/connections/banking' and environ.get('REQUEST_METHOD')=='GET':
+            body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected, reviewed Open Banking aggregator configuration"}'
         elif not self.approval_routes and is_approvals_path(path_info):
             code=503;body=b'{"error":"APPROVALS_NOT_CONFIGURED"}'
         elif self.approval_routes and is_approvals_path(path_info):
@@ -188,6 +201,7 @@ def main():
     p.add_argument('--meta-config',type=Path,default=Path('/etc/apex/meta-runtime.json'))
     p.add_argument('--finance-config',type=Path,default=Path('/etc/apex/finance-runtime.json'))
     p.add_argument('--approvals-config',type=Path,default=Path('/etc/apex/approvals-runtime.json'))
+    p.add_argument('--banking-config',type=Path,default=Path('/etc/apex/banking-runtime.json'))
     args=p.parse_args()
     if not 1024<=args.port<=65535:raise ValueError('Unprivileged loopback port required')
     # Load and verify before opening listener; no anonymous health/data path.
@@ -208,9 +222,13 @@ def main():
     if args.approvals_config.exists():
         from .approvals_web import ApprovalRoutes
         approvals=ApprovalRoutes(args.root,args.approvals_config,verifier.verifier.owner)
+    banking=None
+    if args.banking_config.exists():
+        from .banking_web import BankingRoutes
+        banking=BankingRoutes(args.root,args.banking_config,verifier.verifier.owner)
     from .bridge_web import BridgeRoutes
     bridge=BridgeRoutes(args.root,verifier.verifier.owner)
-    app=ConsoleApp(args.root,verifier,google,meta,finance,approvals,bridge)
+    app=ConsoleApp(args.root,verifier,google,meta,finance,approvals,bridge,banking)
     from waitress import serve
     serve(app,listen='127.0.0.1:'+str(args.port),threads=4,connection_limit=32,
           channel_timeout=15,cleanup_interval=5,max_request_header_size=32768,

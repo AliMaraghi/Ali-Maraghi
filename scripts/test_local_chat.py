@@ -179,6 +179,78 @@ class LocalChatTests(unittest.TestCase):
         self.assertTrue(captured["status"].startswith("200"))
         self.assertEqual(data["totals_pence"]["Groceries"], -1000)
 
+    def test_dating_bulk_queue_rejects_more_than_ten(self):
+        body = json.dumps({"bios": ["x"] * 11}).encode()
+        environ = {"PATH_INFO": "/api/dating/bulk_queue", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        self.app(environ, lambda status, headers: captured.update(status=status))
+        self.assertTrue(captured["status"].startswith("400"))
+
+    def test_dating_bulk_queue_one_failure_does_not_hide_the_others(self):
+        import dating_agent
+        orig = dating_agent.generate_openers
+        calls = {"n": 0}
+
+        def fake(budget, text):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return "1. Hi\n2. Hey\n3. Hello"
+            raise dating_agent.ResearchPipelineError("boom")
+        dating_agent.generate_openers = fake
+        try:
+            body = json.dumps({"bios": ["Loves hiking.", "Loves climbing."]}).encode()
+            environ = {"PATH_INFO": "/api/dating/bulk_queue", "REQUEST_METHOD": "POST",
+                      "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+            captured = {}
+            result = self.app(environ, lambda status, headers: captured.update(status=status))
+            data = json.loads(b"".join(result))
+        finally:
+            dating_agent.generate_openers = orig
+        self.assertTrue(captured["status"].startswith("200"))
+        self.assertEqual(len(data["results"]), 2)
+        self.assertIsNone(data["results"][0]["error"])
+        self.assertIsNotNone(data["results"][1]["error"])
+
+    def test_wealth_analyze_empty_text_is_400(self):
+        body = json.dumps({"portfolio_text": "  "}).encode()
+        environ = {"PATH_INFO": "/api/wealth/analyze", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        self.app(environ, lambda status, headers: captured.update(status=status))
+        self.assertTrue(captured["status"].startswith("400"))
+
+    def test_wealth_analyze_zero_budget_by_default_is_402(self):
+        body = json.dumps({"portfolio_text": "£10,000 in savings"}).encode()
+        environ = {"PATH_INFO": "/api/wealth/analyze", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        result = self.app(environ, lambda status, headers: captured.update(status=status))
+        data = json.loads(b"".join(result))
+        self.assertTrue(captured["status"].startswith("402"))
+        self.assertIn("BUDGET_DENIED", data["error"])
+
+    def test_wealth_analyze_real_result_once_priced(self):
+        import time
+        from apex import wealth_engine
+        self.app.budget.set_price("anthropic", "wealth-analysis-step", 100, time.time(), "test")
+        self.app.budget.set_cap("core", "day", 1000)
+        orig = wealth_engine.propose_action
+        wealth_engine.propose_action = lambda budget, ledger, text, *a, **k: {
+            "action": "Move £4,000 into a Stocks & Shares ISA", "reasoning": "Unused allowance.",
+            "disclaimer": wealth_engine.DISCLAIMER}
+        try:
+            body = json.dumps({"portfolio_text": "£10,000 in savings"}).encode()
+            environ = {"PATH_INFO": "/api/wealth/analyze", "REQUEST_METHOD": "POST",
+                      "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+            captured = {}
+            result = self.app(environ, lambda status, headers: captured.update(status=status))
+            data = json.loads(b"".join(result))
+        finally:
+            wealth_engine.propose_action = orig
+        self.assertTrue(captured["status"].startswith("200"))
+        self.assertEqual(data["disclaimer"], wealth_engine.DISCLAIMER)
+
 
 if __name__ == "__main__":
     unittest.main()

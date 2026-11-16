@@ -64,6 +64,8 @@ def graph_path(op, config, args):
             'code': bounded(args['code'], r'[A-Za-z0-9_\-#.]+', 2048)})
     if op == 'accounts':
         return config['accounts_path'], bounded(args['token'], TOKEN_RE, 8192), None
+    if op == 'transactions':
+        return config['transactions_path'], bounded(args['token'], TOKEN_RE, 8192), None
     raise ValueError('Unsupported Open Banking operation')
 
 
@@ -214,6 +216,29 @@ class BankingConnection:
                 'currency': bounded(item.get('currency', 'GBP'), r'[A-Z]{3}', 3),
             })  # Explicit projection: sort code / account number never leave the aggregator response.
         return accounts
+
+    def transactions(self, transport=call):
+        """Read-only recent transactions: date/description/pence only, bounded to 100 rows.
+        Requires 'transactions_path' in config - optional, since it's a second capability on top
+        of basic account connectivity, not required for accounts() to work."""
+        record, _ = self._load()
+        if not record or record.get('status') != 'CONNECTED' or record['expires_at'] <= time.time():
+            raise PermissionError('AUTH_REQUIRED')
+        bounded(self.config.get('transactions_path', ''), r'[^\s]+', 2048)
+        data = transport('transactions', self.config, token=record['token'])
+        items = data.get('transactions')
+        if not isinstance(items, list) or len(items) > 100:
+            raise ValueError('Invalid transaction list')
+        transactions = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ValueError('Invalid transaction entry')
+            transactions.append({
+                'date': bounded(item.get('date', ''), r'[0-9T:.Z+-]+', 40),
+                'description': bounded(item.get('description', 'transaction'), r'.+', 300),
+                'pence': int(item['pence']) if isinstance(item.get('pence'), (int, float)) else 0,
+            })  # Same explicit projection discipline as accounts(): nothing else leaves the aggregator response.
+        return transactions
 
     def disconnect(self):
         self._save({'status': 'REVOKED'}, 'LOCALLY_DISCONNECTED')

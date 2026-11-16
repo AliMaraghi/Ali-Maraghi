@@ -8,7 +8,9 @@ import { useEffect, useState } from "react";
 const DASHBOARD_ENDPOINT = "https://api.apexcorelab.uk/api/dashboard";
 const ACADEMIC_ENDPOINT = "https://api.apexcorelab.uk/api/academic/latest";
 const DATING_DRAFT_ENDPOINT = "https://api.apexcorelab.uk/api/dating/draft";
+const DATING_BULK_ENDPOINT = "https://api.apexcorelab.uk/api/dating/bulk_queue";
 const BANKING_PARSE_ENDPOINT = "https://api.apexcorelab.uk/api/banking/parse";
+const WEALTH_ANALYZE_ENDPOINT = "https://api.apexcorelab.uk/api/wealth/analyze";
 // Google OAuth is deliberately mounted ONLY on console.apexcorelab.uk (the one domain with a
 // real Cloudflare Access gate), never on this public dashboard - see
 // docs/apex_status/ for why. This is a link to that already-working page, not a second,
@@ -42,6 +44,14 @@ const COPY = {
           + "dashboard - connecting here would mean anyone reaching this page, not just the owner, could "
           + "start linking a Google account. Manage the real connection on the console instead.",
         googleOpenConsole: "Open on console.apexcorelab.uk",
+        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)",
+        bulkLabel: "Paste up to 10 bios, separated by a blank line between each:",
+        bulkGenerate: "Generate All", bulkGenerating: "Generating all...",
+        bulkEmpty: "Paste at least one profile first.", bulkProfile: "Profile",
+        wealthButton: "Run Wealth Engine (read-only)",
+        wealthLabel: "Paste your portfolio/savings in plain text (e.g. \"£10,000 in savings, no ISA used this year\"):",
+        wealthRunning: "Analyzing...", wealthEmpty: "Describe your savings/portfolio first.",
+        wealthReasoning: "Why:", wealthDisclaimerLabel: "Important:",
       },
   fa: { title: "داشبورد مدیریتی", whereWasI: "کجا بودیم؟", finance: "مالی", academic: "آکادمیک",
         dating: "دیتینگ", banking: "بانکداری", lastThing: "آخرین کاری که کردید:", nothingYet: "هنوز در این جلسه کاری نشده.",
@@ -65,6 +75,14 @@ const COPY = {
           + "اتصال از اینجا یعنی هر کسی که به این صفحه برسد، نه فقط مالک، می‌تواند شروع به اتصال حساب گوگل کند. "
           + "اتصال واقعی را از کنسول مدیریت کنید.",
         googleOpenConsole: "باز کردن در console.apexcorelab.uk",
+        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)",
+        bulkLabel: "تا ۱۰ پروفایل را بچسبانید، بین هر کدام یک خط خالی بگذارید:",
+        bulkGenerate: "تولید همه", bulkGenerating: "در حال تولید همه...",
+        bulkEmpty: "ابتدا حداقل یک پروفایل وارد کنید.", bulkProfile: "پروفایل",
+        wealthButton: "اجرای موتور ثروت (فقط خواندنی)",
+        wealthLabel: "پس‌انداز یا پرتفوی خود را به‌صورت متن ساده بنویسید (مثال: «۱۰,۰۰۰ پوند پس‌انداز، امسال ISA استفاده نشده»):",
+        wealthRunning: "در حال تحلیل...", wealthEmpty: "ابتدا پس‌انداز یا پرتفوی خود را توصیف کنید.",
+        wealthReasoning: "دلیل:", wealthDisclaimerLabel: "مهم:",
       },
 };
 
@@ -160,8 +178,83 @@ function CopyButton({ text, label, copiedLabel }) {
   );
 }
 
+function BulkDatingSection({ lang, color, t }) {
+  const [text, setText] = useState("");
+  const [state, setState] = useState("idle"); // idle | loading | done | error
+  const [results, setResults] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const generateAll = async () => {
+    const bios = text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean).slice(0, 10);
+    if (!bios.length) { setState("error"); setErrorMsg(t.bulkEmpty); return; }
+    setState("loading");
+    try {
+      const res = await fetch(DATING_BULK_ENDPOINT, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bios }),
+      });
+      const json = await res.json();
+      if (!res.ok) { setErrorMsg(t.errorGeneric); setState("error"); return; }
+      setResults(json.results || []);
+      setState("done");
+    } catch {
+      setErrorMsg(t.errorGeneric);
+      setState("error");
+    }
+  };
+
+  return (
+    <>
+      <label style={{ fontSize: 13, opacity: 0.85 }}>{t.bulkLabel}</label>
+      <textarea
+        value={text} onChange={(e) => setText(e.target.value)} rows={8} maxLength={20000}
+        style={{
+          width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
+          background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical",
+        }}
+      />
+      <button
+        onClick={generateAll} disabled={state === "loading"}
+        style={{
+          fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none",
+          background: color, color: "#05060a", cursor: state === "loading" ? "default" : "pointer",
+          opacity: state === "loading" ? 0.6 : 1,
+        }}
+      >
+        {state === "loading" ? t.bulkGenerating : t.bulkGenerate}
+      </button>
+      {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{errorMsg}</div>}
+      {state === "done" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {results.map((r) => (
+            <div key={r.bio_index}>
+              <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 4 }}>{t.bulkProfile} {r.bio_index + 1}</div>
+              {r.error ? (
+                <div style={{ color: "#ff8a8a", fontSize: 13 }}>{r.error}</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {splitDrafts(r.drafts).map((draft, i) => (
+                    <div key={i} style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10,
+                      fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8,
+                    }}>
+                      <div style={{ whiteSpace: "pre-wrap", flex: 1 }}>{draft}</div>
+                      <CopyButton text={draft} label={t.copy} copiedLabel={t.copied} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 function DatingModal({ lang, color, onClose }) {
   const t = COPY[lang];
+  const [tab, setTab] = useState("single"); // single | bulk
   const [bio, setBio] = useState("");
   const [state, setState] = useState("idle"); // idle | loading | done | error
   const [drafts, setDrafts] = useState("");
@@ -194,38 +287,56 @@ function DatingModal({ lang, color, onClose }) {
 
   return (
     <Modal title={COPY[lang].dating} color={color} lang={lang} onClose={onClose}>
-      <label style={{ fontSize: 13, opacity: 0.85 }}>{t.datingBioLabel}</label>
-      <textarea
-        value={bio} onChange={(e) => setBio(e.target.value)} rows={5} maxLength={2000}
-        style={{
-          width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
-          background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical",
-        }}
-      />
-      <button
-        onClick={generate} disabled={state === "loading"}
-        style={{
-          fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none",
-          background: color, color: "#05060a", cursor: state === "loading" ? "default" : "pointer",
-          opacity: state === "loading" ? 0.6 : 1,
-        }}
-      >
-        {state === "loading" ? t.datingGenerating : t.datingGenerate}
-      </button>
-      {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{errorMsg}</div>}
-      {state === "done" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {splitDrafts(drafts).map((draft, i) => (
-            <div key={i} style={{
-              display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10,
-              fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8,
-            }}>
-              <div style={{ whiteSpace: "pre-wrap", flex: 1 }}>{draft}</div>
-              <CopyButton text={draft} label={t.copy} copiedLabel={t.copied} />
+      <div style={{ display: "flex", gap: 8 }}>
+        {[["single", t.bulkTab], ["bulk", t.bulkTabBulk]].map(([key, label]) => (
+          <button key={key} onClick={() => setTab(key)} style={{
+            fontSize: 13, padding: "6px 12px", borderRadius: 6, cursor: "pointer",
+            border: tab === key ? `1px solid ${color}` : "1px solid #3a3a55",
+            background: tab === key ? `${color}22` : "transparent", color: "#fff",
+          }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "single" && (
+        <>
+          <label style={{ fontSize: 13, opacity: 0.85 }}>{t.datingBioLabel}</label>
+          <textarea
+            value={bio} onChange={(e) => setBio(e.target.value)} rows={5} maxLength={2000}
+            style={{
+              width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
+              background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical",
+            }}
+          />
+          <button
+            onClick={generate} disabled={state === "loading"}
+            style={{
+              fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none",
+              background: color, color: "#05060a", cursor: state === "loading" ? "default" : "pointer",
+              opacity: state === "loading" ? 0.6 : 1,
+            }}
+          >
+            {state === "loading" ? t.datingGenerating : t.datingGenerate}
+          </button>
+          {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{errorMsg}</div>}
+          {state === "done" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {splitDrafts(drafts).map((draft, i) => (
+                <div key={i} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10,
+                  fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8,
+                }}>
+                  <div style={{ whiteSpace: "pre-wrap", flex: 1 }}>{draft}</div>
+                  <CopyButton text={draft} label={t.copy} copiedLabel={t.copied} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
+
+      {tab === "bulk" && <BulkDatingSection lang={lang} color={color} t={t} />}
     </Modal>
   );
 }
@@ -342,6 +453,75 @@ function AcademicModal({ lang, color, onClose }) {
   );
 }
 
+function WealthEngineSection({ lang, color, t }) {
+  const [portfolioText, setPortfolioText] = useState("");
+  const [state, setState] = useState("idle"); // idle | loading | done | error
+  const [result, setResult] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const run = async () => {
+    if (!portfolioText.trim()) { setState("error"); setErrorMsg(t.wealthEmpty); return; }
+    setState("loading");
+    try {
+      const res = await fetch(WEALTH_ANALYZE_ENDPOINT, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ portfolio_text: portfolioText.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const budgetDenied = res.status === 402 || String(json.error || "").startsWith("BUDGET_DENIED");
+        setErrorMsg(budgetDenied
+          ? (lang === "fa" ? "سقف بودجه روزانه پر شده است." : "Budget cap reached.")
+          : t.errorGeneric);
+        setState("error");
+        return;
+      }
+      setResult(json);
+      setState("done");
+    } catch {
+      setErrorMsg(t.errorGeneric);
+      setState("error");
+    }
+  };
+
+  return (
+    <div style={{ borderTop: "1px solid #2a2a3a", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+      <label style={{ fontSize: 13, opacity: 0.85 }}>{t.wealthLabel}</label>
+      <textarea
+        value={portfolioText} onChange={(e) => setPortfolioText(e.target.value)} rows={3} maxLength={2000}
+        style={{
+          width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
+          background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical",
+        }}
+      />
+      <button
+        onClick={run} disabled={state === "loading"}
+        style={{
+          fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none",
+          background: color, color: "#05060a", cursor: state === "loading" ? "default" : "pointer",
+          opacity: state === "loading" ? 0.6 : 1,
+        }}
+      >
+        {state === "loading" ? t.wealthRunning : t.wealthButton}
+      </button>
+      {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{errorMsg}</div>}
+      {state === "done" && result && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8 }}>
+            {result.action}
+          </div>
+          {result.reasoning && (
+            <div style={{ fontSize: 13, opacity: 0.85 }}><b>{t.wealthReasoning}</b> {result.reasoning}</div>
+          )}
+          <div style={{ fontSize: 12, opacity: 0.7, fontStyle: "italic" }}>
+            <b>{t.wealthDisclaimerLabel}</b> {result.disclaimer}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FinanceModal({ lang, color, data, onClose }) {
   const t = COPY[lang];
   return (
@@ -352,6 +532,7 @@ function FinanceModal({ lang, color, data, onClose }) {
       {(lang === "fa" ? data.judgement_logic_fa : data.judgement_logic_en) && (
         <JudgementLogic text={lang === "fa" ? data.judgement_logic_fa : data.judgement_logic_en} color={color} />
       )}
+      <WealthEngineSection lang={lang} color={color} t={t} />
     </Modal>
   );
 }
