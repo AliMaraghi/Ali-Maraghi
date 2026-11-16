@@ -186,7 +186,22 @@ export default function App() {
   const mouthIntensityRef = useRef(null);       // null = no boundary data yet, use amplitude fallback
   const mouthCloseTimeoutRef = useRef(null);
   const [swarmPanelOpen, setSwarmPanelOpen] = useState(false);
-  const [view, setView] = useState("chat"); // "chat" | "dashboard"
+  // "chat" | "dashboard" - also reflected in the URL hash (#dashboard) so the dashboard has a
+  // real, bookmarkable/shareable/directly-loadable address instead of being reachable only by
+  // finding and clicking the toggle button after the page loads to "chat".
+  const [view, setView] = useState(() => (window.location.hash === "#dashboard" ? "dashboard" : "chat"));
+  const goToView = (next) => {
+    setView(next);
+    const hash = next === "dashboard" ? "#dashboard" : "";
+    if (window.location.hash !== hash) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search + hash);
+    }
+  };
+  useEffect(() => {
+    const onHashChange = () => setView(window.location.hash === "#dashboard" ? "dashboard" : "chat");
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   // Camera/presence are both OFF by default and require an explicit click - starting a webcam
   // or auto-activating the microphone without the person asking first is exactly the kind of
@@ -316,11 +331,11 @@ export default function App() {
     return (
       <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
         <ExecutiveDashboard
-          onOpenSwarmPanel={() => { setView("chat"); setSwarmPanelOpen(true); }}
+          onOpenSwarmPanel={() => { goToView("chat"); setSwarmPanelOpen(true); }}
           lastAction={reply ? `${transcript ? transcript + " → " : ""}${reply}` : ""}
         />
         <button
-          onClick={() => setView("chat")}
+          onClick={() => goToView("chat")}
           style={{
             position: "absolute", top: 20, right: 20, fontSize: 12, padding: "4px 10px", borderRadius: 6,
             border: "1px solid #3a7a90", background: "transparent", color: "#fff", cursor: "pointer",
@@ -345,7 +360,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <h1 style={{ margin: 0, fontSize: 20, letterSpacing: 1, opacity: 0.85 }}>APEX CONSOLE</h1>
           <button
-            onClick={() => setView(view === "chat" ? "dashboard" : "chat")}
+            onClick={() => goToView(view === "chat" ? "dashboard" : "chat")}
             style={{
               fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #2a6f8a",
               background: "transparent", color: "#dff6ff", cursor: "pointer",
