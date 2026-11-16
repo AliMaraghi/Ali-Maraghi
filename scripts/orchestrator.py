@@ -345,6 +345,20 @@ def academic_news_reply(root: Path, fetch=None, budget=None) -> tuple[str, list]
     return generic_reply, [f"A-1: Live-fetched {len(result.contract['evidence'])} real article(s) just now (free, no LLM)"]
 
 
+def academic_latest_titles(root: Path, fetch=None, limit: int = 10) -> list:
+    """Structured sibling of academic_news_reply, for the dashboard's Academic modal: a real,
+    fresh live fetch (same _fetch_titles call, same allowlisted hosts), returned as data instead
+    of prose. There is no stored "latest titles" anywhere in the ledger - A-1's scheduled run
+    only ever persists per-feed COUNTS (see StrategicIntelligence.run in agents_impl.py), never
+    the individual titles - so "latest" here honestly means "fetched just now", not "from
+    storage". A dead/blocked feed is dropped silently by _fetch_titles itself, same as elsewhere."""
+    if fetch is None:
+        import agents_runner
+        fetch = agents_runner.fetch_public
+    titles = _fetch_titles(fetch)
+    return titles[:max(0, min(limit, 50))]
+
+
 def job_cv_reply(root: Path) -> str:
     from apex.kernel.memory import Ledger
     with Ledger.read_only(root) as ledger:

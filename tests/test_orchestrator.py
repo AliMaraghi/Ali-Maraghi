@@ -314,6 +314,22 @@ class AcademicNewsRouteTests(unittest.TestCase):
         self.assertIn("entries on", routed["reply"])
         self.assertIn("A-1", routed["steps"][0])
 
+    def test_academic_latest_titles_is_real_and_bounded(self):
+        rss_xml = (b"<?xml version='1.0'?><rss version='2.0'><channel>"
+                   b"<item><title>Real Live Paper Title</title><link>https://arxiv.org/abs/1</link></item>"
+                   b"</channel></rss>")
+
+        def fake_fetch(url):
+            return rss_xml
+        titles = orchestrator.academic_latest_titles(self.root, fetch=fake_fetch, limit=3)
+        self.assertTrue(all(t["title"] == "Real Live Paper Title" for t in titles))
+        self.assertTrue(all("link" in t and "feed" in t for t in titles))
+
+    def test_academic_latest_titles_empty_on_dead_feeds(self):
+        def failing_fetch(url):
+            raise RuntimeError("blocked")
+        self.assertEqual(orchestrator.academic_latest_titles(self.root, fetch=failing_fetch), [])
+
 
 if __name__ == "__main__":
     unittest.main()

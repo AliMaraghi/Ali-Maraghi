@@ -74,6 +74,69 @@ class LocalChatTests(unittest.TestCase):
         self.app(environ, lambda status, headers: captured.update(status=status))
         self.assertTrue(captured["status"].startswith("400"))
 
+    def test_academic_latest_is_a_real_fresh_fetch_free_no_llm(self):
+        import orchestrator
+        rss_xml = (b"<?xml version='1.0'?><rss version='2.0'><channel>"
+                   b"<item><title>Real Live Paper Title</title><link>https://arxiv.org/abs/1</link></item>"
+                   b"</channel></rss>")
+        orig = orchestrator.academic_latest_titles
+        orchestrator.academic_latest_titles = lambda root, fetch=None, limit=10: orig(
+            root, fetch=lambda url: rss_xml, limit=limit)
+        try:
+            captured = {}
+            environ = {"PATH_INFO": "/api/academic/latest", "REQUEST_METHOD": "GET"}
+            result = self.app(environ, lambda status, headers: captured.update(status=status))
+            data = json.loads(b"".join(result))
+        finally:
+            orchestrator.academic_latest_titles = orig
+        self.assertTrue(captured["status"].startswith("200"))
+        self.assertEqual(data["titles"][0]["title"], "Real Live Paper Title")
+
+    def test_academic_latest_wrong_method_is_405(self):
+        captured = {}
+        environ = {"PATH_INFO": "/api/academic/latest", "REQUEST_METHOD": "POST"}
+        self.app(environ, lambda status, headers: captured.update(status=status))
+        self.assertTrue(captured["status"].startswith("405"))
+
+    def test_dating_draft_empty_body_is_400(self):
+        body = json.dumps({"profile_text": "  "}).encode()
+        environ = {"PATH_INFO": "/api/dating/draft", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        self.app(environ, lambda status, headers: captured.update(status=status))
+        self.assertTrue(captured["status"].startswith("400"))
+
+    def test_dating_draft_zero_budget_by_default_is_402_nothing_spent(self):
+        # No price/cap configured on this fresh ledger -> BudgetDenied, same as the voice path.
+        body = json.dumps({"profile_text": "Loves hiking and board games."}).encode()
+        environ = {"PATH_INFO": "/api/dating/draft", "REQUEST_METHOD": "POST",
+                  "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+        captured = {}
+        result = self.app(environ, lambda status, headers: captured.update(status=status))
+        data = json.loads(b"".join(result))
+        self.assertTrue(captured["status"].startswith("402"))
+        self.assertIn("BUDGET_DENIED", data["error"])
+
+    def test_dating_draft_real_generation_once_priced(self):
+        import time
+        from apex.kernel.budget import Budget
+        import dating_agent
+        self.app.budget.set_price("anthropic", "dating-draft-step", 100, time.time(), "test")
+        self.app.budget.set_cap("core", "day", 1000)
+        orig = dating_agent.generate_openers
+        dating_agent.generate_openers = lambda budget, text: "1. Hi\n2. Hey\n3. Hello"
+        try:
+            body = json.dumps({"profile_text": "Loves hiking."}).encode()
+            environ = {"PATH_INFO": "/api/dating/draft", "REQUEST_METHOD": "POST",
+                      "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+            captured = {}
+            result = self.app(environ, lambda status, headers: captured.update(status=status))
+            data = json.loads(b"".join(result))
+        finally:
+            dating_agent.generate_openers = orig
+        self.assertTrue(captured["status"].startswith("200"))
+        self.assertIn("drafts", data)
+
 
 if __name__ == "__main__":
     unittest.main()

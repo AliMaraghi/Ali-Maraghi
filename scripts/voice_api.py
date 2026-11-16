@@ -265,6 +265,16 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])
                 return [b""]
             return self._dashboard(start_response)
+        if path == "/api/academic/latest":
+            if method != "GET":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])
+                return [b""]
+            return self._academic_latest(start_response)
+        if path == "/api/dating/draft":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._dating_draft(environ, start_response)
         if path != "/api/chat":
             return self._respond(start_response, 404, {"error": "NOT_FOUND"})
         if method != "POST":
@@ -289,6 +299,41 @@ class VoiceChatApp:
         except Exception:
             return self._respond(start_response, 502, {"error": "DASHBOARD_UNAVAILABLE"})
         return self._respond(start_response, 200, payload)
+
+    def _academic_latest(self, start_response):
+        # Real, fresh live fetch (same allowlisted RSS hosts A-1 itself uses) for the dashboard's
+        # Academic modal - free, no LLM, no budget touched. See
+        # orchestrator.academic_latest_titles's own docstring: this is "fetched just now", never
+        # a stored history, because no such history exists in the ledger.
+        try:
+            titles = orchestrator.academic_latest_titles(self.root)
+        except Exception:
+            return self._respond(start_response, 502, {"error": "ACADEMIC_FETCH_UNAVAILABLE"})
+        return self._respond(start_response, 200, {"titles": titles, "fetched_at": time.time()})
+
+    def _dating_draft(self, environ, start_response):
+        # Budget-gated, same SKU/pattern as the voice path (orchestrator.dating_draft_reply) -
+        # this is the dashboard modal's direct equivalent, not a second, looser way in. Nothing
+        # is stored: the pasted profile text lives only for this one call (see dating_agent.py).
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 4096:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        raw = environ["wsgi.input"].read(int(length))
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        profile_text = body.get("profile_text") if isinstance(body, dict) else None
+        if not isinstance(profile_text, str) or not profile_text.strip():
+            return self._respond(start_response, 400, {"error": "EMPTY_PROFILE_TEXT"})
+        import dating_agent
+        try:
+            drafts = dating_agent.generate_openers(self.budget, profile_text)
+        except BudgetDenied as exc:
+            return self._respond(start_response, 402, {"error": f"BUDGET_DENIED:{exc}"})
+        except dating_agent.ResearchPipelineError as exc:
+            return self._respond(start_response, 502, {"error": str(exc)})
+        return self._respond(start_response, 200, {"drafts": drafts})
 
     def _respond(self, start_response, code, obj):
         labels = {200: "OK", 400: "Bad Request", 402: "Payment Required", 404: "Not Found",
