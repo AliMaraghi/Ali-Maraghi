@@ -345,6 +345,19 @@ function formatPounds(pence) {
   return (pence / 100).toLocaleString(undefined, { style: "currency", currency: "GBP" });
 }
 
+// file.text() always decodes as UTF-8, which silently mangles "£" (and other non-ASCII bytes)
+// into U+FFFD replacement characters for the many real UK bank CSV exports that are actually
+// Windows-1252 (CP1252) - not a hypothetical: a real Santander "Midata" export does exactly
+// this. Decode as UTF-8 first; if the result contains the replacement character, the source
+// wasn't valid UTF-8, so re-decode the same bytes as windows-1252 instead of silently
+// corrupting every amount in the file.
+async function readAsTextWithEncodingFallback(file) {
+  const buffer = await file.arrayBuffer();
+  const utf8 = new TextDecoder("utf-8").decode(buffer);
+  if (!utf8.includes("�")) return utf8;
+  return new TextDecoder("windows-1252").decode(buffer);
+}
+
 function BankingModal({ lang, color, onClose }) {
   const t = COPY[lang];
   const [csvState, setCsvState] = useState("idle"); // idle | loading | done | error
@@ -357,7 +370,7 @@ function BankingModal({ lang, color, onClose }) {
     if (!file) return;
     setCsvState("loading");
     try {
-      const text = await file.text();
+      const text = await readAsTextWithEncodingFallback(file);
       const res = await fetch(BANKING_PARSE_ENDPOINT, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csv_text: text }),

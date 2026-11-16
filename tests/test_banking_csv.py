@@ -58,6 +58,26 @@ class ParseTransactionsTests(unittest.TestCase):
         rows = banking_csv.parse_transactions("Date,Description,Amount\n2026-11-01,FEE,(3.50)\n")
         self.assertEqual(rows[0]["pence"], -350)
 
+    def test_semicolon_delimited_export_with_merchant_description_header(self):
+        # Shape of a real UK bank "Midata" semicolon export: Date;Type;Merchant/Description;
+        # Debit/Credit;Balance; (note the trailing empty column from the final ';').
+        body = (
+            "Date;Type;Merchant/Description;Debit/Credit;Balance;\n"
+            "30/09/2026;CREDIT IN;Employer salary;+458.40;+992.32;\n"
+            "16/09/2026;PAYMENTS;Rent payment;-2300.00;+533.92;\n"
+        )
+        rows = banking_csv.parse_transactions(body)
+        self.assertEqual(rows, [
+            {"description": "Employer salary", "pence": 45840},
+            {"description": "Rent payment", "pence": -230000},
+        ])
+
+    def test_header_matching_ignores_punctuation_and_case(self):
+        body = "date;MERCHANT_DESCRIPTION;amount\n2026-11-01;Tesco Stores;-10.00\n"
+        rows = banking_csv.parse_transactions(body)
+        self.assertEqual(rows[0]["description"], "Tesco Stores")
+        self.assertEqual(rows[0]["pence"], -1000)
+
 
 class CategorizeTests(unittest.TestCase):
     def test_real_math_llm_only_classifies(self):

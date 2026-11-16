@@ -36,28 +36,52 @@ def _to_pence(raw: str) -> int:
     return -abs(pence) if negative else pence
 
 
+def _sniff_delimiter(sample: str) -> str:
+    """Real banks export comma, semicolon or tab CSVs inconsistently (a UK Santander "Midata"
+    export uses ';' with a trailing empty column, for example). csv.Sniffer needs a real
+    multi-row sample; fall back to "whichever candidate delimiter appears most in the header
+    line" if it can't decide, and to comma if even that's ambiguous - never silently guess
+    wrong and then misparse every row without any error."""
+    try:
+        return csv.Sniffer().sniff(sample, delimiters=",;\t").delimiter
+    except csv.Error:
+        header = sample.splitlines()[0] if sample.splitlines() else ""
+        counts = {d: header.count(d) for d in (",", ";", "\t")}
+        best = max(counts, key=counts.get)
+        return best if counts[best] > 0 else ","
+
+
+def _normalize_header(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", name.strip().lower())
+
+
 def parse_transactions(csv_text: str) -> list:
     """Returns [{"description": str, "pence": int}, ...] - real parsed rows only, nothing
-    inferred. Supports a single signed "amount" column, or a separate debit/credit pair
-    (debit always recorded as spend, credit as income, regardless of the sign printed in the
-    file - banks are inconsistent about this)."""
+    inferred. Supports a single signed "amount" column (including a combined "Debit/Credit"
+    column some UK banks use, with the sign already in the value), or a separate debit/credit
+    pair (debit always recorded as spend, credit as income, regardless of the sign printed in
+    the file - banks are inconsistent about this). Delimiter is auto-detected (comma, semicolon
+    or tab); header matching ignores punctuation/case/spacing, so "Merchant/Description" and
+    "merchant_description" are both recognized."""
     if not isinstance(csv_text, str) or not csv_text.strip():
         raise CsvParseError("Empty CSV")
     if len(csv_text) > MAX_CSV_CHARS:
         raise CsvParseError("CSV too large")
-    reader = csv.DictReader(io.StringIO(csv_text))
+    delimiter = _sniff_delimiter(csv_text[:4096])
+    reader = csv.DictReader(io.StringIO(csv_text), delimiter=delimiter)
     if not reader.fieldnames:
         raise CsvParseError("No header row found")
-    fields = {f.strip().lower(): f for f in reader.fieldnames if f}
+    fields = {_normalize_header(f): f for f in reader.fieldnames if f and f.strip()}
 
     def find(*names):
         for name in names:
-            if name in fields:
-                return fields[name]
+            key = _normalize_header(name)
+            if key in fields:
+                return fields[key]
         return None
 
-    desc_col = find("description", "narrative", "details", "merchant", "payee")
-    amount_col = find("amount", "value")
+    desc_col = find("description", "narrative", "details", "merchant", "payee", "merchant/description")
+    amount_col = find("amount", "value", "debit/credit", "debitcredit")
     debit_col = find("debit", "paid out", "paid_out")
     credit_col = find("credit", "paid in", "paid_in")
     if desc_col is None:
