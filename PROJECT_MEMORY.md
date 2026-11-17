@@ -158,3 +158,15 @@ It is not the four-layer, 18-agent system in the founder manifesto. The manifest
   (the diff is in the console proposal); OpenEvolve itself is not installed - the file layout is compatible.
 - Benchmark is BOOTSTRAP (simulated fixtures in `evolution/bootstrap.py`) until 30 scout picks have been
   rated; every score and proposal carries the mode. Nothing in production reads `target_heuristics.py` yet.
+
+## Social and finance additions (2026-11-17, not yet deployed)
+
+- `agents_impl.capital_gains_tax`: rules-driven CGT in integer pence. Figures for 2026-27 CGT and UC capital
+  are in `examples/uk_tax_rules.cgt_uc.example.json` (checked against gov.uk on 2026-11-17); not active until
+  merged into `runtime/rules/uk_tax_rules.json`.
+- `core/apex/social_pacing.py`: rate pacing for official platform APIs, off unless
+  `ENABLE_AUTONOMOUS_SOCIAL=true`. Nothing calls it: no publishing connector exists and none can be verified
+  until the owner has approved developer apps (Meta, TikTok, X).
+- Declined and out of scope, permanently: randomised "human" delays, typing simulation, quota shuffling and
+  session-fingerprint rotation to avoid bot detection; any automated sending on dating apps. Dating and
+  direct-message platforms stay draft-only (owner sends). Budget cap and approval gate are unchanged.

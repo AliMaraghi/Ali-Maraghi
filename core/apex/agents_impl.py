@@ -148,6 +148,26 @@ def uc_capital_deduction(capital_pence, rules):
     return units * uc["capital_tariff_deduction_pence"]
 
 
+def capital_gains_tax(gain_pence: int, losses_pence: int, other_taxable_income_pence: int, rules: dict):
+    """Capital Gains Tax on shares for one tax year, exact integer pence. Same-year losses come
+    off first, then the annual exempt amount; what is left is taxed at the lower rate while it
+    fits in the unused basic-rate band and at the higher rate above it. `other_taxable_income_pence`
+    is income AFTER the personal allowance. Every figure is read from the sourced rules file
+    (rules["cgt"]); none is embedded. Not modelled: share-matching rules (same-day, 30-day,
+    Section 104 pool), brought-forward losses, reliefs - so the gain passed in must already be
+    worked out on that basis."""
+    cgt = rules.get("cgt")
+    if not cgt:
+        return "NOT_MODELLED"
+    for value in (gain_pence, losses_pence, other_taxable_income_pence):
+        if type(value) is not int or value < 0:
+            raise ValueError("amounts must be non-negative integers in pence")
+    taxable = max(0, gain_pence - losses_pence - cgt["annual_exempt_amount_pence"])
+    band_left = max(0, cgt["basic_rate_band_pence"] - other_taxable_income_pence)
+    lower = min(taxable, band_left)
+    return lower * cgt["lower_rate_bp"] // 10000 + (taxable - lower) * cgt["higher_rate_bp"] // 10000
+
+
 def mortgage_affordability_indicator(income_pence, rules):
     """A single regulatory reference point (the FCA/PRA loan-to-income ceiling), NOT a mortgage
     offer, NOT an affordability stress test, and NOT what any specific lender will actually

@@ -1,0 +1,18 @@
+{
+  "_note": "EXAMPLE, not active. Only the 'cgt' and 'universal_credit' sections were checked (17 Nov 2026). Merge them into runtime/rules/uk_tax_rules.json, which also needs income_tax and nic sections taken from gov.uk. Re-check every April.",
+  "tax_year": "2026-27",
+  "source": "gov.uk/capital-gains-tax ; gov.uk/guidance/universal-credit-money-savings-and-investments",
+  "verified_on": "2026-11-17",
+  "cgt": {
+    "annual_exempt_amount_pence": 300000,
+    "basic_rate_band_pence": 3770000,
+    "lower_rate_bp": 1800,
+    "higher_rate_bp": 2400
+  },
+  "universal_credit": {
+    "capital_lower_threshold_pence": 600000,
+    "capital_upper_threshold_pence": 1600000,
+    "capital_tariff_pence": 25000,
+    "capital_tariff_deduction_pence": 435
+  }
+}
