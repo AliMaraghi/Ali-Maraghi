@@ -84,8 +84,21 @@ def _post(path: str, body: dict) -> dict:
         raise LocalLLMError("LOCAL_MODEL_BAD_RESPONSE") from None
 
 
-def chat(system: str, messages: list, max_tokens: int = 400) -> str:
-    """messages: [{"role": "user"|"assistant", "content": str}, ...]. Returns the reply text."""
+def _strip_reasoning(text: str) -> str:
+    """Remove a reasoning model's scratch work so only the answer is returned. Seen live on
+    2026-11-17 (qwen3:4b on the VPS): with "think": false the model still wrote its reasoning as
+    plain reply text, which filled the token budget and broke every JSON-returning caller."""
+    text = THINK_BLOCK.sub("", text or "")
+    if "</think>" in text:                       # closing tag without an opening one
+        text = text.rsplit("</think>", 1)[1]
+    return text.strip()
+
+
+def chat(system: str, messages: list, max_tokens: int = 400, json_mode: bool = False) -> str:
+    """messages: [{"role": "user"|"assistant", "content": str}, ...]. Returns the reply text.
+    json_mode asks Ollama to constrain the output to one valid JSON value."""
+    if "qwen" in model().lower():
+        system = (system + "\n\n" if system else "") + "/no_think"      # Qwen's own switch for no reasoning
     body = {
         "model": model(), "stream": False,
         # Thinking off: at the small max_tokens values used here a reasoning model can spend the
@@ -93,22 +106,28 @@ def chat(system: str, messages: list, max_tokens: int = 400) -> str:
         # documents for the hosted API).
         "think": False,
         "messages": ([{"role": "system", "content": system}] if system else []) + list(messages),
-        "options": {"num_predict": int(max_tokens), "temperature": 0.2,
+        # Headroom: if a model reasons anyway, the answer must still fit after it.
+        "options": {"num_predict": int(max_tokens) + 400, "temperature": 0.2,
                     "num_ctx": _int_env("APEX_OLLAMA_NUM_CTX", 8192, 2048, 262144)},
     }
+    if json_mode:
+        body["format"] = "json"
     data = _post("/api/chat", body)
     try:
         text = data["message"]["content"]
     except (KeyError, TypeError):
         raise LocalLLMError("LOCAL_MODEL_BAD_RESPONSE") from None
-    text = THINK_BLOCK.sub("", text or "").strip()
+    text = _strip_reasoning(text)
     if not text:
         raise LocalLLMError("LOCAL_MODEL_EMPTY_REPLY")
     return text
 
 
 def complete(system: str, user_text: str, max_tokens: int = 400) -> str:
-    return chat(system, [{"role": "user", "content": user_text}], max_tokens)
+    # Every caller that needs JSON says so in its system prompt ("ONE JSON object"); those calls
+    # get Ollama's constrained JSON output, which a small model needs to stay parseable.
+    return chat(system, [{"role": "user", "content": user_text}], max_tokens,
+                json_mode="JSON object" in (system or ""))
 
 
 def embed(texts: list) -> list:
