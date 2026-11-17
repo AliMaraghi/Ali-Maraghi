@@ -170,3 +170,13 @@ It is not the four-layer, 18-agent system in the founder manifesto. The manifest
 - Declined and out of scope, permanently: randomised "human" delays, typing simulation, quota shuffling and
   session-fingerprint rotation to avoid bot detection; any automated sending on dating apps. Dating and
   direct-message platforms stay draft-only (owner sends). Budget cap and approval gate are unchanged.
+
+## One address for dashboard and API (2026-11-17)
+
+- `serve_ui.py` now forwards `/api/*` to the backend on 127.0.0.1:8000; the dashboard calls relative `/api/...`
+  paths. Reason: one Cloudflare Access sign-in on `ui.apexcorelab.uk` then covers both, and the public
+  `api.apexcorelab.uk` hostname (open via the "Bypass API" policy) can be closed.
+- The service worker never caches `/api/` (cache name bumped to `apex-ui-v2`).
+- Dashboard gained the Budget and Live Scout Alerts panels.
+- Still open: `apex-ui.service` listens on all interfaces (`APEX_UI_BIND` can restrict it to 127.0.0.1 once the
+  tunnel's target address is confirmed); Access on `ui.` and removal of "Bypass API" are owner actions in Cloudflare.

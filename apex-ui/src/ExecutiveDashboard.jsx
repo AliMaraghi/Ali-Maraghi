@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 // "metric" are either a real file-existence check, a real stored count, or an honest
 // "needs setup" / "never run" default. Each domain card opens a modal with real detail or a
 // real action - no second parallel "Swarm Command Center" copy of the same information.
-const DASHBOARD_ENDPOINT = "https://api.apexcorelab.uk/api/dashboard";
-const ACADEMIC_ENDPOINT = "https://api.apexcorelab.uk/api/academic/latest";
-const DATING_DRAFT_ENDPOINT = "https://api.apexcorelab.uk/api/dating/draft";
-const DATING_BULK_ENDPOINT = "https://api.apexcorelab.uk/api/dating/bulk_queue";
-const BANKING_PARSE_ENDPOINT = "https://api.apexcorelab.uk/api/banking/parse";
-const WEALTH_ANALYZE_ENDPOINT = "https://api.apexcorelab.uk/api/wealth/analyze";
+const DASHBOARD_ENDPOINT = "/api/dashboard";
+const ACADEMIC_ENDPOINT = "/api/academic/latest";
+const DATING_DRAFT_ENDPOINT = "/api/dating/draft";
+const DATING_BULK_ENDPOINT = "/api/dating/bulk_queue";
+const BANKING_PARSE_ENDPOINT = "/api/banking/parse";
+const WEALTH_ANALYZE_ENDPOINT = "/api/wealth/analyze";
 // Google OAuth is deliberately mounted ONLY on console.apexcorelab.uk (the one domain with a
 // real Cloudflare Access gate), never on this public dashboard - see
 // docs/apex_status/ for why. This is a link to that already-working page, not a second,
@@ -589,6 +589,99 @@ function GoogleCard({ lang, onClick }) {
   );
 }
 
+function BudgetTracker({ budget, lang }) {
+  if (!budget) return null;
+  const pounds = (pence) => "£" + (pence / 100).toFixed(2);
+  const color = budget.exhausted || budget.warning ? "#ff5c5c" : "#7dffb0";
+  return (
+    <div style={{ border: `1px solid ${color}88`, borderRadius: 12, padding: 16, marginBottom: 16, background: "#0f1526" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+        <div style={{ fontWeight: 700 }}>{lang === "fa" ? "بودجه ماهانه هوش مصنوعی" : "Monthly AI Budget"} · {budget.month}</div>
+        <div style={{ fontWeight: 700, color }}>{pounds(budget.spent_pence)} / {pounds(budget.cap_pence)}</div>
+      </div>
+      <div style={{ height: 12, borderRadius: 999, background: "rgba(255,255,255,0.12)", overflow: "hidden" }}
+           role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={budget.percent}>
+        <div style={{ width: `${budget.percent}%`, height: "100%", background: color }} />
+      </div>
+      {budget.exhausted && (
+        <div style={{ color: "#ff5c5c", fontWeight: 700, marginTop: 8 }}>
+          {lang === "fa" ? "بودجه ماهانه تمام شد. تا ماه بعد متوقف است." : "Monthly Budget Exhausted. Paused until next month."}
+        </div>
+      )}
+      {!budget.exhausted && budget.warning && (
+        <div style={{ color: "#ff5c5c", marginTop: 8 }}>
+          {lang === "fa" ? "هشدار: بیش از ۸۰٪ بودجه مصرف شده است." : "Warning: more than 80% of this month's budget is used."}
+        </div>
+      )}
+      {budget.local_model && (
+        <div style={{ fontSize: 13, opacity: 0.7, marginTop: 8 }}>
+          {lang === "fa" ? "مدل محلی فعال است: هر فراخوانی هزینه‌ای ندارد." : "Local model active: calls cost nothing."}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Latest Opportunity Scout results (core/apex/scout_events.py, scout_wealth.py). Shows only
+// what the scouts actually fetched; an empty or never-run scout says so instead of a placeholder.
+function ScoutAlerts({ scout, lang }) {
+  if (!scout) return null;
+  const events = scout.events, wealth = scout.wealth;
+  const when = (r) => (r && r.generated_at ? new Date(r.generated_at * 1000).toLocaleString() : "");
+  const link = { color: "#5fe3ff", textDecoration: "none" };
+  const pay = (job) => [job.salary_min, job.salary_max].filter(Boolean).map((v) => "£" + v.toLocaleString()).join(" – ");
+  return (
+    <div dir="auto" style={{ border: "1px solid #b98fff66", borderRadius: 12, padding: 16, marginBottom: 16, background: "#0f1526" }}>
+      <div style={{ fontWeight: 700, marginBottom: 10 }}>{lang === "fa" ? "هشدارهای زنده دیده‌بان" : "Live Scout Alerts"}</div>
+      {!events && !wealth && (
+        <div style={{ opacity: 0.6 }}>{lang === "fa" ? "دیده‌بان هنوز اجرا نشده است." : "The scout has not run yet."}</div>
+      )}
+      {events && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>
+            {lang === "fa" ? "رویدادها" : "Events"} · {when(events)}
+            {events.selection === "keyword-fallback" ? (lang === "fa" ? " · رتبه‌بندی با کلیدواژه" : " · ranked by keyword") : ""}
+          </div>
+          {events.picked && events.picked.length > 0 ? events.picked.map((e, i) => (
+            <div key={i} style={{ marginBottom: 6 }}>
+              {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer" style={link}>{e.title}</a> : e.title}
+              <div style={{ fontSize: 13, opacity: 0.75 }}>{e.start}{e.location ? " · " + e.location : ""}{e.why ? " · " + e.why : ""}</div>
+            </div>
+          )) : (
+            <div style={{ opacity: 0.6 }}>{lang === "fa" ? "رویدادی پیدا نشد." : "No upcoming events found in your groups."}</div>
+          )}
+        </div>
+      )}
+      {wealth && (
+        <div>
+          <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>{lang === "fa" ? "شغل و بازار" : "Jobs and markets"} · {when(wealth)}</div>
+          {wealth.job ? (
+            <div style={{ marginBottom: 6 }}>
+              {wealth.job.url ? <a href={wealth.job.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.job.title}</a> : wealth.job.title}
+              <div style={{ fontSize: 13, opacity: 0.75 }}>{[wealth.job.employer, wealth.job.location, pay(wealth.job)].filter(Boolean).join(" · ")}</div>
+            </div>
+          ) : (
+            <div style={{ opacity: 0.6, marginBottom: 6 }}>
+              {wealth.job_status === "NEEDS_REED_KEY"
+                ? (lang === "fa" ? "جست‌وجوی شغل به کلید رایگان Reed نیاز دارد." : "Job search needs a free Reed API key.")
+                : (lang === "fa" ? "شغل مناسبی با حقوق اعلام‌شده پیدا نشد." : "No matching job with a stated salary.")}
+            </div>
+          )}
+          {wealth.alert && (
+            <div>
+              <a href={wealth.alert.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.alert.headline}</a>
+              <div style={{ fontSize: 13, opacity: 0.75 }}>
+                {wealth.alert.note ? wealth.alert.note + " · " : ""}{wealth.alert.source}
+                {lang === "fa" ? " · اطلاع‌رسانی، نه توصیه مالی" : " · information, not financial advice"}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DomainCard({ domain, data, lang, onAction }) {
   if (!data) return null;
   const color = DOMAIN_COLOR[domain];
@@ -724,6 +817,9 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
           <div style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.5 }}>{data.briefing.report}</div>
         </div>
       )}
+
+      {data && data.budget && <BudgetTracker budget={data.budget} lang={lang} />}
+      {data && data.scout && <ScoutAlerts scout={data.scout} lang={lang} />}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         {data && DOMAINS.map((domain) => (

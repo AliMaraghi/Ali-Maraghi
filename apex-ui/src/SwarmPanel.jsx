@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 // spend_today_pence, calls_today, daily_cap_pence, last_error. There is no "total" or "domain"
 // field and no live "ACTIVE" status (no live-execution signal exists to report; see that
 // function's docstring for why) - this component never invents one.
-const TELEMETRY_ENDPOINT = "https://api.apexcorelab.uk/api/agent_telemetry";
+const TELEMETRY_ENDPOINT = "/api/agent_telemetry";
 const TELEMETRY_POLL_MS = 3000;
 const STATUS_COLOR = { OK: "#7dffb0", ERROR: "#ff6a6a", NEVER_RUN: "#6a7a85" };
 

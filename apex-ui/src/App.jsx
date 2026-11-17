@@ -121,7 +121,7 @@ function Scene({ listening, speaking, thinking, mouthIntensityRef, faceDetected,
 // VITE_CHAT_ENDPOINT lets start_apex_local.sh point this build at the real local backend
 // (http://localhost:8000/api/chat) instead of the hosted one - unset (the normal hosted
 // build), this is unchanged from before.
-const CHAT_ENDPOINT = import.meta.env.VITE_CHAT_ENDPOINT || "https://api.apexcorelab.uk/api/chat";
+const CHAT_ENDPOINT = import.meta.env.VITE_CHAT_ENDPOINT || "/api/chat";
 
 async function getReply(transcript, lang) {
   // Returns {reply, steps}. "steps" reports what the backend actually ran for THIS request

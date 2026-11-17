@@ -1,7 +1,7 @@
 // APEX UI service worker. Caches the same-origin UI shell only.
-// Never touches cross-origin requests (the API at api.apexcorelab.uk) or non-GET requests, so
+// Never touches /api/ requests, cross-origin requests or non-GET requests, so
 // no personal data, chat content or dashboard payload is ever written to the cache.
-const CACHE = "apex-ui-v1";
+const CACHE = "apex-ui-v2";
 const SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -20,6 +20,9 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  // The API is now served from this same origin. Its answers are personal and must always be
+  // live, so they are never cached and never answered from cache.
+  if (url.pathname.startsWith("/api/")) return;
 
   // Vite's /assets/* files are content-hashed, so a cached copy is always the right one.
   if (url.pathname.startsWith("/assets/")) {
