@@ -214,13 +214,22 @@ def _observe(value) -> str:
     return "<untrusted_tool_result>\n" + text.replace("</untrusted_tool_result>", "") + "\n</untrusted_tool_result>"
 
 
-def _propose(book, run_id: str, index: int, args: dict) -> dict:
+def _propose(book, run_id: str, index: int, args: dict, root: Path) -> dict:
     kind = args.get("kind")
     if kind not in WRITE_KINDS:
         raise ToolError("UNKNOWN_KIND: allowed kinds are " + ", ".join(sorted(WRITE_KINDS)))
     payload = args.get("payload", {})
     if not isinstance(payload, dict) or len(json.dumps(payload)) > 4000:
         raise ToolError("PAYLOAD_INVALID: a JSON object under 4000 characters is required")
+    text = payload.get("text")
+    if kind in ("external-post", "dating-message-send") and isinstance(text, str):
+        # Constitutional Critic: deterministic pre-publication check. A draft that fails is
+        # not queued; the findings go back to the model so it can redraft and propose again.
+        from . import persona_twin
+        channel = payload.get("channel") if isinstance(payload.get("channel"), str) else None
+        verdict = persona_twin.review(text, persona_twin.load_profile(root), channel=channel, mode="draft")
+        if verdict.status != "PASS":
+            raise ToolError(f"CRITIC_{verdict.status}: " + "; ".join(f"{f.rule} {f.detail}" for f in verdict.findings)[:600])
     if book is None:
         raise ToolError("NOT_RECORDED: the approval book is not configured, so nothing was queued "
                         "and nothing was executed")
@@ -298,7 +307,7 @@ def run(goal: str, toolbox: Toolbox, budget, llm: Callable[[str, str, int], str]
         ok = True
         try:
             if action == "propose_action":
-                result = _propose(book, run_id, len(proposals) + 1, args)
+                result = _propose(book, run_id, len(proposals) + 1, args, toolbox.root)
                 proposals.append({"proposal_id": result["proposal_id"], "kind": args["kind"], "state": result["state"]})
             elif action in TOOLS:
                 allowed = TOOLS[action][1]

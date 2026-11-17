@@ -142,3 +142,19 @@ It is not the four-layer, 18-agent system in the founder manifesto. The manifest
 2. Confirm what is actually live before changing anything: service status, `/api/dashboard`.
 3. Work as `apexdev`, on a branch, with the offline suite green before any deploy.
 4. Update this file in the same commit as any change to sections 1-6.
+
+## Persona critic and evolution lab (added 2026-11-17, not yet deployed)
+
+- `core/apex/persona_twin.py`: deterministic pre-publication critic (PASS / REWRITE / BLOCK), wired into
+  `agent_loop._propose` for `external-post` and `dating-message-send`. Style file is private:
+  `runtime/inbox/persona_style.md` (template: `docs/persona_style.example.md`). `ENABLE_PERSONA_TWIN=false`
+  drops style findings only; privacy, restricted data-class and platform findings cannot be switched off.
+- `core/apex/evolution/`: `target_heuristics.py` holds the only EVOLVE-BLOCK (scout ranking weights,
+  content-angle weights, routing thresholds). `guard.py` (static, data-only), `evaluator.py` (sandboxed
+  subprocess), `promote_gate.py` (>= 5% and zero violations -> PENDING `evolution-promote` proposal, never a
+  merge), `scripts/run_evolution.py` (off unless `ENABLE_EVOLUTION_SANDBOX=true`; no timer installed).
+- Decisions: lives under `core/apex/` (no `gateway/` in this repo); `evolution_log` is a SQLite table in the
+  existing database (no PostgreSQL on the 8 GB server); Telegram notice is link-only per `telegram_bot`
+  (the diff is in the console proposal); OpenEvolve itself is not installed - the file layout is compatible.
+- Benchmark is BOOTSTRAP (simulated fixtures in `evolution/bootstrap.py`) until 30 scout picks have been
+  rated; every score and proposal carries the mode. Nothing in production reads `target_heuristics.py` yet.

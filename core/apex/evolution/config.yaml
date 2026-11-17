@@ -1,0 +1,8 @@
+# Evolution lab settings. Flat "key: number" lines only (read by config.py without PyYAML).
+# These can make the lab STRICTER. config.py clamps every value to the safe side of the
+# built-in floor, so editing this file can never loosen the promotion gate or the spend cap.
+min_improvement: 0.05          # candidate must beat baseline by at least this share (floor 0.05)
+min_real_outcomes: 30          # rated scout picks needed before real history replaces fixtures (floor 30)
+cpu_seconds: 5                 # CPU limit for one candidate run (ceiling 5)
+candidates_per_run: 20         # mutations tried per scheduled run (ceiling 50)
+monthly_cap_pence: 500         # spend cap for model-written mutations, inside the 2000p hard cap (ceiling 500)

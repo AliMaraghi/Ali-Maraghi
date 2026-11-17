@@ -49,6 +49,20 @@ def main() -> int:
 
         events = scout_events.run(config, agents_runner.fetch_public, llm, budget, now)
         scout_common.record(ledger, "events", events, now)
+        # Each pick becomes a fact the owner can rate (scripts/record_outcome.py). Those ratings
+        # are the only data the evolution lab is ever scored against.
+        try:
+            import json
+            from datetime import datetime
+            from apex.kernel import facts
+            for position, event in enumerate(events["picked"]):
+                when = datetime.strptime(event["start"], "%Y-%m-%d %H:%M")
+                features = {"text": (event["title"] + " " + event.get("location", "")).lower()[:300],
+                            "is_weekend_or_friday_evening": when.weekday() >= 5 or (when.weekday() == 4 and when.hour >= 17)}
+                facts.assert_fact(ledger, "owner", f"scout_event_{int(now)}_{position}", json.dumps(features, sort_keys=True),
+                                  "scout_events", now=now)
+        except Exception:
+            pass
         wealth = scout_wealth.run(config, agents_runner.fetch_public, jobs_fetch, llm, budget, now)
         scout_common.record(ledger, "wealth", wealth, now)
 
