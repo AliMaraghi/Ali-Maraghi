@@ -21,7 +21,7 @@ sys.path[:0] = [str(ROOT / "core"), str(ROOT / "scripts")]
 
 LOCAL_SKUS = ("voice-chat-call", "finance-strategy-step", "twitter-draft-step", "dating-draft-step",
               "academic-personalize-step", "intent-router-step", "intent-planner-step",
-              "capability-draft-step", "agent-loop-step", "research-pipeline-step")
+              "capability-draft-step", "agent-loop-step", "research-pipeline-step", "scout-step")
 
 
 def price_local_skus(ledger) -> None:

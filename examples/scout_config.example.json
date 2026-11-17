@@ -1,0 +1,8 @@
+{
+  "profile": "Describe who the events are for, in one or two sentences.",
+  "meetup_groups": ["london-technology-community"],
+  "event_keywords": ["singles", "mixer", "speed dating", "networking", "tech", "social"],
+  "job_keywords": "procurement manager",
+  "job_location": "London",
+  "finance_keywords": ["FTSE", "interest rate", "inflation", "Bank of England", "gold", "bitcoin", "ISA"]
+}

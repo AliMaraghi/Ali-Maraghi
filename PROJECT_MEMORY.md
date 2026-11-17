@@ -103,6 +103,26 @@ It is not the four-layer, 18-agent system in the founder manifesto. The manifest
   `apex-voice.service` to run as root, or opens a public port for the UI. The live data is in
   `/home/apexdev/apex-work/runtime` and must stay the only copy in service.
 
+### Opportunity Scouts and monthly hard cap (added 2026-11-17; tested offline, NOT deployed)
+
+- Scouts (`core/apex/scout_events.py`, `scout_wealth.py`, runner `scripts/run_scouts.py`,
+  timer `deploy/user/apex-scout.timer`, every 4 hours). Read-only. Events come from the public
+  iCal feeds of Meetup groups the owner lists in `runtime/inbox/scout_config.json`; jobs from
+  Reed's official API (needs a free key in `/etc/apex/reed-api-key`); one headline from BBC
+  Business RSS. None of these feeds has been fetched live from this code yet.
+- Eventbrite is deliberately absent: it has no public search API, and scraping it breaks its
+  terms. Do not add a scraper.
+- The model only ranks and phrases. Code picks the best-paid job, checks every index, and
+  drops any model sentence containing a number that was not in the fetched data or buy/sell
+  wording. Nothing the scouts find is acted on.
+- Hard cap: `MONTHLY_HARD_CAP_PENCE = 2000` in `core/apex/kernel/budget.py`, enforced inside
+  `Budget.reserve` for every pool and provider (`HardBudgetExceeded`). It bounds what the
+  ledger reserves at owner-set per-call estimates; it is not a meter on the provider's real
+  bill. The true backstop is a spend limit or prepaid balance at the provider.
+- `core/apex/gpu_controller.py`: reserve-then-start, watchdog, always-destroy, orphan alarm.
+  Tested with a fake provider only. The RunPod v2 adapter is untested and nothing calls it.
+  Do not route bank data or profiles to a rented GPU without the owner deciding that knowingly.
+
 ## 7. How to resume
 
 1. Tell the AI: "Read PROJECT_MEMORY.md and AGENTS.md first, then `git log -15` and

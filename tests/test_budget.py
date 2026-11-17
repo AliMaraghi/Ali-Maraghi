@@ -67,6 +67,24 @@ class BudgetTests(unittest.TestCase):
         with self.assertRaisesRegex(BudgetDenied, "CAP_EXCEEDED:global:month"):
             self.b.reserve("g2", "studio", "acme", "video-sec", 100)
 
+    def test_monthly_hard_cap_cannot_be_raised_by_configuration(self):
+        from apex.kernel.budget import HardBudgetExceeded, MONTHLY_HARD_CAP_PENCE
+        for pool in ("core", "studio"):
+            self.b.set_cap(pool, "month", 1_000_000)                             # owner sets absurd caps
+        self.b.set_cap("global", "month", 1_000_000)
+        self.b.reserve("h1", "core", "acme", "video-sec", 150)                   # £18.00
+        with self.assertRaisesRegex(HardBudgetExceeded, "MONTHLY_HARD_CAP"):
+            self.b.reserve("h2", "studio", "acme", "video-sec", 20)              # +£2.40 would pass £20
+        self.b.reserve("h3", "studio", "acme", "video-sec", 16)                  # +£1.92 still fits
+        status = self.b.month_status()
+        self.assertEqual(status["spent_pence"], 1992)
+        self.assertLessEqual(status["spent_pence"], MONTHLY_HARD_CAP_PENCE)
+        self.assertTrue(status["warning"])
+        self.b.reserve("free", "core", "mock", "echo", 5)                        # zero-cost work is never blocked
+        self.now[0] += 32 * 86400                                                # next calendar month
+        self.b.set_price("acme", "video-sec", 12_000, self.now[0] - 10, "https://example.test/pricing")
+        self.b.reserve("h4", "core", "acme", "video-sec", 20)                    # resumes on its own
+
     def test_retries_use_their_own_pool_and_must_name_original(self):
         self.b.set_cap("core", "day", 1000)
         self.b.reserve("r0", "core", "acme", "video-sec", 1)

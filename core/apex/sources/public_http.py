@@ -41,7 +41,13 @@ ROUTES = {
     # reaches it.
     'export.arxiv.org': {'/api/query'},
     'news.mit.edu': {'/topic/mitartificial-intelligence2-rss.xml'},
+    # Opportunity Scouts (core/apex/scout_events.py, scout_wealth.py), added 2026-11-17 and NOT
+    # yet exercised live: the BBC Business RSS feed, and Meetup's public per-group iCal feed
+    # (path matched by MEETUP_ICAL below - any group, that one calendar path only).
+    'feeds.bbci.co.uk': {'/news/business/rss.xml'},
+    'www.meetup.com': set(),
 }
+MEETUP_ICAL = re.compile(r'/[A-Za-z0-9][A-Za-z0-9-]{0,79}/events/ical/')
 
 
 def validate(url, method='GET', body=None):
@@ -50,8 +56,9 @@ def validate(url, method='GET', body=None):
     p = urlsplit(url)
     notice_path = p.netloc == 'www.find-tender.service.gov.uk' and re.fullmatch(
         r'/api/1\.0/ocdsReleasePackages/(?:[0-9]{6}-[0-9]{4}|ocds-h6vhtk-[0-9a-f]{6})', p.path)
+    meetup_path = p.netloc == 'www.meetup.com' and not p.query and MEETUP_ICAL.fullmatch(p.path)
     if (p.scheme != 'https' or p.netloc not in ROUTES or p.fragment
-            or (p.path not in ROUTES[p.netloc] and not notice_path)):
+            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path)):
         raise SourceError('Destination outside reviewed endpoint scope')
     if method == 'POST':
         if (p.netloc, p.path, p.query) != ('api.ted.europa.eu', '/v3/notices/search', ''):

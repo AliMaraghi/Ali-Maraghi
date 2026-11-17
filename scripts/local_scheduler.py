@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Runs the daily briefing at 07:00 Europe/London inside a container (no systemd there).
+"""Container scheduler (no systemd there): daily briefing at 07:00 Europe/London, and the
+Opportunity Scouts every 4 hours at :20.
 
-On the VPS the systemd timer (deploy/user/apex-briefing.timer) does this job instead; do not
-run both against the same database.
+On the VPS the systemd timers in deploy/user/ do this job instead; do not run both against
+the same database.
 """
 from __future__ import annotations
 
@@ -14,24 +15,36 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-ZONE, HOUR = ZoneInfo("Europe/London"), 7
+ZONE = ZoneInfo("Europe/London")
+JOBS = {
+    "briefing": ("run_autonomous_agent.py", [(7, 0)]),
+    "scouts": ("run_scouts.py", [(h, 20) for h in range(0, 24, 4)]),
+}
 
 
-def seconds_until_next_run(now: datetime | None = None) -> float:
+def next_run(slots: list, now: datetime) -> datetime:
+    candidates = []
+    for day in (0, 1):
+        for hour, minute in slots:
+            when = (now + timedelta(days=day)).replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if when > now:
+                candidates.append(when)
+    return min(candidates)
+
+
+def seconds_until_next_run(now: datetime | None = None) -> tuple:
     now = now or datetime.now(ZONE)
-    target = now.replace(hour=HOUR, minute=0, second=0, microsecond=0)
-    if target <= now:
-        target += timedelta(days=1)
-    return (target - now).total_seconds()
+    name, when = min(((n, next_run(slots, now)) for n, (_, slots) in JOBS.items()), key=lambda item: item[1])
+    return name, (when - now).total_seconds()
 
 
 def main() -> None:
     while True:
-        wait = seconds_until_next_run()
-        print(f"[scheduler] next briefing in {int(wait // 60)} min", flush=True)
-        time.sleep(wait)
-        code = subprocess.run([sys.executable, "-B", str(ROOT / "scripts" / "run_autonomous_agent.py")]).returncode
-        print(f"[scheduler] briefing run exited with {code}", flush=True)
+        name, wait = seconds_until_next_run()
+        print(f"[scheduler] next: {name} in {int(wait // 60)} min", flush=True)
+        time.sleep(wait + 1)
+        code = subprocess.run([sys.executable, "-B", str(ROOT / "scripts" / JOBS[name][0])]).returncode
+        print(f"[scheduler] {name} exited with {code}", flush=True)
         time.sleep(60)          # never fire twice inside the same minute
 
 

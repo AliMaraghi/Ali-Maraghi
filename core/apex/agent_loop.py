@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from .kernel.budget import BudgetDenied
+from .kernel.budget import BudgetDenied, HardBudgetExceeded
 
 PROVIDER, POOL, SKU_STEP = "anthropic", "core", "agent-loop-step"
 MAX_STEPS = 8
@@ -251,6 +251,9 @@ def run(goal: str, toolbox: Toolbox, budget, llm: Callable[[str, str, int], str]
         key = f"{run_id}.s{step}"
         try:
             budget.reserve(key, POOL, PROVIDER, SKU_STEP, 1)
+        except HardBudgetExceeded as exc:
+            status = f"MONTHLY_BUDGET_EXHAUSTED:{exc}"     # halts until the calendar month rolls over
+            break
         except BudgetDenied as exc:
             status = f"BUDGET_DENIED:{exc}"
             break

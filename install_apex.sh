@@ -80,12 +80,20 @@ systemctl is-active --quiet apex-voice.service || fail "apex-voice.service did n
 OWNER_HOME=$(getent passwd "$OWNER" | cut -d: -f6)
 sudo -u "$OWNER" install -D -m 0644 deploy/user/apex-briefing.service "$OWNER_HOME/.config/systemd/user/apex-briefing.service"
 sudo -u "$OWNER" install -D -m 0644 deploy/user/apex-briefing.timer "$OWNER_HOME/.config/systemd/user/apex-briefing.timer"
-loginctl enable-linger "$OWNER"
-if systemctl --user -M "${OWNER}@" daemon-reload && systemctl --user -M "${OWNER}@" enable --now apex-briefing.timer; then
-  echo "briefing timer enabled"
-else
-  echo "WARNING: could not enable the briefing timer automatically; everything else is unaffected."
+sudo -u "$OWNER" install -D -m 0644 deploy/user/apex-scout.service "$OWNER_HOME/.config/systemd/user/apex-scout.service"
+sudo -u "$OWNER" install -D -m 0644 deploy/user/apex-scout.timer "$OWNER_HOME/.config/systemd/user/apex-scout.timer"
+if [ ! -f runtime/inbox/scout_config.json ]; then
+  sudo -u "$OWNER" install -D -m 0600 examples/scout_config.example.json runtime/inbox/scout_config.json
+  echo "created runtime/inbox/scout_config.json (edit the profile and Meetup groups there)"
 fi
+loginctl enable-linger "$OWNER"
+if systemctl --user -M "${OWNER}@" daemon-reload \
+   && systemctl --user -M "${OWNER}@" enable --now apex-briefing.timer apex-scout.timer; then
+  echo "briefing (07:00) and scout (every 4 hours) timers enabled"
+else
+  echo "WARNING: could not enable the timers automatically; everything else is unaffected."
+fi
+"${AS_OWNER[@]}" python3 -B scripts/run_scouts.py || echo "WARNING: first scout run failed; see the line above."
 
 step "8/8 Live check (the first reply loads the model and can take a few minutes on CPU)"
 CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/api/dashboard || true)

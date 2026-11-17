@@ -655,8 +655,30 @@ def dashboard_payload(root: Path) -> dict:
         briefing = latest_briefing(root)
     except Exception:
         briefing = None
+    # Month-to-date AI spend against the code-level hard cap, and the latest Opportunity Scout
+    # results. All read-only; each is None if it cannot be read or has never run.
+    budget_status = scout = None
+    try:
+        import sqlite3
+        from apex.kernel.budget import month_status_from
+        from apex import local_llm
+        db_path = root / "runtime" / "kernel.sqlite3"
+        if db_path.is_file():
+            ro = sqlite3.connect(db_path.as_uri() + "?mode=ro", uri=True, timeout=5)
+            try:
+                budget_status = month_status_from(ro, time.time())
+            finally:
+                ro.close()
+            budget_status["local_model"] = local_llm.enabled()
+    except Exception:
+        budget_status = None
+    try:
+        from apex import scout_common
+        scout = {"events": scout_common.latest(root, "events"), "wealth": scout_common.latest(root, "wealth")}
+    except Exception:
+        scout = None
     return {"finance": finance, "academic": academic, "dating": dating, "banking": banking,
-            "briefing": briefing, "generated_at": time.time()}
+            "briefing": briefing, "budget": budget_status, "scout": scout, "generated_at": time.time()}
 
 
 def _general_status(ledger, now: float) -> str:

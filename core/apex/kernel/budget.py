@@ -18,8 +18,20 @@ STALE_AFTER = 30 * 24 * 3600
 CURRENCY = "GBP"
 
 
+# Hard monthly ceiling for ALL paid AI/GPU usage, in pence (GBP 20.00). This is code, not a
+# database setting: no configured cap, price or pool can raise it. It bounds what this ledger
+# RESERVES - per-call prices are owner-set estimates, so it is exactly as accurate as those
+# estimates. The provider-side spend limit / prepaid balance is the backstop for the real bill.
+MONTHLY_HARD_CAP_PENCE = 2000
+
+
 class BudgetDenied(PermissionError):
     pass
+
+
+class HardBudgetExceeded(BudgetDenied):
+    """The calendar month's total would pass MONTHLY_HARD_CAP_PENCE. Subclasses BudgetDenied so
+    every existing caller already stops cleanly; nothing resumes until the month rolls over."""
 
 
 def window_start(period, now):
@@ -30,6 +42,19 @@ def window_start(period, now):
     if period == "week":
         return midnight - t.tm_wday * 86400
     return midnight - (t.tm_mday - 1) * 86400
+
+
+def month_status_from(db, now):
+    """Same figures as Budget.month_status, from any connection (used read-only by the dashboard)."""
+    spent = db.execute(
+        "SELECT COALESCE(SUM(CASE WHEN state='SETTLED' THEN MAX(actual_minor,0) "
+        "WHEN state='RESERVED' THEN reserved_minor ELSE 0 END),0) "
+        "FROM budget_reservations WHERE created_at>=?", (window_start("month", now),)).fetchone()[0]
+    return {"spent_pence": spent, "cap_pence": MONTHLY_HARD_CAP_PENCE,
+            "remaining_pence": max(0, MONTHLY_HARD_CAP_PENCE - spent),
+            "percent": min(100, round(100 * spent / MONTHLY_HARD_CAP_PENCE)),
+            "warning": spent >= 0.8 * MONTHLY_HARD_CAP_PENCE, "exhausted": spent >= MONTHLY_HARD_CAP_PENCE,
+            "month": time.strftime("%Y-%m", time.gmtime(now))}
 
 
 class Budget:
@@ -126,6 +151,11 @@ class Budget:
             "WHEN state='RESERVED' THEN reserved_minor ELSE 0 END),0) "
             "FROM budget_reservations WHERE created_at>=? " + where, args).fetchone()[0]
 
+    def month_status(self, now=None):
+        """Month-to-date position against the hard cap (reserved + settled, all pools)."""
+        now = self.clock() if now is None else now
+        return month_status_from(self.ledger.db, now)
+
     def reserve(self, key, pool, provider, sku, units, retry_of=None):
         if len(identifier(key)) > 48:
             raise ValueError("Reservation key too long")
@@ -152,6 +182,11 @@ class Budget:
                                                      (scope, period)).fetchone()
                         if cap is not None and self.spent(scope, period, now) + cost > cap[0]:
                             raise BudgetDenied(f"CAP_EXCEEDED:{scope}:{period}")
+                # Last and unconditional: whatever the configured caps above allow, the calendar
+                # month never passes the code-level ceiling.
+                month_spent = self.spent("global", "month", now)
+                if month_spent + cost > MONTHLY_HARD_CAP_PENCE:
+                    raise HardBudgetExceeded(f"MONTHLY_HARD_CAP:{month_spent}+{cost}>{MONTHLY_HARD_CAP_PENCE}")
             self.ledger.db.execute("INSERT INTO budget_reservations VALUES (?,?,?,?,?,?,?,NULL,'RESERVED',?)",
                                    (key, pool, provider, sku, units, price, cost, now))
             self.ledger._append(identifier(("bud." + key)[:80]), "decision", "personal",
