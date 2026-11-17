@@ -11,5 +11,5 @@ TimeoutStartSec=600
 NoNewPrivileges=yes
 UMask=0077
 Environment=APEX_LLM_PROVIDER=ollama
-Environment=APEX_OLLAMA_MODEL=qwen3:4b
+Environment=APEX_OLLAMA_MODEL=gemma3:4b
 Environment=APEX_OLLAMA_EMBED=bge-m3

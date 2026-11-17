@@ -8,7 +8,7 @@ WorkingDirectory=/home/apexdev/apex-work
 ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/run_scouts.py
 Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=APEX_LLM_PROVIDER=ollama
-Environment=APEX_OLLAMA_MODEL=qwen3:4b
+Environment=APEX_OLLAMA_MODEL=gemma3:4b
 Environment=APEX_OLLAMA_EMBED=bge-m3
 TimeoutStartSec=1200
 NoNewPrivileges=yes
