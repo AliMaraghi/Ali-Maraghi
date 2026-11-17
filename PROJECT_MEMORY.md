@@ -78,9 +78,30 @@ It is not the four-layer, 18-agent system in the founder manifesto. The manifest
 - `scripts/backup_sqlite.py`: consistent nightly snapshot to `backups/`, 14-day retention.
   Same-disk only; copy off the server for real protection.
 - Offline suite after these changes: 774 passed, 7 failed in `test_dev_config`,
-  `test_access_refresher`, `test_adversarial_evaluation` (areas not touched; not yet
-  confirmed as pre-existing - check against a clean checkout).
-- Local Docker files (backend, frontend, compose) were drafted in chat, not committed.
+  `test_access_refresher`, `test_adversarial_evaluation`. The same 7 fail on a clean
+  checkout of `d463b1d` in the same sandbox (run as root), so they predate this work.
+
+### Local-model mode (added 2026-11-17, same status: tested offline, NOT deployed)
+
+- `APEX_LLM_PROVIDER=ollama` routes every LLM call to a local Ollama server
+  (`core/apex/local_llm.py`); no hosted key is read. The server URL must be loopback/private.
+- Default models are sized for the CPU-only 8 GB VPS: chat `qwen3:4b`, embeddings `bge-m3`.
+  A 4B model is below the level where open models drive tools reliably - expect wrong or
+  malformed steps and slow replies. With a 24 GB GPU use `qwen3.6:27b` instead (one env var).
+- Semantic memory (`core/apex/semantic_memory.py`): table `memory_items` in the same SQLite
+  file, indexed with sqlite-vec when the extension loads, exact Python scan when it does not
+  (the VPS has no pip). Holds conversation turns, briefings, notes. Bank transactions are
+  deliberately NOT embedded - they stay structured and exact.
+- Tested only against a stand-in HTTP server that mimics Ollama's `/api/chat` and
+  `/api/embed`. Never yet run against a real Ollama model.
+- Two ways to run: `install_apex.sh` (VPS, existing systemd services, no Docker) or
+  `docker-compose.local.yml` (UI + backend + daily agent + Ollama in containers).
+- In local mode the installer prices all LLM SKUs at zero. BEFORE switching back to a hosted
+  API, re-price them (`voice_api.py --set-daily-cap-pence N`, `run_autonomous_agent.py
+  --set-price`) or hosted spend would be uncapped.
+- Do not run someone else's "one-shot installer" that clones a second copy to /opt, rewrites
+  `apex-voice.service` to run as root, or opens a public port for the UI. The live data is in
+  `/home/apexdev/apex-work/runtime` and must stay the only copy in service.
 
 ## 7. How to resume
 

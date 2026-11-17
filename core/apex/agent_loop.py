@@ -11,6 +11,10 @@ What it wraps (real code, nothing new invented underneath):
   calculate_uk_tax       -> apex.agents_impl.FinancialIntelligence (A-8), pure arithmetic
   generate_dating_drafts -> scripts/dating_agent.generate_openers (injected), on bios the owner
                             pasted into runtime/inbox/dating_profiles.json
+  recall_memory          -> apex.semantic_memory (only when the local provider is enabled)
+
+The model is whatever `llm` the caller passes: the hosted API, or a local Ollama model when
+APEX_LLM_PROVIDER=ollama (see apex.local_llm). The loop itself does not know or care.
 
 Safety properties, enforced in code rather than in the prompt:
   * Closed tool menu. An unknown action name is an error observation, never executed.
@@ -39,6 +43,7 @@ MAX_STEPS = 8
 MAX_OBSERVATION_CHARS = 3000
 MAX_REPORT_CHARS = 6000
 MAX_INVALID_IN_A_ROW = 2
+MAX_PROMPT_CHARS = 20_000          # ~5k tokens: stays inside a small local model's context window
 PROPOSER = "agent:react-loop"
 BRIEFING_KEY_PREFIX = "brief."
 STATEMENT_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,80}\.csv")
@@ -76,6 +81,7 @@ class Toolbox:
     root: Path
     fetch: Callable[[str], bytes] | None = None            # public-feed fetcher (None = no network)
     openers: Callable[[str], str] | None = None            # profile text -> drafts (budget-gated by its owner)
+    memory: object | None = None                           # apex.semantic_memory.SemanticMemory, if enabled
     now: float = field(default_factory=time.time)
 
     @property
@@ -145,6 +151,14 @@ class Toolbox:
         return {"claims": [str(c["text"])[:600] for c in contract["claims"]][:6],
                 "unknowns": [str(u)[:300] for u in contract["unknowns"]][:6]}
 
+    def recall_memory(self, query: str = "") -> dict:
+        if self.memory is None:
+            raise ToolError("NO_MEMORY: semantic memory is not enabled for this run")
+        if not isinstance(query, str) or not query.strip():
+            raise ToolError("QUERY_REQUIRED")
+        hits = self.memory.search(query[:500], k=4)
+        return {"matches": [{"kind": h["kind"], "text": h["text"][:500], "score": h["score"]} for h in hits]}
+
     def generate_dating_drafts(self, profile_index: int = 0) -> dict:
         if self.openers is None:
             raise ToolError("NO_DRAFTER: the dating draft generator is not configured for this run")
@@ -170,6 +184,8 @@ TOOLS = {
     "parse_bank_csv": ("Aggregate one owner-supplied statement CSV. args: {} to list files, or "
                        "{\"file\": \"name.csv\", \"fmt\": \"generic\"|\"paypal\"}", {"file", "fmt"}),
     "calculate_uk_tax": ("Run the ESPP/UK tax scenario calculator on the owner's inputs. args: {}", set()),
+    "recall_memory": ("Search what the owner said in earlier conversations and past briefings. "
+                      "args: {\"query\": \"...\"}", {"query"}),
     "generate_dating_drafts": ("3 opening-message drafts for one owner-pasted profile (text only, never "
                                "sent). args: {\"profile_index\": 0}", {"profile_index"}),
 }
@@ -238,6 +254,10 @@ def run(goal: str, toolbox: Toolbox, budget, llm: Callable[[str, str, int], str]
         except BudgetDenied as exc:
             status = f"BUDGET_DENIED:{exc}"
             break
+        # Keep the goal plus the most recent steps inside a bounded prompt; a small local model
+        # silently truncates anything past its context window, which would drop the goal itself.
+        while len(transcript) > 2 and sum(len(t) for t in transcript) > MAX_PROMPT_CHARS:
+            del transcript[1]
         prompt = "\n\n".join(transcript) + f"\n\nStep {step} of {max_steps}. What is your next step? Reply with one JSON object."
         try:
             raw = llm(system, prompt, 900)

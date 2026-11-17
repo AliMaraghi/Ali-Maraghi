@@ -76,14 +76,24 @@ def main() -> int:
         enforce_durable_stop(ledger)
         budget = Budget(ledger)
         api_key = load_api_key()
+        try:
+            from apex import semantic_memory
+            memory = semantic_memory.open_if_enabled(ledger.db)   # None unless APEX_LLM_PROVIDER=ollama
+        except Exception:
+            memory = None
         toolbox = agent_loop.Toolbox(
             root=ROOT, fetch=agents_runner.fetch_public,
-            openers=lambda profile: dating_agent.generate_openers(budget, profile), now=now)
+            openers=lambda profile: dating_agent.generate_openers(budget, profile), memory=memory, now=now)
         result = agent_loop.run(
             args.goal, toolbox, budget,
             llm=lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens),
             book=approval_book(ledger), max_steps=args.max_steps)
         key = agent_loop.record_briefing(ledger, args.goal, result, now=now)
+        if memory is not None and result["status"] == "COMPLETED":
+            try:
+                memory.add("briefing", key, f"Daily briefing {time.strftime('%Y-%m-%d', time.gmtime(now))}: {result['report']}")
+            except Exception:
+                pass
 
     # Counts and status only on stdout/journald - never briefing content (same rule as nightly_run.py).
     print(f"[agent] {result['status']} event={key} steps={len(result['trace'])} "

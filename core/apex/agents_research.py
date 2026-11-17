@@ -51,6 +51,9 @@ class ResearchPipelineError(RuntimeError):
 
 
 def load_api_key() -> str:
+    from . import local_llm
+    if local_llm.enabled():
+        return "local"                     # local Ollama model: no hosted key is read or needed
     if not KEY_FILE.is_file():
         raise ResearchPipelineError(f"{KEY_FILE} not found")
     if KEY_FILE.stat().st_mode & 0o777 & 0o077:
@@ -62,6 +65,14 @@ def load_api_key() -> str:
 
 
 def call_anthropic(api_key: str, system: str, user_text: str, max_tokens: int = 400) -> str:
+    from . import local_llm
+    if local_llm.enabled():
+        # APEX_LLM_PROVIDER=ollama: same contract, served by the local model. The name of this
+        # function is kept so every existing caller (and its budget reservation) is unchanged.
+        try:
+            return local_llm.complete(system, user_text, max_tokens)
+        except local_llm.LocalLLMError as exc:
+            raise ResearchPipelineError(str(exc)) from None
     # FOUND LIVE 2026-11-13, via a real call against api.anthropic.com (not a mock): claude-haiku-5-5
     # emits an internal "thinking" content block first by default, and at the max_tokens values
     # used throughout this project (80-150, sized for a short reply) the ENTIRE budget was

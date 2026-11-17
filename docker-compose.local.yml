@@ -1,0 +1,70 @@
+# Fully local APEX: UI + backend + daily agent + a CPU-only Ollama model server. No GPU needed.
+# Works the same on a Windows PC (Docker Desktop) and on the 8 GB VPS.
+#
+#   docker compose -f docker-compose.local.yml up -d --build
+#   docker compose -f docker-compose.local.yml exec ollama ollama pull qwen3:4b
+#   docker compose -f docker-compose.local.yml exec ollama ollama pull bge-m3
+#
+# (The -f flag is required: this repo's older compose.yaml is a different stack.)
+# Nothing is published beyond this machine's loopback, and the model server has no published
+# port at all - only the backend and the agent can reach it.
+
+x-apex-env: &apex-env
+  APEX_LLM_PROVIDER: ollama
+  APEX_OLLAMA_URL: http://ollama:11434
+  APEX_OLLAMA_MODEL: ${APEX_OLLAMA_MODEL:-qwen3:4b}
+  APEX_OLLAMA_EMBED: ${APEX_OLLAMA_EMBED:-bge-m3}
+  APEX_OLLAMA_NUM_CTX: ${APEX_OLLAMA_NUM_CTX:-8192}
+  APEX_VOICE_ALLOWED_ORIGIN: ${APEX_UI_ORIGIN:-http://localhost:5173}
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m            # keep the model in RAM between calls; reloading is slow on CPU
+      OLLAMA_MAX_LOADED_MODELS: "2"     # chat model + embedding model
+      OLLAMA_NUM_PARALLEL: "1"
+    volumes:
+      - ollama_models:/root/.ollama
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: *apex-env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - apex_runtime:/app/runtime
+    depends_on:
+      - ollama
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: *apex-env
+    command: ["python", "-B", "scripts/local_scheduler.py"]
+    volumes:
+      - apex_runtime:/app/runtime
+    depends_on:
+      - backend
+
+  frontend:
+    build:
+      context: ./apex-ui
+      dockerfile: ../Dockerfile.frontend
+      args:
+        API_BASE: ${APEX_API_BASE:-http://localhost:8000}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  apex_runtime:
+  ollama_models:

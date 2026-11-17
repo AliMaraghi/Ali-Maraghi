@@ -67,6 +67,7 @@ from apex.kernel.memory import Ledger          # noqa: E402
 from apex.kernel.budget import Budget, BudgetDenied  # noqa: E402
 from apex.kernel.schema import identifier      # noqa: E402
 import orchestrator                            # noqa: E402
+from apex import local_llm, semantic_memory    # noqa: E402
 
 ALLOWED_ORIGIN = os.environ.get("APEX_VOICE_ALLOWED_ORIGIN", "https://ui.apexcorelab.uk")
 # Local-dev override only (mission 2026-11-15): APEX_VOICE_ALLOWED_ORIGIN lets
@@ -96,6 +97,8 @@ not no yes can could would should will just about as by from up down out over un
 
 
 def load_api_key() -> str:
+    if local_llm.enabled():
+        return "local"                     # local Ollama model: no hosted key is read or needed
     if not KEY_FILE.is_file():
         raise RuntimeError(f"{KEY_FILE} not found - see setup step 1 in this file's docstring")
     mode = KEY_FILE.stat().st_mode & 0o777
@@ -123,6 +126,8 @@ def tokenize(text: str) -> set:
 
 
 def call_anthropic(api_key: str, messages: list, system: str = SYSTEM_PROMPT) -> str:
+    if local_llm.enabled():
+        return local_llm.chat(system, messages, max_tokens=200)   # LocalLLMError is a RuntimeError -> 502
     payload = json.dumps({
         "model": MODEL,
         "max_tokens": 200,
@@ -200,6 +205,13 @@ class VoiceChatApp:
               session TEXT NOT NULL, tokens TEXT NOT NULL)
         """)
         self.ledger.db.execute("CREATE INDEX IF NOT EXISTS voice_embeddings_session ON voice_embeddings(session)")
+        # Real embeddings, only when the local provider is on (APEX_LLM_PROVIDER=ollama): stored
+        # in this same SQLite file via sqlite-vec (or an exact Python scan if the extension is
+        # absent). None otherwise - the hosted configuration keeps the keyword recall below.
+        try:
+            self.semantic = semantic_memory.open_if_enabled(self.ledger.db)
+        except Exception:
+            self.semantic = None
 
     def _history(self, session: str) -> list:
         rows = self.ledger.db.execute(
@@ -212,6 +224,11 @@ class VoiceChatApp:
             "INSERT INTO voice_turns (session, role, content, created_at) VALUES (?,?,?,?)",
             (session, role, content, now))
         seq = cur.lastrowid
+        if self.semantic is not None:
+            try:                                   # long-term memory; never allowed to break a chat turn
+                self.semantic.add("conversation", f"{session}:{seq}", f"({role}) {content}")
+            except Exception:
+                pass
         tokens = tokenize(content)
         if tokens:
             self.ledger.db.execute("INSERT INTO voice_embeddings (turn_seq, session, tokens) VALUES (?,?,?)",
@@ -227,6 +244,17 @@ class VoiceChatApp:
     def _recall(self, session: str, query_text: str) -> str | None:
         """Token-overlap recall over turns OLDER than the current HISTORY_TURNS window, so it adds
         context instead of repeating what's already sent as recent history."""
+        if self.semantic is not None:
+            try:
+                recent = {f"{session}:{row[0]}" for row in self.ledger.db.execute(
+                    "SELECT seq FROM voice_turns WHERE session=? ORDER BY seq DESC LIMIT ?",
+                    (session, HISTORY_TURNS)).fetchall()}
+                hits = self.semantic.search(query_text, k=RECALL_TOP_K, kinds=("conversation", "briefing", "note"),
+                                            exclude_refs=recent)
+                if hits:
+                    return "Relevant earlier context (from memory):\n" + "\n".join(h["text"][:600] for h in hits)
+            except Exception:
+                pass                               # fall through to keyword recall
         query_tokens = tokenize(query_text)
         if not query_tokens:
             return None
@@ -533,14 +561,29 @@ def main():
     parser.add_argument("--set-daily-cap-pence", type=int, default=None,
                          help="Configure the spend ceiling, then exit, without starting the server.")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--host", default="127.0.0.1",
+                         help="Bind address. Keep the default on a server; 0.0.0.0 is for inside a "
+                              "container whose port is published to the host's loopback only.")
+    parser.add_argument("--reindex-memory", action="store_true",
+                         help="Embed every stored conversation turn into semantic memory, then exit.")
     args = parser.parse_args()
+
+    if args.reindex_memory:
+        app = VoiceChatApp(ROOT)
+        if app.semantic is None:
+            sys.exit("Semantic memory is off: set APEX_LLM_PROVIDER=ollama first.")
+        rows = app.ledger.db.execute("SELECT seq, session, role, content FROM voice_turns ORDER BY seq").fetchall()
+        for seq, session, role, content in rows:
+            app.semantic.add("conversation", f"{session}:{seq}", f"({role}) {content}")
+        print(f"Indexed {len(rows)} turn(s) with backend {app.semantic.backend}.")
+        return
 
     if args.set_daily_cap_pence is not None:
         set_daily_cap(args.set_daily_cap_pence)
         return
 
     from waitress import serve
-    serve(VoiceChatApp(ROOT), listen=f"127.0.0.1:{args.port}", threads=4, connection_limit=32)
+    serve(VoiceChatApp(ROOT), listen=f"{args.host}:{args.port}", threads=4, connection_limit=32)
 
 
 if __name__ == "__main__":

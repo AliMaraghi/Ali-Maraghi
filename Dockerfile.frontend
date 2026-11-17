@@ -1,0 +1,13 @@
+# Frontend image for docker-compose.local.yml. API_BASE is where the BROWSER reaches the backend.
+FROM node:22-alpine AS build
+ARG API_BASE=http://localhost:8000
+WORKDIR /ui
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN grep -rl "https://api.apexcorelab.uk" src | xargs sed -i "s#https://api.apexcorelab.uk#${API_BASE}#g"
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY --from=build /ui/dist /usr/share/nginx/html
+EXPOSE 80
