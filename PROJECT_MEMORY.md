@@ -123,6 +123,18 @@ It is not the four-layer, 18-agent system in the founder manifesto. The manifest
   Tested with a fake provider only. The RunPod v2 adapter is untested and nothing calls it.
   Do not route bank data or profiles to a rented GPU without the owner deciding that knowingly.
 
+### Live status (2026-11-17, 22:30 UTC) - first evidence from the real server
+
+- Installed and running on the VPS in local-model mode. Checked from the owner's own browser:
+  `/api/dashboard` returned budget (100p of 2000p), scout results from live Meetup and BBC
+  feeds, `local_model: true`; a chat turn to qwen3:4b answered in 45 s.
+- The server carries three commits that were never on GitHub (`822ffe5`, `ad6f1a0`, `cf54627`)
+  plus tonight's patches applied on top. The dashboard JSX on the server is the server's own
+  version: the Budget and Scout panels are NOT in it yet.
+- `api.apexcorelab.uk` answered without any sign-in. Treat the API as public until Cloudflare
+  Access is confirmed on it.
+- Order of work from here: `docs/STAGED_PLAN.md`.
+
 ## 7. How to resume
 
 1. Tell the AI: "Read PROJECT_MEMORY.md and AGENTS.md first, then `git log -15` and
