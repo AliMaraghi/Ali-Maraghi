@@ -648,7 +648,15 @@ def dashboard_payload(root: Path) -> dict:
             "ادعای واقعی این ماژول چیزی است که به‌صورت ساختاری رد می‌کند - انتقال پول، و خروج "
             "شماره حساب/سورت‌کد از پاسخ تجمیع‌کننده."),
     }
-    return {"finance": finance, "academic": academic, "dating": dating, "banking": banking, "generated_at": time.time()}
+    # Latest daily briefing written by scripts/run_autonomous_agent.py (core/apex/agent_loop.py).
+    # Read-only; None until a run has actually been recorded - never a placeholder briefing.
+    try:
+        from apex.agent_loop import latest_briefing
+        briefing = latest_briefing(root)
+    except Exception:
+        briefing = None
+    return {"finance": finance, "academic": academic, "dating": dating, "banking": banking,
+            "briefing": briefing, "generated_at": time.time()}
 
 
 def _general_status(ledger, now: float) -> str:

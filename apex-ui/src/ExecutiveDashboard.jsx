@@ -709,6 +709,22 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
         </div>
       )}
 
+      {data && data.briefing && (
+        <div dir="auto" style={{
+          border: "1px solid #3a7a90", borderRadius: 12, padding: 16, marginBottom: 16, background: "#0f1526",
+        }}>
+          <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 8 }}>
+            {lang === "fa" ? "گزارش روزانه عامل" : "Daily agent briefing"}
+            {" · "}{data.briefing.status}
+            {data.briefing.generated_at ? " · " + new Date(data.briefing.generated_at * 1000).toLocaleString() : ""}
+            {data.briefing.proposals && data.briefing.proposals.length > 0
+              ? " · " + data.briefing.proposals.length + (lang === "fa" ? " مورد در انتظار تأیید" : " awaiting approval")
+              : ""}
+          </div>
+          <div style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.5 }}>{data.briefing.report}</div>
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         {data && DOMAINS.map((domain) => (
           <DomainCard key={domain} domain={domain} data={data[domain]} lang={lang} onAction={setOpenModalDomain} />

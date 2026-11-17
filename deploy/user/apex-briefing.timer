@@ -1,0 +1,9 @@
+[Unit]
+Description=APEX daily autonomous briefing at 07:00 London time
+
+[Timer]
+OnCalendar=*-*-* 07:00:00 Europe/London
+Persistent=true
+
+[Install]
+WantedBy=timers.target

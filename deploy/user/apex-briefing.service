@@ -1,0 +1,12 @@
+[Unit]
+Description=APEX daily autonomous briefing (bounded ReAct run; read-only tools, proposals only)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/apexdev/apex-work
+ExecStart=/usr/bin/python3 -B /home/apexdev/apex-work/scripts/run_autonomous_agent.py
+Environment=PYTHONDONTWRITEBYTECODE=1
+TimeoutStartSec=600
+NoNewPrivileges=yes
+UMask=0077
