@@ -10,7 +10,20 @@ import { useEffect, useRef, useState } from "react";
 // so no node is ever shown as "processing right now".
 const TELEMETRY_ENDPOINT = "/api/agent_telemetry";
 const POLL_MS = 5000;
-const STATUS_COLOR = { OK: "#7dffb0", ERROR: "#ff6a6a", NEVER_RUN: "#6a7a85" };
+const STATUS_COLOR = { OK: "#7dffb0", ERROR: "#ff6a6a", NEVER_RUN: "#6a7a85", WAITING: "#ffaa00" };
+// A run that "succeeded" only because it had nothing to work on is not shown as a success:
+// an agent the server reports as blocked is amber and says it is waiting for input.
+const shown = (agent) => (agent.blocked && agent.status !== "ERROR" ? "WAITING" : agent.status);
+// Plain-language text per agent: what it does, and what it is waiting for when it has no input.
+const WORK_FA = {
+  "A-1": ["عنوان مقاله‌های تازهٔ هوش مصنوعی و علم را از منابع عمومی می‌خواند.", ""],
+  "A-2": ["دربارهٔ موضوعی که تو بدهی در منابع پزشکی جست‌وجو و خلاصه می‌نویسد.", "هنوز موضوعی برای پژوهش به آن نداده‌ای."],
+  "A-3": ["دنبال تناقض بین چیزهایی که ثبت شده می‌گردد.", ""],
+  "A-5": ["آگهی‌های شغلی‌ای که تو بدهی را امتیاز می‌دهد.", "هنوز فهرست شغلی به آن نداده‌ای."],
+  "A-8": ["حساب مالیات سهام شرکت (ESPP) را با قواعد ثابت انجام می‌دهد.", "ورودی‌های لازم (قواعد مالیات یا اطلاعات سهام) کامل نیست."],
+  "A-10": ["نتیجهٔ آزمایش‌هایی که تو بدهی را مرتب می‌کند (فقط کمک پژوهشی).", "هنوز نتیجهٔ آزمایشی به آن نداده‌ای."],
+  "A-15": ["یادداشت و پیش‌نویس برای روابط آماده می‌کند تا خودت بررسی کنی.", "هنوز درخواستی به آن نداده‌ای."],
+};
 const PHASE_COLOR = { idle: "#0a8fa8", listening: "#ff5f6d", thinking: "#ffaa00", speaking: "#00f3ff" };
 const NAME_FA = {
   "A-1": "هوش راهبردی", "A-2": "پژوهش علمی", "A-3": "شواهد و راستی‌آزمایی", "A-5": "شغل و صنعت",
@@ -18,10 +31,10 @@ const NAME_FA = {
 };
 const COPY = {
   en: { idle: "Ready", listening: "Listening", thinking: "Thinking", speaking: "Speaking", unreachable: "Agent data unreachable",
-        OK: "Last run OK", ERROR: "Last run failed", NEVER_RUN: "Not run yet", next: "Next run", now: "due now",
+        OK: "Last run OK", ERROR: "Last run failed", NEVER_RUN: "Not run yet", WAITING: "Waiting for input", next: "Next run", now: "due now",
         none: "not scheduled", mins: "min", hours: "h", close: "Close", note: "Colours show each agent's last finished run, not live activity." },
   fa: { idle: "آماده", listening: "در حال شنیدن", thinking: "در حال فکر کردن", speaking: "در حال صحبت", unreachable: "داده عامل‌ها در دسترس نیست",
-        OK: "آخرین اجرا موفق", ERROR: "آخرین اجرا ناموفق", NEVER_RUN: "هنوز اجرا نشده", next: "اجرای بعدی", now: "همین حالا",
+        OK: "آخرین اجرا موفق", ERROR: "آخرین اجرا ناموفق", NEVER_RUN: "هنوز اجرا نشده", WAITING: "منتظر ورودی تو", next: "اجرای بعدی", now: "همین حالا",
         none: "زمان‌بندی نشده", mins: "دقیقه", hours: "ساعت", close: "بستن", note: "رنگ‌ها نتیجه آخرین اجرای هر عامل را نشان می‌دهند، نه فعالیت لحظه‌ای." },
 };
 
@@ -92,7 +105,7 @@ export default function CoreGraph({ listening, thinking, speaking, mouthIntensit
 
       // Links and their progress dots.
       list.forEach((agent, i) => {
-        const p = g.points[i], tone = STATUS_COLOR[agent.status] || STATUS_COLOR.NEVER_RUN;
+        const p = g.points[i], tone = STATUS_COLOR[shown(agent)] || STATUS_COLOR.NEVER_RUN;
         ctx.save();
         ctx.strokeStyle = tone; ctx.globalAlpha = agent.status === "NEVER_RUN" ? 0.25 : 0.55;
         ctx.lineWidth = 1.4; ctx.shadowColor = tone; ctx.shadowBlur = 10;
@@ -190,7 +203,7 @@ export default function CoreGraph({ listening, thinking, speaking, mouthIntensit
         {t[phase]}
       </div>
       {agents.map((agent, i) => {
-        const tone = STATUS_COLOR[agent.status] || STATUS_COLOR.NEVER_RUN;
+        const tone = STATUS_COLOR[shown(agent)] || STATUS_COLOR.NEVER_RUN;
         return (
           <button key={agent.agent_id} onClick={() => setSelected(selected === agent.agent_id ? null : agent.agent_id)}
                   style={{
@@ -201,7 +214,7 @@ export default function CoreGraph({ listening, thinking, speaking, mouthIntensit
                     border: `1px solid ${tone}`, boxShadow: `0 0 14px ${tone}55`, fontFamily: "inherit",
                   }}>
             <div style={{ fontWeight: 700 }}>{lang === "fa" ? NAME_FA[agent.agent_id] || agent.name : agent.name}</div>
-            <div style={{ color: tone, fontSize: narrow ? 9.5 : 11 }}>{t[agent.status] || agent.status}</div>
+            <div style={{ color: tone, fontSize: narrow ? 9.5 : 11 }}>{t[shown(agent)] || agent.status}</div>
           </button>
         );
       })}
@@ -209,7 +222,12 @@ export default function CoreGraph({ listening, thinking, speaking, mouthIntensit
         <div style={{ position: "absolute", left: "50%", top: narrow ? 150 : 70, zIndex: 3, transform: "translateX(-50%)", width: "min(420px, 88vw)",
                       background: "rgba(5,10,16,0.95)", border: "1px solid #2a6f8a", borderRadius: 12, padding: 14, fontSize: 13, color: "#dff6ff" }}>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{lang === "fa" ? NAME_FA[chosen.agent_id] || chosen.name : chosen.name}</div>
-          <div style={{ opacity: 0.85, marginTop: 6 }} dir="ltr">{chosen.current_task}</div>
+          {lang === "fa" && WORK_FA[chosen.agent_id] ? (
+            <>
+              <div style={{ opacity: 0.85, marginTop: 6 }}>{WORK_FA[chosen.agent_id][0]}</div>
+              {chosen.blocked && <div style={{ color: STATUS_COLOR.WAITING, marginTop: 6 }}>{WORK_FA[chosen.agent_id][1] || t.WAITING}</div>}
+            </>
+          ) : <div style={{ opacity: 0.85, marginTop: 6 }} dir="ltr">{chosen.current_task}</div>}
           <div style={{ marginTop: 6 }}>{t.next}: {dueText(chosen.due_in_seconds, t)}</div>
           {chosen.last_error && <div style={{ color: "#ff8a8a", marginTop: 6 }} dir="ltr">{String(chosen.last_error).slice(0, 200)}</div>}
           <button onClick={() => setSelected(null)} style={{ marginTop: 10, padding: "4px 12px", borderRadius: 6, cursor: "pointer",
