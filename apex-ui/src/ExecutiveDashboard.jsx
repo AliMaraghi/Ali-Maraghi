@@ -774,15 +774,6 @@ function BankingModal({ lang, color, onClose }) {
   return (
     <Modal title={COPY[lang].banking} color={color} lang={lang} onClose={onClose}>
       <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>{t.bankingExplain}</p>
-      <button
-        onClick={() => window.alert(t.bankingAlert)}
-        style={{
-          fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none",
-          background: color, color: "#05060a", cursor: "pointer",
-        }}
-      >
-        {t.bankingConnect}
-      </button>
 
       <div style={{ borderTop: "1px solid #2a2a3a", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
         <label style={{ fontSize: 13, opacity: 0.85 }}>{t.csvLabel}</label>

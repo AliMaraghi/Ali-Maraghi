@@ -43,7 +43,7 @@ def write(path, payload: dict) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     temp = target.with_suffix(".tmp")
-    temp.write_text(json.dumps(payload), encoding="utf-8")
+    temp.write_text(json.dumps({**payload, "updated": round(time.time(), 3)}), encoding="utf-8")
     os.chmod(temp, 0o600)
     os.replace(temp, target)
 

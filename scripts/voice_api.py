@@ -674,7 +674,9 @@ class VoiceChatApp:
             last = json.loads(target.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             last = {}
-        if last.get("state") == "running" and time.time() - float(last.get("started") or 0) < 1800:
+        # A run that has not reported progress for ten minutes was stopped (for example by a
+        # service restart during an update) and no longer blocks a new one.
+        if last.get("state") == "running" and time.time() - float(last.get("updated") or last.get("started") or 0) < 600:
             return self._respond(start_response, 429, {"error": "ALREADY_RUNNING"})
         try:
             subprocess.Popen([sys.executable, "-B", str(ROOT / "scripts" / "e2e_test.py"), "--json", str(target)],

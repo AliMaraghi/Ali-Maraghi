@@ -83,4 +83,6 @@ def status(root: Path, now: float | None = None, probe=ollama_ok) -> dict:
         e2e = json.loads(root.joinpath(*E2E_FILE).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         pass
+    if isinstance(e2e, dict) and e2e.get("state") == "running" and now - float(e2e.get("updated") or e2e.get("started") or 0) > 600:
+        e2e = {**e2e, "state": "interrupted"}
     return {"ok": all(c["ok"] for c in checks.values()), "checks": checks, "e2e": e2e, "generated_at": round(now, 3)}
