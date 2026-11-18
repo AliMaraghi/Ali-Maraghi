@@ -36,6 +36,18 @@ def _to_pence(raw: str) -> int:
     return -abs(pence) if negative else pence
 
 
+def _to_date(raw):
+    """UK bank date shapes only (day first). None when the cell is not a date."""
+    from datetime import datetime
+    text = (raw or "").strip()
+    for shape in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d %b %Y", "%d %B %Y", "%d/%m/%y", "%d-%b-%Y", "%d-%b-%y"):
+        try:
+            return datetime.strptime(text, shape).date()
+        except ValueError:
+            continue
+    return None
+
+
 def _sniff_delimiter(sample: str) -> str:
     """Real banks export comma, semicolon or tab CSVs inconsistently (a UK Santander "Midata"
     export uses ';' with a trailing empty column, for example). csv.Sniffer needs a real
@@ -55,7 +67,7 @@ def _normalize_header(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", name.strip().lower())
 
 
-def parse_transactions(csv_text: str) -> list:
+def parse_transactions(csv_text: str, details: bool = False) -> list:
     """Returns [{"description": str, "pence": int}, ...] - real parsed rows only, nothing
     inferred. Supports a single signed "amount" column (including a combined "Debit/Credit"
     column some UK banks use, with the sign already in the value), or a separate debit/credit
@@ -84,6 +96,8 @@ def parse_transactions(csv_text: str) -> list:
     amount_col = find("amount", "value", "debit/credit", "debitcredit")
     debit_col = find("debit", "paid out", "paid_out")
     credit_col = find("credit", "paid in", "paid_in")
+    date_col = find("date", "transaction date", "transactiondate", "posting date", "posted date", "date processed")
+    balance_col = find("balance", "running balance", "account balance")
     if desc_col is None:
         raise CsvParseError("No description/narrative/details/merchant column found")
     if amount_col is None and (debit_col is None or credit_col is None):
@@ -110,7 +124,16 @@ def parse_transactions(csv_text: str) -> list:
                 pence = abs(_to_pence(credit))
             else:
                 continue
-        transactions.append({"description": description, "pence": pence})
+        item = {"description": description, "pence": pence}
+        day = _to_date(row.get(date_col)) if details and date_col else None
+        if day:
+            item["date"] = day
+        if details and balance_col and (row.get(balance_col) or "").strip():
+            try:
+                item["balance_pence"] = _to_pence(row[balance_col])
+            except CsvParseError:
+                pass
+        transactions.append(item)
     if not transactions:
         raise CsvParseError("No usable transaction rows found")
     return transactions

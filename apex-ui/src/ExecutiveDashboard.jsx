@@ -37,7 +37,7 @@ const COPY = {
         financeNote: "This is the same real figure already shown on the card, just with the full detail.",
         errorGeneric: "Something went wrong - nothing was lost, try again.",
         copy: "Copy", copied: "Copied",
-        csvLabel: "Or upload your own bank CSV export (nothing is stored; parsed once and discarded):",
+        csvLabel: "Upload a bank or card CSV export (sorted by fixed rules, no AI; only totals per category are kept, never the transactions):",
         csvUpload: "Upload CSV", csvParsing: "Categorizing...", csvNone: "No breakdown yet.",
         csvUncategorized: "uncategorized as \"Other\"",
         googleLabel: "Google Workspace (Gmail metadata only - never Calendar, never message bodies)",
@@ -68,7 +68,7 @@ const COPY = {
         financeNote: "این همان رقم واقعی نشان‌داده‌شده روی کارت است، فقط با جزئیات کامل.",
         errorGeneric: "مشکلی پیش آمد - چیزی از دست نرفت، دوباره امتحان کنید.",
         copy: "کپی", copied: "کپی شد",
-        csvLabel: "یا فایل CSV بانکی خودتان را آپلود کنید (چیزی ذخیره نمی‌شود؛ فقط یک‌بار پردازش و حذف می‌شود):",
+        csvLabel: "فایل CSV بانک یا کارت را آپلود کن (با قواعد ثابت دسته‌بندی می‌شود، بدون هوش مصنوعی؛ فقط جمع هر دسته نگه داشته می‌شود، نه تراکنش‌ها):",
         csvUpload: "آپلود CSV", csvParsing: "در حال دسته‌بندی...", csvNone: "هنوز تفکیکی وجود ندارد.",
         csvUncategorized: "دسته‌بندی‌نشده (در «سایر»)",
         googleLabel: "گوگل ورک‌اسپیس (فقط اطلاعات ایمیل - هرگز تقویم، هرگز متن پیام)",
@@ -507,7 +507,7 @@ function BankingModal({ lang, color, onClose }) {
       const text = await readAsTextWithEncodingFallback(file);
       const res = await fetch(BANKING_PARSE_ENDPOINT, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csv_text: text }),
+        body: JSON.stringify({ csv_text: text, source_name: String(file.name || "statement").slice(0, 80) }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -554,6 +554,9 @@ function BankingModal({ lang, color, onClose }) {
                   <span style={{ color: pence < 0 ? "#ff8a8a" : "#7dffb0" }}>{formatPounds(pence)}</span>
                 </div>
               ))}
+            {breakdown.first_date && <div dir="ltr" style={{ fontSize: 12, opacity: 0.7 }}>{breakdown.first_date} → {breakdown.last_date} · {breakdown.transaction_count}
+              {breakdown.reconciliation && breakdown.reconciliation.status === "OK" ? " · balances reconcile \u2713" : ""}
+              {breakdown.reconciliation && breakdown.reconciliation.status === "MISMATCH" ? " · balances do NOT reconcile" : ""}</div>}
             {breakdown.uncategorized_count > 0 && (
               <div style={{ fontSize: 12, opacity: 0.6 }}>
                 {breakdown.uncategorized_count} {t.csvUncategorized}

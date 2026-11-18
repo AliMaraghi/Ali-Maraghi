@@ -309,6 +309,16 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/banking/rules":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._banking_rules(environ, start_response)
+        if path == "/api/settings/reed_key":
+            if method not in ("GET", "POST"):
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
+                return [b""]
+            return self._settings_reed(environ, start_response, method)
         if path == "/api/system_health":
             if method != "GET":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])
@@ -436,7 +446,8 @@ class VoiceChatApp:
                 # A screenshot the owner took themselves; in memory for this one call, never stored.
                 drafts = dating_agent.generate_openers_from_image(self.budget, image, body.get("media_type"))
             elif isinstance(profile_text, str) and profile_text.strip() and len(profile_text) <= 4000:
-                drafts = dating_agent.generate_openers(self.budget, profile_text, bold=body.get("bold") is True)
+                drafts = (dating_agent.generate_openers(self.budget, profile_text, bold=True) if body.get("bold") is True
+                          else dating_agent.generate_openers(self.budget, profile_text))
             else:
                 return self._respond(start_response, 400, {"error": "EMPTY_PROFILE_TEXT"})
         except ValueError:
@@ -465,26 +476,68 @@ class VoiceChatApp:
             return self._respond(start_response, 400, {"error": "MISSING_CSV_TEXT"})
         import banking_csv
         try:
-            transactions = banking_csv.parse_transactions(csv_text)
+            transactions = banking_csv.parse_transactions(csv_text, details=True)
         except banking_csv.CsvParseError as exc:
             return self._respond(start_response, 400, {"error": f"CSV_PARSE_ERROR:{exc}"})
-        key = identifier(f"voice.banking.{int(time.time() * 1000)}"[:48])
+        # Categories come from fixed keyword rules (apex/deterministic_classifier.py): no model
+        # call, no cost, same answer every time. Only totals are kept - per category, and per
+        # week for food ordered in or eaten out - so the dashboard can show the owner's weekly
+        # limit. No transaction row is stored.
+        from apex import deterministic_classifier, scout_common, spending_rules
+        summary = deterministic_classifier.summarise(transactions, deterministic_classifier.load_private_rules(self.root))
+        now = time.time()
+        source = body.get("source_name") if isinstance(body.get("source_name"), str) else "statement"
         try:
-            self.budget.reserve(key, "core", "anthropic", "banking-csv-categorize-step", 1)
-        except BudgetDenied as exc:
-            return self._respond(start_response, 402, {"error": f"BUDGET_DENIED:{exc}"})
-        from apex.agents_research import call_anthropic as research_call_anthropic, load_api_key as research_load_api_key
+            record = spending_rules.merge(scout_common.latest(self.root, "spend"), source, summary, now)
+            scout_common.record(self.ledger, "spend", record, now)
+            stored = True
+        except Exception:
+            stored = False
+        totals_pence = {c: v["in_pence"] - v["out_pence"] for c, v in summary["totals"].items()}
+        return self._respond(start_response, 200, {
+            "totals_pence": totals_pence, "transaction_count": summary["transaction_count"],
+            "uncategorized_count": summary["uncategorized_count"], "first_date": summary["first_date"],
+            "last_date": summary["last_date"], "reconciliation": summary["reconciliation"],
+            "signs_flipped": summary["signs_flipped"], "stored_totals": stored})
+
+    def _banking_rules(self, environ, start_response):
+        # The owner's personal keyword rules (local shops, employer, own name on transfers).
+        # Stored privately on this server, outside the code repository; never returned.
+        from apex import deterministic_classifier
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 40_000:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
         try:
-            api_key = research_load_api_key()
-            result = banking_csv.categorize(research_call_anthropic, api_key, transactions)
-        except Exception as exc:
-            try:
-                self.budget.release(key)
-            except Exception:
-                pass
-            return self._respond(start_response, 502, {"error": f"CATEGORIZE_FAILED:{exc}"})
-        self.budget.settle(key, 1)
-        return self._respond(start_response, 200, result)
+            body = json.loads(environ["wsgi.input"].read(int(length)))
+            rules = deterministic_classifier.check_rules(body.get("rules") if isinstance(body, dict) else None)
+            path = self.root.joinpath(*deterministic_classifier.PRIVATE_RULES)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            handle = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(handle, "w", encoding="utf-8") as out:
+                json.dump({"rules": [[c, list(k)] for c, k in rules]}, out)
+        except (json.JSONDecodeError, ValueError):
+            return self._respond(start_response, 400, {"error": "RULE_SHAPE"})
+        except OSError:
+            return self._respond(start_response, 502, {"error": "CANNOT_WRITE_RULES"})
+        return self._respond(start_response, 200, {"saved": len(rules)})
+
+    def _settings_reed(self, environ, start_response, method):
+        # The owner's own Reed job-search key, typed into his own dashboard. Kept in a private
+        # file only the service user can read; never returned, logged or sent anywhere but Reed.
+        from apex import scout_wealth
+        if method == "GET":
+            return self._respond(start_response, 200, {"set": scout_wealth.reed_key() is not None})
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 400:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        try:
+            body = json.loads(environ["wsgi.input"].read(int(length)))
+            scout_wealth.save_reed_key(self.root, body.get("key") if isinstance(body, dict) else None)
+        except (json.JSONDecodeError, ValueError):
+            return self._respond(start_response, 400, {"error": "KEY_SHAPE"})
+        except OSError:
+            return self._respond(start_response, 502, {"error": "CANNOT_WRITE_KEY"})
+        return self._respond(start_response, 200, {"set": True})
 
     def _system_check(self, start_response):
         # Starts scripts/e2e_test.py as its own process (it runs the scouts and one briefing for

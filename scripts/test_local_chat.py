@@ -147,37 +147,22 @@ class LocalChatTests(unittest.TestCase):
         self.assertTrue(captured["status"].startswith("400"))
         self.assertIn("CSV_PARSE_ERROR", data["error"])
 
-    def test_banking_parse_zero_budget_by_default_is_402(self):
-        csv_text = "Date,Description,Amount\n2026-11-01,TESCO,-10.00\n"
-        body = json.dumps({"csv_text": csv_text}).encode()
+    def test_banking_parse_is_rule_based_free_and_keeps_totals_only(self):
+        csv_text = ("Date,Description,Amount,Balance\n17/11/2026,TESCO STORES 5861,-10.00,90.00\n"
+                    "18/11/2026,DELIVEROO LONDON,-22.50,67.50\n18/11/2026,SOMETHING UNKNOWN,-1.00,66.50\n")
+        body = json.dumps({"csv_text": csv_text, "source_name": "test.csv"}).encode()
         environ = {"PATH_INFO": "/api/banking/parse", "REQUEST_METHOD": "POST",
                   "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
         captured = {}
         result = self.app(environ, lambda status, headers: captured.update(status=status))
         data = json.loads(b"".join(result))
-        self.assertTrue(captured["status"].startswith("402"))
-        self.assertIn("BUDGET_DENIED", data["error"])
-
-    def test_banking_parse_real_categorization_once_priced(self):
-        import time
-        import banking_csv
-        self.app.budget.set_price("anthropic", "banking-csv-categorize-step", 100, time.time(), "test")
-        self.app.budget.set_cap("core", "day", 1000)
-        orig = banking_csv.categorize
-        banking_csv.categorize = lambda call_anthropic, api_key, transactions: {
-            "totals_pence": {"Groceries": -1000}, "transaction_count": 1, "uncategorized_count": 0}
-        try:
-            csv_text = "Date,Description,Amount\n2026-11-01,TESCO,-10.00\n"
-            body = json.dumps({"csv_text": csv_text}).encode()
-            environ = {"PATH_INFO": "/api/banking/parse", "REQUEST_METHOD": "POST",
-                      "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
-            captured = {}
-            result = self.app(environ, lambda status, headers: captured.update(status=status))
-            data = json.loads(b"".join(result))
-        finally:
-            banking_csv.categorize = orig
-        self.assertTrue(captured["status"].startswith("200"))
-        self.assertEqual(data["totals_pence"]["Groceries"], -1000)
+        self.assertTrue(captured["status"].startswith("200"))        # no price set: no model call is made
+        self.assertEqual((data["totals_pence"]["Groceries"], data["totals_pence"]["Food delivery"]), (-1000, -2250))
+        self.assertEqual((data["uncategorized_count"], data["reconciliation"]["status"], data["last_date"]), (1, "OK", "2026-11-18"))
+        from apex import scout_common
+        stored = scout_common.latest(self.app.root, "spend")
+        self.assertEqual(stored["weekly_food_pence"], {"2026-11-16": 2250})
+        self.assertNotIn("DELIVEROO", json.dumps(stored))            # totals only, never a transaction
 
     def test_dating_bulk_queue_rejects_more_than_ten(self):
         body = json.dumps({"bios": ["x"] * 11}).encode()

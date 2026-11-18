@@ -29,7 +29,7 @@ const T = {
     captureErr: "جواب نیامد. نوشته‌ات از بین نرفته؛ دوباره بفرست.",
     waiting: "منتظر تو", budget: "بودجهٔ ماه", scout: "دیده‌بان", none: "هیچ", of: "از", events: "رویداد", never: "هنوز اجرا نشده",
     focusOn: "حالت تمرکز", focusOff: "نمایش همه", chat: "گفت‌وگو", lang: "English",
-    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", mission: "مأموریت امروز", hAi: "هوش محلی", hDb: "پایگاه داده", hEv: "دیده‌بان رویداد", hWe: "دیده‌بان پول و شغل", hAg: "گزارش روزانه", hOn: "روشن", hOff: "خاموش", hOk: "وصل", hErr: "خطا", hNever: "هنوز اجرا نشده", hCheck: "آزمون کامل سیستم", hRunning: "در حال آزمون… چند دقیقه طول می‌کشد", hPassed: "آزمون کامل: موفق", hFailed: "آزمون کامل: ناموفق در", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
+    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", foodOver: "سقف هفتگی غذای بیرون رد شد", foodLine: (cur, cap, week) => `هفتهٔ ${week}: ${cur} از سقف ${cap}`, foodThrough: "داده تا", foodOld: "داده قدیمی است؛ صورت‌حساب تازه آپلود کن", secSpend: "خرج‌ها", spendNone: "هنوز صورت‌حسابی آپلود نشده. از «حوزه‌ها ← بانک» فایل CSV بده.", foodAvg: "میانگین ۴ هفتهٔ آخر", reedPh: "کلید Reed را اینجا بچسبان", reedSave: "ذخیره", reedSaved: "کلید ذخیره شد؛ از اجرای بعدی دیده‌بان استفاده می‌شود", mission: "مأموریت امروز", hAi: "هوش محلی", hDb: "پایگاه داده", hEv: "دیده‌بان رویداد", hWe: "دیده‌بان پول و شغل", hAg: "گزارش روزانه", hOn: "روشن", hOff: "خاموش", hOk: "وصل", hErr: "خطا", hNever: "هنوز اجرا نشده", hCheck: "آزمون کامل سیستم", hRunning: "در حال آزمون… چند دقیقه طول می‌کشد", hPassed: "آزمون کامل: موفق", hFailed: "آزمون کامل: ناموفق در", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
     noBrief: "هنوز گزارشی ساخته نشده. هر روز ساعت ۷ صبح ساخته می‌شود.", nothingYet: "در این نشست هنوز کاری نکرده‌ای.",
     job: "شغل", market: "بازار", noEvents: "در گروه‌های تو رویدادی پیدا نشد.", needsReed: "جست‌وجوی شغل به کلید رایگان Reed نیاز دارد.",
     info: "اطلاع‌رسانی است، نه توصیهٔ مالی", free: "مدل محلی: بدون هزینه", ago: "پیش", open: "باز کردن", agents: "وضعیت عامل‌ها",
@@ -46,7 +46,7 @@ const T = {
     captureErr: "No answer came back. Your text is still here; send it again.",
     waiting: "Waiting on you", budget: "Month's budget", scout: "Scout", none: "None", of: "of", events: "events", never: "not run yet",
     focusOn: "Focus mode", focusOff: "Show everything", chat: "Chat", lang: "فارسی",
-    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", mission: "Today\u2019s mission", hAi: "Local AI", hDb: "Database", hEv: "Event scout", hWe: "Wealth scout", hAg: "Daily briefing", hOn: "online", hOff: "offline", hOk: "connected", hErr: "error", hNever: "never run", hCheck: "Run full system test", hRunning: "Testing… this takes a few minutes", hPassed: "Full test: passed", hFailed: "Full test: failed at", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
+    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", foodOver: "Weekly eating-out and delivery limit exceeded", foodLine: (cur, cap, week) => `Week of ${week}: ${cur} against a limit of ${cap}`, foodThrough: "data to", foodOld: "This data is old; upload a newer statement", secSpend: "Spending", spendNone: "No statement uploaded yet. Use Areas → Banking to upload a CSV.", foodAvg: "Average of the last 4 weeks", reedPh: "Paste your Reed key here", reedSave: "Save", reedSaved: "Key saved; the scout uses it from its next run", mission: "Today\u2019s mission", hAi: "Local AI", hDb: "Database", hEv: "Event scout", hWe: "Wealth scout", hAg: "Daily briefing", hOn: "online", hOff: "offline", hOk: "connected", hErr: "error", hNever: "never run", hCheck: "Run full system test", hRunning: "Testing… this takes a few minutes", hPassed: "Full test: passed", hFailed: "Full test: failed at", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
     noBrief: "No briefing yet. One is written every day at 7am.", nothingYet: "Nothing done yet this session.",
     job: "Job", market: "Market", noEvents: "No upcoming events found in your groups.", needsReed: "Job search needs a free Reed API key.",
     info: "Information, not financial advice", free: "Local model: no cost", ago: "ago", open: "Open", agents: "Agent status",
@@ -77,6 +77,25 @@ function ago(seconds, lang) {
 }
 
 // The ONE thing. Fixed priority, top wins; no scoring, no model.
+const gbp = (pence) => "£" + (pence / 100).toFixed(2);
+
+// The owner's Reed job-search key goes straight from this box to his own server. It is never
+// shown again; the box only reports whether a key is set.
+function ReedKey({ t }) {
+  const [value, setValue] = useState("");
+  const [done, setDone] = useState(false);
+  const save = () => fetch("/api/settings/reed_key", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: value.trim() }) })
+    .then((r) => { if (r.ok) { setDone(true); setValue(""); } }).catch(() => {});
+  if (done) return <div style={{ color: C.ok, fontSize: 14 }}>{t.reedSaved}</div>;
+  return (
+    <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+      <input type="password" autoComplete="off" value={value} onChange={(e) => setValue(e.target.value)} placeholder={t.reedPh} dir="ltr"
+             style={{ flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: 10, border: `1px solid ${C.line}`, background: C.bg, color: C.text }} />
+      <button onClick={save} disabled={!value.trim()} style={{ padding: "8px 14px", borderRadius: 10, border: `1px solid ${C.line}`, background: "transparent", color: C.text, cursor: "pointer", fontFamily: FONT }}>{t.reedSave}</button>
+    </div>
+  );
+}
+
 function pickNow(data, unreachable, t) {
   if (unreachable && !data) return { tone: "bad", title: t.offline, body: t.offlineBody };
   const budget = data && data.budget, briefing = data && data.briefing, scout = data && data.scout;
@@ -84,6 +103,9 @@ function pickNow(data, unreachable, t) {
   const pending = briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0;
   if (pending > 0) return { tone: "need", title: t.approvals(pending), body: t.approvalsBody, href: "https://console.apexcorelab.uk/", action: t.approvalsBtn };
   if (budget && budget.warning) return { tone: "need", title: t.budgetWarn, body: t.budgetWarnBody };
+  const food = scout && scout.spend && scout.spend.food_alert;
+  if (food && food.exceeded && !food.stale) return { tone: "need", title: t.foodOver, ltr: true,
+    body: `${t.foodLine(gbp(food.current_pence), gbp(food.cap_pence), food.week_start)} · ${t.foodThrough} ${food.data_through}` };
   const mission = scout && scout.mission && scout.mission.event;
   if (mission) return { tone: "ok", title: t.mission, body: [mission.title, mission.start, mission.location].filter(Boolean).join(" · "),
                         quote: scout.mission.ice_breaker || null,
@@ -327,7 +349,8 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                       {wealth.job.url && /^https:\/\//.test(wealth.job.url) ? <a href={wealth.job.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.job.title}</a> : wealth.job.title}
                       <div style={{ color: C.muted, fontSize: 14 }}>{[wealth.job.employer, wealth.job.location].filter(Boolean).join(" · ")}</div>
                     </div>
-                  ) : <div style={{ color: C.muted, marginBottom: 12 }}>{wealth.job_status === "NEEDS_REED_KEY" ? t.needsReed : "—"}</div>}
+                  ) : <div style={{ color: C.muted, marginBottom: 12 }}>{wealth.job_status === "NEEDS_REED_KEY" ? t.needsReed : "—"}
+                      {wealth.job_status === "NEEDS_REED_KEY" && <ReedKey t={t} />}</div>}
                   {wealth.alert && (
                     <>
                       <div style={{ color: C.muted, fontSize: 14 }}>{t.market}</div>
@@ -337,6 +360,26 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   )}
                 </div>
               )}
+            </Section>
+
+            <Section id="spend" title={t.secSpend} hint={scout && scout.spend ? scout.spend.last_date : null}>
+              {(!scout || !scout.spend) && <div style={{ color: C.muted }}>{t.spendNone}</div>}
+              {scout && scout.spend && scout.spend.food_alert && (() => {
+                const f = scout.spend.food_alert;
+                return (
+                  <div dir="auto" style={{ marginBottom: 12 }}>
+                    <div style={{ color: f.exceeded ? C.need : C.text, fontWeight: 700 }}>{t.foodLine(gbp(f.current_pence), gbp(f.cap_pence), f.week_start)}</div>
+                    <div style={{ color: C.muted, fontSize: 14 }}>{t.foodAvg}: {gbp(f.four_week_average_pence)} · {t.foodThrough} {f.data_through}{f.stale ? ` · ${t.foodOld}` : ""}</div>
+                  </div>
+                );
+              })()}
+              {scout && scout.spend && scout.spend.totals && Object.entries(scout.spend.totals)
+                .filter(([name, v]) => v.out_pence > 0 && !/^(Card payment|Failed card)/.test(name))
+                .sort((a, b) => b[1].out_pence - a[1].out_pence).slice(0, 8).map(([name, v]) => (
+                  <div key={name} dir="ltr" style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${C.line}` }}>
+                    <span>{name}</span><span>{gbp(v.out_pence)}</span>
+                  </div>
+                ))}
             </Section>
 
             <Section id="open" title={t.secOpen} hint={scout && scout.adult ? ago(scout.adult.generated_at, lang) : null}>

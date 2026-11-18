@@ -91,6 +91,18 @@ def scout_digest(root) -> str:
         lines.append(f"Job search: {wealth['job_status']}")
     if alert.get("headline"):
         lines.append(f"Money headline: {alert['headline']} ({alert.get('source', 'source not recorded')})")
+    try:
+        from apex import spending_rules
+        spend = scout_common.latest(root, "spend")
+        line = spending_rules.digest(spend)
+        if line:
+            lines.append(line)
+        alert = spending_rules.food_alert(spend, scout_common.load_config(root).get("food_weekly_cap_pence"))
+        if alert and alert["exceeded"]:
+            lines.append(f"Food ordered in or eaten out, week of {alert['week_start']}: {alert['current_pence'] / 100:.2f} pounds "
+                         f"against a weekly limit of {alert['cap_pence'] / 100:.2f} (statement data to {alert['data_through']})")
+    except Exception:
+        pass
     return "\n".join(lines)
 
 
