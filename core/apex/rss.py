@@ -16,8 +16,12 @@ SOURCES = {
     'arxiv-ai': 'https://export.arxiv.org/api/query?search_query=cat:cs.AI&start=0&max_results=10&sortBy=submittedDate&sortOrder=descending',
     'arxiv-ml': 'https://export.arxiv.org/api/query?search_query=cat:cs.LG&start=0&max_results=10&sortBy=submittedDate&sortOrder=descending',
     'mit-ai-news': 'https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml',
+    # ScienceDaily: RSS 2.0, listed on its own newsfeeds page (sciencedaily.com/newsfeeds.htm) and
+    # seen as real feed XML via web search on 2026-11-18. NOT yet fetched live from the VPS.
+    'sciencedaily-science': 'https://www.sciencedaily.com/rss/top/science.xml',
+    'sciencedaily-technology': 'https://www.sciencedaily.com/rss/top/technology.xml',
 }
-ALLOWED_HOSTS = {'arxiv.org', 'export.arxiv.org', 'www.arxiv.org', 'news.mit.edu'}
+ALLOWED_HOSTS = {'arxiv.org', 'export.arxiv.org', 'www.arxiv.org', 'news.mit.edu', 'www.sciencedaily.com'}
 MAX_FEED_BYTES = 2_097_152
 
 

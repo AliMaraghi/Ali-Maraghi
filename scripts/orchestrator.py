@@ -356,7 +356,17 @@ def academic_latest_titles(root: Path, fetch=None, limit: int = 10) -> list:
         import agents_runner
         fetch = agents_runner.fetch_public
     titles = _fetch_titles(fetch)
-    return titles[:max(0, min(limit, 50))]
+    # Round-robin across sites so one feed (arXiv is read first and returns 10) cannot fill the
+    # whole list: before this, the dashboard showed arXiv only.
+    by_site = {}
+    for item in titles:
+        by_site.setdefault(item["feed"].split("-")[0], []).append(item)
+    mixed = []
+    while any(by_site.values()):
+        for queue in by_site.values():
+            if queue:
+                mixed.append(queue.pop(0))
+    return mixed[:max(0, min(limit, 50))]
 
 
 def job_cv_reply(root: Path) -> str:

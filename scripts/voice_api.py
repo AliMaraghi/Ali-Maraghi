@@ -363,7 +363,7 @@ class VoiceChatApp:
         feed text: the model's output is used purely as display text, and on any failure the
         English titles are returned unchanged."""
         cache = self.__dict__.setdefault("_title_fa", {})
-        missing = [t["title"] for t in titles if isinstance(t.get("title"), str) and t["title"] not in cache][:8]
+        missing = [t["title"] for t in titles if isinstance(t.get("title"), str) and t["title"] not in cache][:12]
         if missing:
             key = identifier(f"titles.{int(time.time() * 1000)}"[:48])
             try:
@@ -400,19 +400,26 @@ class VoiceChatApp:
         # this is the dashboard modal's direct equivalent, not a second, looser way in. Nothing
         # is stored: the pasted profile text lives only for this one call (see dating_agent.py).
         length = environ.get("CONTENT_LENGTH", "")
-        if not length.isdecimal() or not 1 <= int(length) <= 4096:
+        if not length.isdecimal() or not 1 <= int(length) <= 6_000_000:
             return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
         raw = environ["wsgi.input"].read(int(length))
         try:
             body = json.loads(raw)
         except json.JSONDecodeError:
             return self._respond(start_response, 400, {"error": "INVALID_JSON"})
-        profile_text = body.get("profile_text") if isinstance(body, dict) else None
-        if not isinstance(profile_text, str) or not profile_text.strip():
-            return self._respond(start_response, 400, {"error": "EMPTY_PROFILE_TEXT"})
         import dating_agent
+        image = body.get("image_b64") if isinstance(body, dict) else None
+        profile_text = body.get("profile_text") if isinstance(body, dict) else None
         try:
-            drafts = dating_agent.generate_openers(self.budget, profile_text)
+            if image is not None:
+                # A screenshot the owner took themselves; in memory for this one call, never stored.
+                drafts = dating_agent.generate_openers_from_image(self.budget, image, body.get("media_type"))
+            elif isinstance(profile_text, str) and profile_text.strip() and len(profile_text) <= 4000:
+                drafts = dating_agent.generate_openers(self.budget, profile_text)
+            else:
+                return self._respond(start_response, 400, {"error": "EMPTY_PROFILE_TEXT"})
+        except ValueError:
+            return self._respond(start_response, 400, {"error": "UNSUPPORTED_IMAGE"})
         except BudgetDenied as exc:
             return self._respond(start_response, 402, {"error": f"BUDGET_DENIED:{exc}"})
         except dating_agent.ResearchPipelineError as exc:

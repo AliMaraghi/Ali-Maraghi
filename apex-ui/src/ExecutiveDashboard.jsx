@@ -27,8 +27,8 @@ const COPY = {
         dating: "Dating", banking: "Banking", lastThing: "Last thing you did:", nothingYet: "Nothing yet this session.",
         howItWorks: "How it works", howItJudges: "How it judges (read this before trusting any number)",
         close: "Close",
-        datingBioLabel: "Paste a profile bio (nothing is stored or sent anywhere):",
-        datingGenerate: "Generate Drafts", datingGenerating: "Generating...", datingEmpty: "Paste some text first.",
+        datingBioLabel: "Or paste the profile text:", datingShot: "Choose a screenshot", datingShotHint: "Take a screenshot of the profile or chat and choose it here. It is used once and not stored.", datingShotReady: "Screenshot ready",
+        datingGenerate: "Generate Drafts", datingGenerating: "Generating...", datingEmpty: "Choose a screenshot or paste some text first.",
         bankingExplain: "Open Banking needs real owner consent via a reviewed account-information provider (e.g. TrueLayer). "
           + "No aggregator is configured yet, so there is nothing to connect to - this button is a preview of the setup step, not a live connection.",
         bankingConnect: "Connect TrueLayer", bankingAlert: "Not connected: no aggregator API key is configured on this server yet. See docs/apex_status/BANKING_SCAFFOLD_REPORT.md.",
@@ -58,8 +58,8 @@ const COPY = {
         dating: "دیتینگ", banking: "بانکداری", lastThing: "آخرین کاری که کردید:", nothingYet: "هنوز در این جلسه کاری نشده.",
         howItWorks: "نحوه کار", howItJudges: "نحوه قضاوت (قبل از اعتماد به هر عدد، این را بخوانید)",
         close: "بستن",
-        datingBioLabel: "متن پروفایل را اینجا بچسبانید (چیزی ذخیره یا جایی ارسال نمی‌شود):",
-        datingGenerate: "تولید پیش‌نویس‌ها", datingGenerating: "در حال تولید...", datingEmpty: "ابتدا متنی وارد کنید.",
+        datingBioLabel: "یا متن پروفایل را بچسبانید:", datingShot: "انتخاب اسکرین‌شات", datingShotHint: "از پروفایل یا گفت‌وگو اسکرین‌شات بگیرید و اینجا انتخاب کنید. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", datingShotReady: "اسکرین‌شات آماده است",
+        datingGenerate: "تولید پیش‌نویس‌ها", datingGenerating: "در حال تولید...", datingEmpty: "ابتدا اسکرین‌شات انتخاب کنید یا متنی وارد کنید.",
         bankingExplain: "بانکداری باز نیاز به رضایت واقعی مالک از طریق یک ارائه‌دهنده اطلاعات حساب بررسی‌شده دارد (مثل TrueLayer). "
           + "هنوز هیچ تجمیع‌کننده‌ای تنظیم نشده، پس چیزی برای اتصال وجود ندارد - این دکمه فقط پیش‌نمایش مرحله راه‌اندازی است، نه یک اتصال واقعی.",
         bankingConnect: "اتصال به TrueLayer", bankingAlert: "متصل نشد: هنوز هیچ کلید API تجمیع‌کننده‌ای روی این سرور تنظیم نشده است.",
@@ -260,14 +260,29 @@ function DatingModal({ lang, color, onClose }) {
   const [state, setState] = useState("idle"); // idle | loading | done | error
   const [drafts, setDrafts] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [shot, setShot] = useState(null); // { image_b64, media_type } | null
+
+  const pickShot = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 4000000) {
+      setShot(null); setState("error"); setErrorMsg(t.errorGeneric); return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setShot({ image_b64: String(reader.result).split(",")[1] || "", media_type: file.type });
+      setState("idle");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const generate = async () => {
-    if (!bio.trim()) { setState("error"); setErrorMsg(t.datingEmpty); return; }
+    if (!shot && !bio.trim()) { setState("error"); setErrorMsg(t.datingEmpty); return; }
     setState("loading");
     try {
       const res = await fetch(DATING_DRAFT_ENDPOINT, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile_text: bio.trim() }),
+        body: JSON.stringify(shot || { profile_text: bio.trim() }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -302,9 +317,17 @@ function DatingModal({ lang, color, onClose }) {
 
       {tab === "single" && (
         <>
+          <div style={{ fontSize: 13, opacity: 0.85 }}>{t.datingShotHint}</div>
+          <label style={{
+            display: "block", textAlign: "center", fontSize: 15, fontWeight: 700, padding: "14px",
+            borderRadius: 8, border: `1px dashed ${color}`, cursor: "pointer", color: "#fff",
+          }}>
+            {shot ? `\u2713 ${t.datingShotReady}` : t.datingShot}
+            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={pickShot} style={{ display: "none" }} />
+          </label>
           <label style={{ fontSize: 13, opacity: 0.85 }}>{t.datingBioLabel}</label>
           <textarea
-            value={bio} onChange={(e) => setBio(e.target.value)} rows={5} maxLength={2000}
+            value={bio} onChange={(e) => setBio(e.target.value)} rows={3} maxLength={2000}
             style={{
               width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
               background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical",

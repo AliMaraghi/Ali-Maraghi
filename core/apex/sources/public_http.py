@@ -41,6 +41,7 @@ ROUTES = {
     # reaches it.
     'export.arxiv.org': {'/api/query'},
     'news.mit.edu': {'/topic/mitartificial-intelligence2-rss.xml'},
+    'www.sciencedaily.com': {'/rss/top/science.xml', '/rss/top/technology.xml'},
     # Opportunity Scouts (core/apex/scout_events.py, scout_wealth.py), added 2026-11-17 and NOT
     # yet exercised live: the BBC Business RSS feed, and Meetup's public per-group iCal feed
     # (path matched by MEETUP_ICAL below - any group, that one calendar path only).
