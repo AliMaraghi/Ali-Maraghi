@@ -57,6 +57,9 @@ class OAuthState:
         challenge=base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
         return 'https://accounts.google.com/o/oauth2/v2/auth?'+urlencode({'client_id':self.client_id,'redirect_uri':self.redirect,
             'response_type':'code','scope':' '.join(scopes),'access_type':'offline','state':state,
+            # Always ask for consent: Google returns a refresh token only with an explicit consent,
+            # so a silent re-approval after a failed first attempt came back without one (seen live).
+            'prompt':'consent',
             'code_challenge_method':'S256','code_challenge':challenge})
 
     def consume(self,state,owner_session):
