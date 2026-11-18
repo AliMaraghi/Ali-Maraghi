@@ -309,7 +309,7 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
-        if path in ("/api/spend/checkin", "/api/lifestyle/itinerary", "/api/settings/commute_lines"):
+        if path in ("/api/spend/checkin", "/api/lifestyle/itinerary", "/api/settings/commute_lines", "/api/research"):
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
@@ -561,6 +561,14 @@ class VoiceChatApp:
         except Exception:
             return self._respond(start_response, 502, {"error": "NO_MODEL"})
         llm = lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens)  # noqa: E731
+        if path == "/api/research":
+            import agents_runner
+            from apex import research
+            result = research.run(body.get("question") if isinstance(body.get("question"), str) else "",
+                                  agents_runner.fetch_public, llm, self.budget, multilingual=body.get("multilingual") is not False)
+            if result["status"] == "BAD_REQUEST":
+                return self._respond(start_response, 400, {"error": "QUESTION_REQUIRED"})
+            return self._respond(start_response, 200, result)
         result = itinerary.plan(llm, self.budget, body.get("destination") if isinstance(body.get("destination"), str) else "",
                                 body.get("days"), body.get("interests") if isinstance(body.get("interests"), str) else "")
         if result["status"] == "BAD_REQUEST":

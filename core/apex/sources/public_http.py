@@ -51,6 +51,9 @@ ROUTES = {
     'events.humanitix.com': set(),
     # Transport for London open data (core/apex/commute.py): line status only.
     'api.tfl.gov.uk': set(),
+    # Wikipedia's official search API, four languages (core/apex/research.py).
+    'en.wikipedia.org': {'/w/api.php'}, 'fa.wikipedia.org': {'/w/api.php'},
+    'fr.wikipedia.org': {'/w/api.php'}, 'de.wikipedia.org': {'/w/api.php'},
 }
 MEETUP_ICAL = re.compile(r'/[A-Za-z0-9][A-Za-z0-9-]{0,79}/events/ical/')
 HUMANITIX_HOST = re.compile(r'/host/[A-Za-z0-9][A-Za-z0-9-]{0,79}')
