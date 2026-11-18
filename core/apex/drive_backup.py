@@ -36,7 +36,7 @@ HOST = 'www.googleapis.com'
 DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
 PASSPHRASE_FILE = '/etc/apex/backup-passphrase'
 INTERVAL = 86400          # one successful upload a day
-RETRY_AFTER = 3600        # after a failure, wait an hour before the next attempt
+RETRY_AFTER = 600         # after a failure, wait ten minutes before the next attempt
 KEEP = 14                 # uploads kept in Drive; older ones this application made are removed
 MAX_BYTES = 64 * 1024 * 1024
 ITERATIONS = '600000'
@@ -143,6 +143,17 @@ def _call(method, path, token, body=None, content_type=None):
         conn.close()
 
 
+def _reason(raw):
+    """Google's own short reason word for a refusal (storageQuotaExceeded, accessNotConfigured,
+    insufficientPermissions...). Only that one word, cut to letters; never the message body."""
+    try:
+        error = json.loads(raw.decode('utf-8', 'replace')).get('error', {})
+        word = (error.get('errors') or [{}])[0].get('reason') or error.get('status') or ''
+    except Exception:
+        word = ''
+    return re.sub(r'[^A-Za-z_]', '', str(word))[:40] or 'UNKNOWN'
+
+
 def upload(token, name, blob):
     """One multipart create. Returns the new file's id."""
     if not re.fullmatch(r'[a-z0-9.-]{8,80}', name):
@@ -154,10 +165,8 @@ def upload(token, name, blob):
             + blob + ('\r\n--' + boundary + '--\r\n').encode())
     code, raw = _call('POST', '/upload/drive/v3/files?uploadType=multipart&fields=id', token, body,
                       'multipart/related; boundary=' + boundary)
-    if code == 403:
-        raise BackupError('DRIVE_REFUSED_CHECK_API_ENABLED')
     if code != 200 or len(raw) > 65536:
-        raise BackupError('DRIVE_UPLOAD_REJECTED')
+        raise BackupError('DRIVE_REFUSED_' + str(code) + '_' + _reason(raw))
     try:
         file_id = strict_json(raw.decode())['id']
     except Exception:

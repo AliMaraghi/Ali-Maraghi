@@ -74,6 +74,12 @@ class DriveBackupTest(unittest.TestCase):
             self.assertEqual(self.run_once(ledger, 5000 + backup.RETRY_AFTER), "UPLOADED")
             ledger.verify()
 
+    def test_refusal_reason_is_one_safe_word(self):
+        body = b'{"error":{"code":403,"message":"secret detail <b>","errors":[{"reason":"storageQuotaExceeded","message":"x"}]}}'
+        self.assertEqual(backup._reason(body), "storageQuotaExceeded")
+        self.assertEqual(backup._reason(b'{"error":{"status":"PERMISSION_DENIED"}}'), "PERMISSION_DENIED")
+        self.assertEqual(backup._reason(b"<html>not json"), "UNKNOWN")
+
     def test_old_uploads_are_pruned(self):
         with Ledger(self.root) as ledger:
             for day in range(backup.KEEP + 2):
