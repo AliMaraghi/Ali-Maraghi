@@ -9,6 +9,7 @@ no buy/sell language).
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 import time
@@ -55,6 +56,30 @@ def load_config(root: Path) -> dict:
                 if isinstance(data.get(key), type(default)):
                     config[key] = data[key]
     return config
+
+
+GROUP_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]{0,79}")
+
+
+def save_groups(root: Path, groups) -> int:
+    """Replace the watched Meetup groups in the owner's private config, keeping every other
+    setting in that file as it is. Returns how many groups are now watched."""
+    if not isinstance(groups, list) or not 1 <= len(groups) <= 20 or not all(isinstance(g, str) and GROUP_NAME.fullmatch(g) for g in groups):
+        raise ValueError("1-20 Meetup group names")
+    path = Path(root) / "runtime" / "inbox" / "scout_config.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    except (OSError, ValueError):
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    data["meetup_groups"] = list(dict.fromkeys(groups))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = path.with_suffix(".tmp")
+    temp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.chmod(temp, 0o600)
+    os.replace(temp, path)
+    return len(data["meetup_groups"])
 
 
 def clean(text, limit: int) -> str:

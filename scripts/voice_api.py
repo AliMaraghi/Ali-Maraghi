@@ -309,6 +309,24 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/settings/scout_groups":
+            if method not in ("GET", "POST"):
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
+                return [b""]
+            from apex import scout_common
+            if method == "GET":
+                return self._respond(start_response, 200, {"groups": scout_common.load_config(self.root).get("meetup_groups")})
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 1 <= int(length) <= 4000:
+                return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+            try:
+                body = json.loads(environ["wsgi.input"].read(int(length)))
+                count = scout_common.save_groups(self.root, body.get("groups") if isinstance(body, dict) else None)
+            except (json.JSONDecodeError, ValueError):
+                return self._respond(start_response, 400, {"error": "GROUP_SHAPE"})
+            except OSError:
+                return self._respond(start_response, 502, {"error": "CANNOT_WRITE_CONFIG"})
+            return self._respond(start_response, 200, {"groups": count})
         if path == "/api/banking/rules":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
