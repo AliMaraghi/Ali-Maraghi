@@ -309,6 +309,11 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/dating/voice":
+            if method not in ("GET", "POST"):
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
+                return [b""]
+            return self._dating_voice(environ, start_response, method)
         if path == "/api/dating/magnet":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
@@ -420,7 +425,7 @@ class VoiceChatApp:
                 # A screenshot the owner took themselves; in memory for this one call, never stored.
                 drafts = dating_agent.generate_openers_from_image(self.budget, image, body.get("media_type"))
             elif isinstance(profile_text, str) and profile_text.strip() and len(profile_text) <= 4000:
-                drafts = dating_agent.generate_openers(self.budget, profile_text)
+                drafts = dating_agent.generate_openers(self.budget, profile_text, bold=body.get("bold") is True)
             else:
                 return self._respond(start_response, 400, {"error": "EMPTY_PROFILE_TEXT"})
         except ValueError:
@@ -469,6 +474,24 @@ class VoiceChatApp:
             return self._respond(start_response, 502, {"error": f"CATEGORIZE_FAILED:{exc}"})
         self.budget.settle(key, 1)
         return self._respond(start_response, 200, result)
+
+    def _dating_voice(self, environ, start_response, method):
+        # The owner's own past messages, kept privately on this server as a style sample
+        # (apex/ghostwriter.py). GET says only whether a sample exists - it is never sent back.
+        from apex import ghostwriter
+        if method == "GET":
+            return self._respond(start_response, 200, {"saved": bool(ghostwriter.samples(ROOT))})
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 400_000:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        try:
+            body = json.loads(environ["wsgi.input"].read(int(length)))
+            lines = ghostwriter.save_voice(ROOT, body.get("text") if isinstance(body, dict) else None)
+        except (json.JSONDecodeError, ValueError):
+            return self._respond(start_response, 400, {"error": "EMPTY_SAMPLE"})
+        except OSError:
+            return self._respond(start_response, 502, {"error": "CANNOT_WRITE_SAMPLE"})
+        return self._respond(start_response, 200, {"saved": True, "lines": lines})
 
     def _dating_magnet(self, environ, start_response):
         # The owner's own notes about himself -> bio, post ideas and story replies. Budget-gated

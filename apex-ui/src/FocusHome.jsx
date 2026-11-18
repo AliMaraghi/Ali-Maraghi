@@ -29,7 +29,7 @@ const T = {
     captureErr: "جواب نیامد. نوشته‌ات از بین نرفته؛ دوباره بفرست.",
     waiting: "منتظر تو", budget: "بودجهٔ ماه", scout: "دیده‌بان", none: "هیچ", of: "از", events: "رویداد", never: "هنوز اجرا نشده",
     focusOn: "حالت تمرکز", focusOff: "نمایش همه", chat: "گفت‌وگو", lang: "English",
-    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
+    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
     noBrief: "هنوز گزارشی ساخته نشده. هر روز ساعت ۷ صبح ساخته می‌شود.", nothingYet: "در این نشست هنوز کاری نکرده‌ای.",
     job: "شغل", market: "بازار", noEvents: "در گروه‌های تو رویدادی پیدا نشد.", needsReed: "جست‌وجوی شغل به کلید رایگان Reed نیاز دارد.",
     info: "اطلاع‌رسانی است، نه توصیهٔ مالی", free: "مدل محلی: بدون هزینه", ago: "پیش", open: "باز کردن", agents: "وضعیت عامل‌ها",
@@ -46,7 +46,7 @@ const T = {
     captureErr: "No answer came back. Your text is still here; send it again.",
     waiting: "Waiting on you", budget: "Month's budget", scout: "Scout", none: "None", of: "of", events: "events", never: "not run yet",
     focusOn: "Focus mode", focusOff: "Show everything", chat: "Chat", lang: "فارسی",
-    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
+    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
     noBrief: "No briefing yet. One is written every day at 7am.", nothingYet: "Nothing done yet this session.",
     job: "Job", market: "Market", noEvents: "No upcoming events found in your groups.", needsReed: "Job search needs a free Reed API key.",
     info: "Information, not financial advice", free: "Local model: no cost", ago: "ago", open: "Open", agents: "Agent status",
@@ -282,6 +282,22 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   )}
                 </div>
               )}
+            </Section>
+
+            <Section id="open" title={t.secOpen} hint={scout && scout.adult ? ago(scout.adult.generated_at, lang) : null}>
+              {(!scout || !scout.adult || !scout.adult.picked || scout.adult.picked.length === 0) && <div style={{ color: C.muted }}>{t.openNone}</div>}
+              {scout && scout.adult && scout.adult.picked && scout.adult.picked.map((e, i) => (
+                <div key={i} dir="auto" style={{ marginBottom: 14 }}>
+                  {/^https:\/\/events\.humanitix\.com\//.test(e.url || "") ? <a href={e.url} target="_blank" rel="noopener noreferrer" style={link}>{e.title}</a> : e.title}
+                  <div style={{ color: C.muted, fontSize: 14 }}>{[e.start, e.location, e.address].filter(Boolean).join(" · ")}</div>
+                </div>
+              ))}
+              <div style={{ color: C.muted, fontSize: 14, marginTop: 6 }}>{t.openBrowse}</div>
+              <div dir="ltr" style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 4 }}>
+                <a href="https://www.killingkittens.com/sex-parties/london-parties" target="_blank" rel="noopener noreferrer" style={link}>Killing Kittens</a>
+                <a href="https://fetlife.com/events/near" target="_blank" rel="noopener noreferrer" style={link}>FetLife</a>
+                <a href="https://www.fabswingers.com/" target="_blank" rel="noopener noreferrer" style={link}>FabSwingers</a>
+              </div>
             </Section>
 
             <Section id="brief" title={t.secBrief} hint={briefing && briefing.generated_at ? ago(briefing.generated_at, lang) : null}>

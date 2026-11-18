@@ -45,7 +45,7 @@ const COPY = {
           + "dashboard - connecting here would mean anyone reaching this page, not just the owner, could "
           + "start linking a Google account. Manage the real connection on the console instead.",
         googleOpenConsole: "Open on console.apexcorelab.uk",
-        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
+        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", boldLabel: "Bolder, in my own typing style", voiceTitle: "My typing style", voiceHint: "Paste messages YOU wrote (WhatsApp, Instagram). Kept privately on your server and used only to match your style. Lines with links, emails or long numbers are dropped.", voiceSave: "Save my style", voiceSaved: "Style sample saved", voiceNone: "No style sample saved yet", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
         bulkLabel: "Paste up to 10 bios, separated by a blank line between each:",
         bulkGenerate: "Generate All", bulkGenerating: "Generating all...",
         bulkEmpty: "Paste at least one profile first.", bulkProfile: "Profile",
@@ -76,7 +76,7 @@ const COPY = {
           + "اتصال از اینجا یعنی هر کسی که به این صفحه برسد، نه فقط مالک، می‌تواند شروع به اتصال حساب گوگل کند. "
           + "اتصال واقعی را از کنسول مدیریت کنید.",
         googleOpenConsole: "باز کردن در console.apexcorelab.uk",
-        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
+        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", boldLabel: "جسورتر، با سبک نوشتن خودم", voiceTitle: "سبک نوشتن من", voiceHint: "پیام‌هایی که خودت نوشته‌ای (واتس‌اپ، اینستاگرام) را اینجا بچسبان. به‌صورت خصوصی روی سرور خودت می‌ماند و فقط برای تقلید سبک تو استفاده می‌شود. خط‌های دارای لینک، ایمیل یا عدد طولانی حذف می‌شوند.", voiceSave: "سبکم را ذخیره کن", voiceSaved: "نمونهٔ سبک ذخیره شد", voiceNone: "هنوز نمونهٔ سبکی ذخیره نشده", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
         bulkLabel: "تا ۱۰ پروفایل را بچسبانید، بین هر کدام یک خط خالی بگذارید:",
         bulkGenerate: "تولید همه", bulkGenerating: "در حال تولید همه...",
         bulkEmpty: "ابتدا حداقل یک پروفایل وارد کنید.", bulkProfile: "پروفایل",
@@ -253,6 +253,41 @@ function BulkDatingSection({ lang, color, t }) {
   );
 }
 
+// The owner's own past messages, saved privately as a style sample for the "bolder" drafts.
+function VoiceSection({ color, t }) {
+  const [text, setText] = useState("");
+  const [saved, setSaved] = useState(null); // null = unknown
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    fetch("/api/dating/voice").then((r) => (r.ok ? r.json() : null)).then((j) => { if (j) setSaved(!!j.saved); }).catch(() => {});
+  }, []);
+  const save = async () => {
+    if (!text.trim()) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/dating/voice", { method: "POST", headers: { "Content-Type": "application/json" },
+                                                     body: JSON.stringify({ text }) });
+      if (res.ok) { setSaved(true); setText(""); }
+    } catch { /* stays unsaved; the status line says so */ }
+    setBusy(false);
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, borderTop: "1px solid #3a3a55", paddingTop: 12 }}>
+      <div style={{ fontSize: 15, fontWeight: 700 }}>{t.voiceTitle}</div>
+      <div style={{ fontSize: 13, opacity: 0.85 }}>{t.voiceHint}</div>
+      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={200000} dir="auto"
+                style={{ width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
+                         background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical" }} />
+      <button onClick={save} disabled={busy}
+              style={{ fontSize: 14, fontWeight: 700, padding: "8px 14px", borderRadius: 8, border: `1px solid ${color}`,
+                       background: "transparent", color: "#fff", cursor: busy ? "default" : "pointer" }}>
+        {t.voiceSave}
+      </button>
+      {saved !== null && <div style={{ fontSize: 13, opacity: 0.85 }}>{saved ? `\u2713 ${t.voiceSaved}` : t.voiceNone}</div>}
+    </div>
+  );
+}
+
 // The owner's own notes -> bio, post ideas, story replies. Drafts only: nothing is posted or sent.
 function MagnetSection({ lang, color, t }) {
   const [notes, setNotes] = useState("");
@@ -319,6 +354,7 @@ function DatingModal({ lang, color, onClose }) {
   const [drafts, setDrafts] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [shot, setShot] = useState(null); // { image_b64, media_type } | null
+  const [bold, setBold] = useState(false);
 
   const pickShot = (event) => {
     const file = event.target.files && event.target.files[0];
@@ -340,7 +376,7 @@ function DatingModal({ lang, color, onClose }) {
     try {
       const res = await fetch(DATING_DRAFT_ENDPOINT, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(shot || { profile_text: bio.trim() }),
+        body: JSON.stringify(shot || { profile_text: bio.trim(), bold }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -391,6 +427,10 @@ function DatingModal({ lang, color, onClose }) {
               background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical",
             }}
           />
+          <label style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <input type="checkbox" checked={bold} onChange={(e) => setBold(e.target.checked)} />
+            {t.boldLabel}
+          </label>
           <button
             onClick={generate} disabled={state === "loading"}
             style={{
@@ -420,6 +460,7 @@ function DatingModal({ lang, color, onClose }) {
 
       {tab === "bulk" && <BulkDatingSection lang={lang} color={color} t={t} />}
       {tab === "magnet" && <MagnetSection lang={lang} color={color} t={t} />}
+      {tab === "magnet" && <VoiceSection color={color} t={t} />}
     </Modal>
   );
 }

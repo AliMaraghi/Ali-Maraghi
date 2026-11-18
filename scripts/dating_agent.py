@@ -38,15 +38,19 @@ TONE = ("Write 3 short, unique, respectful opening messages for a dating-app pro
         "Number them 1/2/3, one line each.")
 
 
-def generate_openers(budget: Budget, profile_text: str) -> str:
+def generate_openers(budget: Budget, profile_text: str, bold: bool = False) -> str:
     profile_text = profile_text.strip()[:MAX_PROFILE_CHARS]
     if not profile_text:
         raise ValueError("Profile text is empty")
+    system, user_text = TONE, f"Profile:\n{profile_text}"
+    if bold:                                   # flirtier drafts in the owner's own typing style
+        from apex import ghostwriter
+        system, user_text, _ = ghostwriter.prompt(ROOT, profile_text)
     key = f"dating.{int(time.time() * 1000)}"
     budget.reserve(key, "core", PROVIDER, SKU, 1)
     try:
         api_key = load_api_key()
-        result = call_anthropic(api_key, TONE, f"Profile:\n{profile_text}", max_tokens=200)
+        result = call_anthropic(api_key, system, user_text, max_tokens=260 if bold else 200)
     except ResearchPipelineError:
         budget.release(key)
         raise

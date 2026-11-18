@@ -684,7 +684,8 @@ def dashboard_payload(root: Path) -> dict:
         budget_status = None
     try:
         from apex import scout_common
-        scout = {"events": scout_common.latest(root, "events"), "wealth": scout_common.latest(root, "wealth")}
+        scout = {"events": scout_common.latest(root, "events"), "wealth": scout_common.latest(root, "wealth"),
+                 "adult": scout_common.latest(root, "adult")}
     except Exception:
         scout = None
     return {"finance": finance, "academic": academic, "dating": dating, "banking": banking,

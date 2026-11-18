@@ -65,6 +65,11 @@ def main() -> int:
             pass
         wealth = scout_wealth.run(config, agents_runner.fetch_public, jobs_fetch, llm, budget, now)
         scout_common.record(ledger, "wealth", wealth, now)
+        try:                                                  # free, no model call; never stops the run
+            from apex import scout_adult_events
+            scout_common.record(ledger, "adult", scout_adult_events.run(config, agents_runner.fetch_public, now), now)
+        except Exception as exc:
+            print(f"[scout] adult events skipped: {type(exc).__name__}")
 
     print(f"[scout] events={events['status']} picked={len(events['picked'])} failed_feeds={len(events['feeds_failed'])} "
           f"job={wealth.get('job_status')} alert={wealth.get('alert_status')}")
