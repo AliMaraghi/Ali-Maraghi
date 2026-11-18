@@ -51,6 +51,16 @@ class Ledger:
             raise ValueError("Database must be private (mode 0600)")
         self.db = sqlite3.connect(path, isolation_level=None, timeout=5, check_same_thread=False)
         self.db.execute("PRAGMA busy_timeout=5000")
+        # WAL: readers no longer wait for the one writer, and a writer no longer waits for readers
+        # (three processes share this file: the API, the agent worker and timed scripts). The mode
+        # is stored in the file, so every later connection, read-only ones included, uses it.
+        # synchronous stays FULL: a ledger entry reported as written must survive a power cut.
+        # The switch needs a moment with no other connection open; if another process holds the
+        # file right now the PRAGMA just reports the old mode and the next start tries again.
+        try:
+            self.db.execute("PRAGMA journal_mode=WAL").fetchone()
+        except sqlite3.OperationalError:
+            pass
         self.db.execute("PRAGMA synchronous=FULL")
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS events (
