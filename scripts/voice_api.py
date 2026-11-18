@@ -342,6 +342,24 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_rules(environ, start_response)
+        if path == "/api/settings/brave_key":
+            from apex import brave_search
+            if method == "GET":
+                return self._respond(start_response, 200, {"set": brave_search.load_key(self.root) is not None, "usage": brave_search.usage(self.root)})
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
+                return [b""]
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 1 <= int(length) <= 400:
+                return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+            try:
+                body = json.loads(environ["wsgi.input"].read(int(length)))
+                brave_search.save_key(self.root, body.get("key") if isinstance(body, dict) else None)
+            except (json.JSONDecodeError, ValueError):
+                return self._respond(start_response, 400, {"error": "KEY_SHAPE"})
+            except OSError:
+                return self._respond(start_response, 502, {"error": "CANNOT_WRITE_KEY"})
+            return self._respond(start_response, 200, {"set": True})
         if path == "/api/settings/reed_key":
             if method not in ("GET", "POST"):
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
@@ -564,8 +582,14 @@ class VoiceChatApp:
         if path == "/api/research":
             import agents_runner
             from apex import research
+            from apex import brave_search
+            brave_key = brave_search.load_key(self.root)
+            institutional = (lambda region, phrase: brave_search.search(self.root, brave_key, region, phrase)) if brave_key else None
             result = research.run(body.get("question") if isinstance(body.get("question"), str) else "",
-                                  agents_runner.fetch_public, llm, self.budget, multilingual=body.get("multilingual") is not False)
+                                  agents_runner.fetch_public, llm, self.budget, multilingual=body.get("multilingual") is not False,
+                                  institutional=institutional)
+            if brave_key:
+                result["usage"] = brave_search.usage(self.root)
             if result["status"] == "BAD_REQUEST":
                 return self._respond(start_response, 400, {"error": "QUESTION_REQUIRED"})
             return self._respond(start_response, 200, result)
