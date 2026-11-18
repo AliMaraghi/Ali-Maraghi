@@ -15,7 +15,10 @@ from .kernel.memory import Ledger
 
 ASSETS=Path(__file__).parent/'kernel/console_assets'
 HEADERS=[('Cache-Control','no-store'),('X-Content-Type-Options','nosniff'),
-         ('Referrer-Policy','no-referrer'),('X-Frame-Options','DENY'),
+         # same-origin, not no-referrer: under no-referrer browsers send "Origin: null" on a form POST,
+         # which made every owner form (Google connect, approvals) fail its own same-origin check.
+         # Nothing is sent to other sites under either value.
+         ('Referrer-Policy','same-origin'),('X-Frame-Options','DENY'),
          ('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"),
          ('Permissions-Policy','camera=(), microphone=(), geolocation=()')]
 
