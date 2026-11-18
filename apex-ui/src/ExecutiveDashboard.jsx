@@ -45,7 +45,7 @@ const COPY = {
           + "dashboard - connecting here would mean anyone reaching this page, not just the owner, could "
           + "start linking a Google account. Manage the real connection on the console instead.",
         googleOpenConsole: "Open on console.apexcorelab.uk",
-        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", boldLabel: "Bolder, in my own typing style", voiceTitle: "My typing style", voiceHint: "Paste messages YOU wrote (WhatsApp, Instagram). Kept privately on your server and used only to match your style. Lines with links, emails or long numbers are dropped.", voiceSave: "Save my style", voiceSaved: "Style sample saved", voiceNone: "No style sample saved yet", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
+        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", boldLabel: "Bolder, in my own typing style", voiceTitle: "My typing style", voiceHint: "Paste messages YOU wrote (WhatsApp, Instagram). Kept privately on your server and used only to match your style. Lines with links, emails or long numbers are dropped.", voiceSave: "Save my style", voiceSaved: "Style sample saved", voiceNone: "No style sample saved yet", lifeTitle: "Skin & voice", skinHint: "Choose a clear selfie in daylight. It is read once by the model on your own server and not stored. General cosmetic suggestions only, not a skin assessment or medical advice.", skinPick: "Choose a selfie", skinGo: "Suggest a routine", skinWait: "Looking… about a minute", voiceCoach: "Voice", voiceHint: "Speak normally for 10 seconds. Pitch is measured on this device; the recording is not sent or kept.", voiceRec: "Record 10 seconds", voiceRecing: "Recording…", voicePitch: "Typical pitch", voiceRange: "Range you used", voiceVoiced: "Share of time speaking", voiceRef: "For reference, adult male speech is usually about 85 to 155 Hz. Pace and tone are not measured here.", voiceNone: "Not enough clear speech was heard. Try again closer to the microphone.", voiceNoMic: "The microphone could not be used.", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
         bulkLabel: "Paste up to 10 bios, separated by a blank line between each:",
         bulkGenerate: "Generate All", bulkGenerating: "Generating all...",
         bulkEmpty: "Paste at least one profile first.", bulkProfile: "Profile",
@@ -76,7 +76,7 @@ const COPY = {
           + "اتصال از اینجا یعنی هر کسی که به این صفحه برسد، نه فقط مالک، می‌تواند شروع به اتصال حساب گوگل کند. "
           + "اتصال واقعی را از کنسول مدیریت کنید.",
         googleOpenConsole: "باز کردن در console.apexcorelab.uk",
-        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", boldLabel: "جسورتر، با سبک نوشتن خودم", voiceTitle: "سبک نوشتن من", voiceHint: "پیام‌هایی که خودت نوشته‌ای (واتس‌اپ، اینستاگرام) را اینجا بچسبان. به‌صورت خصوصی روی سرور خودت می‌ماند و فقط برای تقلید سبک تو استفاده می‌شود. خط‌های دارای لینک، ایمیل یا عدد طولانی حذف می‌شوند.", voiceSave: "سبکم را ذخیره کن", voiceSaved: "نمونهٔ سبک ذخیره شد", voiceNone: "هنوز نمونهٔ سبکی ذخیره نشده", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
+        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", boldLabel: "جسورتر، با سبک نوشتن خودم", voiceTitle: "سبک نوشتن من", voiceHint: "پیام‌هایی که خودت نوشته‌ای (واتس‌اپ، اینستاگرام) را اینجا بچسبان. به‌صورت خصوصی روی سرور خودت می‌ماند و فقط برای تقلید سبک تو استفاده می‌شود. خط‌های دارای لینک، ایمیل یا عدد طولانی حذف می‌شوند.", voiceSave: "سبکم را ذخیره کن", voiceSaved: "نمونهٔ سبک ذخیره شد", voiceNone: "هنوز نمونهٔ سبکی ذخیره نشده", lifeTitle: "پوست و صدا", skinHint: "یک سلفی واضح در نور روز انتخاب کن. فقط یک بار توسط مدل روی سرور خودت خوانده می‌شود و ذخیره نمی‌شود. فقط پیشنهاد عمومی آرایشی-مراقبتی است، نه ارزیابی پوست یا توصیهٔ پزشکی.", skinPick: "انتخاب سلفی", skinGo: "روتین پیشنهاد بده", skinWait: "در حال بررسی… حدود یک دقیقه", voiceCoach: "صدا", voiceHint: "۱۰ ثانیه عادی صحبت کن. زیر و بمی صدا روی همین دستگاه اندازه‌گیری می‌شود؛ صدا فرستاده یا نگه‌داری نمی‌شود.", voiceRec: "ضبط ۱۰ ثانیه", voiceRecing: "در حال ضبط…", voicePitch: "زیر و بمی معمول", voiceRange: "بازه‌ای که استفاده کردی", voiceVoiced: "سهم زمانِ صحبت", voiceRef: "برای مقایسه: صدای صحبت مرد بزرگسال معمولاً حدود ۸۵ تا ۱۵۵ هرتز است. سرعت و لحن اینجا اندازه‌گیری نمی‌شود.", voiceNone: "صدای واضح کافی شنیده نشد. نزدیک‌تر به میکروفون دوباره امتحان کن.", voiceNoMic: "میکروفون در دسترس نبود.", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
         bulkLabel: "تا ۱۰ پروفایل را بچسبانید، بین هر کدام یک خط خالی بگذارید:",
         bulkGenerate: "تولید همه", bulkGenerating: "در حال تولید همه...",
         bulkEmpty: "ابتدا حداقل یک پروفایل وارد کنید.", bulkProfile: "پروفایل",
@@ -250,6 +250,102 @@ function BulkDatingSection({ lang, color, t }) {
         </div>
       )}
     </>
+  );
+}
+
+// Pitch of one audio frame by autocorrelation (Hz), or 0 when the frame is silence or unvoiced.
+function framePitch(frame, sampleRate) {
+  let energy = 0;
+  for (let i = 0; i < frame.length; i++) energy += frame[i] * frame[i];
+  if (Math.sqrt(energy / frame.length) < 0.015) return 0;
+  const minLag = Math.floor(sampleRate / 400), maxLag = Math.floor(sampleRate / 60);
+  let best = 0, bestLag = 0;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let sum = 0;
+    for (let i = 0; i + lag < frame.length; i++) sum += frame[i] * frame[i + lag];
+    if (sum > best) { best = sum; bestLag = lag; }
+  }
+  return bestLag && best / energy > 0.5 ? sampleRate / bestLag : 0;
+}
+
+// Skin: one selfie to the local model. Voice: pitch measured in the browser, nothing uploaded.
+function LifeModal({ lang, color, onClose }) {
+  const t = COPY[lang];
+  const [shot, setShot] = useState(null);
+  const [skin, setSkin] = useState({ state: "idle", text: "" });
+  const [voice, setVoice] = useState({ state: "idle" });
+  const pick = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file || !["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 4000000) { setShot(null); return; }
+    const reader = new FileReader();
+    reader.onload = () => setShot({ image_b64: String(reader.result).split(",")[1] || "", media_type: file.type });
+    reader.readAsDataURL(file);
+  };
+  const analyse = async () => {
+    if (!shot) return;
+    setSkin({ state: "loading", text: "" });
+    try {
+      const res = await fetch("/api/lifestyle/skin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(shot) });
+      const json = await res.json();
+      setSkin(res.ok ? { state: "done", text: json.suggestions || "" } : { state: "error", text: res.status === 402 ? "Budget cap reached." : t.errorGeneric });
+    } catch { setSkin({ state: "error", text: t.errorGeneric }); }
+  };
+  const record = async () => {
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { setVoice({ state: "nomic" }); return; }
+    setVoice({ state: "recording" });
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    const frame = new Float32Array(analyser.fftSize), pitches = [];
+    let frames = 0;
+    const timer = setInterval(() => {
+      analyser.getFloatTimeDomainData(frame);
+      frames += 1;
+      const hz = framePitch(frame, ctx.sampleRate);
+      if (hz) pitches.push(hz);
+    }, 50);
+    setTimeout(() => {
+      clearInterval(timer);
+      stream.getTracks().forEach((track) => track.stop());
+      ctx.close();
+      if (pitches.length < 20) { setVoice({ state: "none" }); return; }
+      pitches.sort((a, b) => a - b);
+      const at = (q) => Math.round(pitches[Math.floor(q * (pitches.length - 1))]);
+      setVoice({ state: "done", median: at(0.5), low: at(0.1), high: at(0.9), voiced: Math.round((100 * pitches.length) / frames) });
+    }, 10000);
+  };
+  const box = { fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8, whiteSpace: "pre-wrap" };
+  const button = (busy) => ({ fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none", background: color,
+                              color: "#05060a", cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1 });
+  return (
+    <Modal title={t.lifeTitle} color={color} lang={lang} onClose={onClose}>
+      <div style={{ fontSize: 13, opacity: 0.85 }}>{t.skinHint}</div>
+      <label style={{ display: "block", textAlign: "center", fontSize: 15, fontWeight: 700, padding: 14, borderRadius: 8, border: `1px dashed ${color}`, cursor: "pointer", color: "#fff" }}>
+        {shot ? "\u2713 " : ""}{t.skinPick}
+        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={pick} style={{ display: "none" }} />
+      </label>
+      <button onClick={analyse} disabled={!shot || skin.state === "loading"} style={button(!shot || skin.state === "loading")}>
+        {skin.state === "loading" ? t.skinWait : t.skinGo}
+      </button>
+      {skin.state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{skin.text}</div>}
+      {skin.state === "done" && <div dir="auto" style={box}>{skin.text}</div>}
+
+      <div style={{ borderTop: "1px solid #3a3a55", paddingTop: 12, fontSize: 15, fontWeight: 700 }}>{t.voiceCoach}</div>
+      <div style={{ fontSize: 13, opacity: 0.85 }}>{t.voiceHint}</div>
+      <button onClick={record} disabled={voice.state === "recording"} style={button(voice.state === "recording")}>
+        {voice.state === "recording" ? t.voiceRecing : t.voiceRec}
+      </button>
+      {voice.state === "nomic" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{t.voiceNoMic}</div>}
+      {voice.state === "none" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{t.voiceNone}</div>}
+      {voice.state === "done" && (
+        <div dir="auto" style={box}>
+          {t.voicePitch}: {voice.median} Hz{"\n"}{t.voiceRange}: {voice.low}–{voice.high} Hz{"\n"}{t.voiceVoiced}: {voice.voiced}%{"\n\n"}{t.voiceRef}
+        </div>
+      )}
+    </Modal>
   );
 }
 
@@ -923,6 +1019,7 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, onOpenChat, lastA
   const t = COPY[lang];
   const statusOf = (d) => (data && data[d] ? (lang === "fa" ? data[d].metric_fa : data[d].metric_en) || data[d].status : "");
   const areas = DOMAINS.map((d) => ({ id: d, icon: DOMAIN_ICON[d], label: t[d], status: statusOf(d), onOpen: () => setOpenModalDomain(d) }))
+    .concat([{ id: "life", icon: "\u{2728}", label: t.lifeTitle, status: "", onOpen: () => setOpenModalDomain("life") }])
     .concat([{ id: "google", icon: "\u{2709}\u{FE0F}", label: "Gmail", status: "", onOpen: () => setOpenModalDomain("google") }]);
 
   return (
@@ -933,6 +1030,9 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, onOpenChat, lastA
 
       {openModalDomain === "google" && (
         <GoogleModal lang={lang} onClose={() => setOpenModalDomain(null)} />
+      )}
+      {openModalDomain === "life" && (
+        <LifeModal lang={lang} color="#ff9ecb" onClose={() => setOpenModalDomain(null)} />
       )}
       {openModalDomain === "dating" && (
         <DatingModal lang={lang} color={DOMAIN_COLOR.dating} onClose={() => setOpenModalDomain(null)} />

@@ -309,6 +309,11 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/lifestyle/skin":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._lifestyle_skin(environ, start_response)
         if path == "/api/settings/scout_groups":
             if method not in ("GET", "POST"):
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
@@ -517,6 +522,28 @@ class VoiceChatApp:
             "uncategorized_count": summary["uncategorized_count"], "first_date": summary["first_date"],
             "last_date": summary["last_date"], "reconciliation": summary["reconciliation"],
             "signs_flipped": summary["signs_flipped"], "stored_totals": stored})
+
+    def _lifestyle_skin(self, environ, start_response):
+        # One selfie -> general cosmetic skincare suggestions, local model only, nothing stored
+        # (apex/skin_analyzer.py). Not a skin assessment and not medical advice.
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 6_000_000:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        try:
+            body = json.loads(environ["wsgi.input"].read(int(length)))
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        from apex import skin_analyzer
+        try:
+            text = skin_analyzer.suggest(self.budget, body.get("image_b64") if isinstance(body, dict) else None,
+                                         body.get("media_type") if isinstance(body, dict) else None)
+        except ValueError:
+            return self._respond(start_response, 400, {"error": "UNSUPPORTED_IMAGE"})
+        except BudgetDenied as exc:
+            return self._respond(start_response, 402, {"error": f"BUDGET_DENIED:{exc}"})
+        except skin_analyzer.SkinError as exc:
+            return self._respond(start_response, 502, {"error": str(exc)})
+        return self._respond(start_response, 200, {"suggestions": text})
 
     def _banking_rules(self, environ, start_response):
         # The owner's personal keyword rules (local shops, employer, own name on transfers).
