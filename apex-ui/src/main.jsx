@@ -13,5 +13,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
+    // When a newer version takes over an already-open app, load it once instead of leaving the
+    // old screen up until the app is closed and reopened.
+    if (navigator.serviceWorker.controller) {
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!reloaded) { reloaded = true; window.location.reload(); }
+      });
+    }
   });
 }

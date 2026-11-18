@@ -1,7 +1,7 @@
 // APEX UI service worker. Caches the same-origin UI shell only.
 // Never touches /api/ requests, cross-origin requests or non-GET requests, so
 // no personal data, chat content or dashboard payload is ever written to the cache.
-const CACHE = "apex-ui-v6";
+const CACHE = "apex-ui-v7";
 const SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -44,7 +44,9 @@ self.addEventListener("fetch", (event) => {
           if (res.ok && res.type === "basic") cache.put(request, res.clone());
           return res;
         }).catch(() => hit);
-        return hit || refresh;
+        // The page itself always comes from the server when it answers, so a new deploy shows at
+        // once; the stored copy is only for when the server cannot be reached.
+        return request.mode === "navigate" ? refresh.then((res) => res || hit) : (hit || refresh);
       })
     )
   );
