@@ -309,6 +309,11 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path in ("/api/spend/checkin", "/api/lifestyle/itinerary", "/api/settings/commute_lines"):
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._small_post(path, environ, start_response)
         if path == "/api/lifestyle/skin":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
@@ -522,6 +527,48 @@ class VoiceChatApp:
             "uncategorized_count": summary["uncategorized_count"], "first_date": summary["first_date"],
             "last_date": summary["last_date"], "reconciliation": summary["reconciliation"],
             "signs_flipped": summary["signs_flipped"], "stored_totals": stored})
+
+    def _small_post(self, path, environ, start_response):
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 4000:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        try:
+            body = json.loads(environ["wsgi.input"].read(int(length)))
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        if not isinstance(body, dict):
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        from apex import scout_common
+        if path == "/api/settings/commute_lines":
+            try:
+                return self._respond(start_response, 200, {"lines": scout_common.save_groups(self.root, body.get("lines"), "commute_lines")})
+            except ValueError:
+                return self._respond(start_response, 400, {"error": "LINE_SHAPE"})
+            except OSError:
+                return self._respond(start_response, 502, {"error": "CANNOT_WRITE_CONFIG"})
+        if path == "/api/spend/checkin":
+            # The owner's own note about one week's spending, in his words; nothing is inferred from it.
+            week, note = body.get("week"), body.get("note")
+            if not (isinstance(week, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", week) and isinstance(note, str) and note.strip()):
+                return self._respond(start_response, 400, {"error": "WEEK_AND_NOTE_REQUIRED"})
+            now = time.time()
+            scout_common.record(self.ledger, "checkin", {"event": "spend_checkin", "week_start": week, "note": note.strip()[:600]}, now)
+            return self._respond(start_response, 200, {"saved": True})
+        from apex import itinerary
+        from apex.agents_research import call_anthropic, load_api_key
+        try:
+            api_key = load_api_key()
+        except Exception:
+            return self._respond(start_response, 502, {"error": "NO_MODEL"})
+        llm = lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens)  # noqa: E731
+        result = itinerary.plan(llm, self.budget, body.get("destination") if isinstance(body.get("destination"), str) else "",
+                                body.get("days"), body.get("interests") if isinstance(body.get("interests"), str) else "")
+        if result["status"] == "BAD_REQUEST":
+            return self._respond(start_response, 400, {"error": "DESTINATION_AND_DAYS_REQUIRED"})
+        if result["status"] != "OK":
+            denied = str(result.get("model_note", "")).startswith("budget:")
+            return self._respond(start_response, 402 if denied else 502, {"error": result.get("model_note") or result["status"]})
+        return self._respond(start_response, 200, result)
 
     def _lifestyle_skin(self, environ, start_response):
         # One selfie -> general cosmetic skincare suggestions, local model only, nothing stored

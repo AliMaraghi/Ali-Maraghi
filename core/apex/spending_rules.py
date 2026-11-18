@@ -62,3 +62,23 @@ def digest(record: dict | None) -> str:
     top = max(spend, key=spend.get)
     return (f"Spending in uploaded statements ({record.get('first_date')} to {record.get('last_date')}): "
             f"{sum(spend.values()) / 100:.2f} pounds out; highest category {top} at {spend[top] / 100:.2f} pounds")
+
+
+SPIKE_RATIO = 1.3
+
+
+def food_spike(record: dict | None) -> dict | None:
+    """The latest week with data, when it is more than 30% above the average of the four weeks
+    before it. Returns the plain facts and a neutral question; no cause is suggested."""
+    weekly = (record or {}).get("weekly_food_pence") or {}
+    weeks = sorted(weekly)
+    if len(weeks) < 5:
+        return None
+    week, before = weeks[-1], [weekly[w] for w in weeks[-5:-1]]
+    average = sum(before) / len(before)
+    if average <= 0 or weekly[week] <= average * SPIKE_RATIO:
+        return None
+    return {"week_start": week, "current_pence": weekly[week], "average_pence": round(average),
+            "percent_above": round(100 * (weekly[week] / average - 1)),
+            "question": (f"Food ordered in or eaten out came to {weekly[week] / 100:.2f} pounds in the week of {week}, "
+                         f"against {average / 100:.2f} a week over the four weeks before. Anything about that week worth noting?")}

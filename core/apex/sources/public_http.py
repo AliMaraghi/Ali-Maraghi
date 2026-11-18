@@ -49,9 +49,12 @@ ROUTES = {
     'www.meetup.com': set(),
     # Public organiser pages on Humanitix (core/apex/scout_adult_events.py): /host/<name> only.
     'events.humanitix.com': set(),
+    # Transport for London open data (core/apex/commute.py): line status only.
+    'api.tfl.gov.uk': set(),
 }
 MEETUP_ICAL = re.compile(r'/[A-Za-z0-9][A-Za-z0-9-]{0,79}/events/ical/')
 HUMANITIX_HOST = re.compile(r'/host/[A-Za-z0-9][A-Za-z0-9-]{0,79}')
+TFL_STATUS = re.compile(r'/Line/[a-z][a-z0-9-]{1,30}(?:,[a-z][a-z0-9-]{1,30}){0,7}/Status')
 
 
 def validate(url, method='GET', body=None):
@@ -62,8 +65,9 @@ def validate(url, method='GET', body=None):
         r'/api/1\.0/ocdsReleasePackages/(?:[0-9]{6}-[0-9]{4}|ocds-h6vhtk-[0-9a-f]{6})', p.path)
     meetup_path = p.netloc == 'www.meetup.com' and not p.query and MEETUP_ICAL.fullmatch(p.path)
     host_path = p.netloc == 'events.humanitix.com' and not p.query and HUMANITIX_HOST.fullmatch(p.path)
+    tfl_path = p.netloc == 'api.tfl.gov.uk' and not p.query and TFL_STATUS.fullmatch(p.path)
     if (p.scheme != 'https' or p.netloc not in ROUTES or p.fragment
-            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path and not host_path)):
+            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path and not host_path and not tfl_path)):
         raise SourceError('Destination outside reviewed endpoint scope')
     if method == 'POST':
         if (p.netloc, p.path, p.query) != ('api.ted.europa.eu', '/v3/notices/search', ''):

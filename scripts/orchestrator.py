@@ -688,6 +688,7 @@ def dashboard_payload(root: Path) -> dict:
                  "adult": scout_common.latest(root, "adult")}
         from apex import system_health
         scout["mission"] = system_health.mission(root)
+        scout["commute"] = scout_common.latest(root, "commute")
         # Spending totals from uploaded statements and the owner's weekly food limit. Totals only.
         try:
             from apex import spending_rules
@@ -696,7 +697,8 @@ def dashboard_payload(root: Path) -> dict:
             scout["spend"] = None if not spend else {
                 "first_date": spend.get("first_date"), "last_date": spend.get("last_date"),
                 "transaction_count": spend.get("transaction_count"), "sources": len(spend.get("sources") or {}),
-                "totals": spend.get("totals"), "food_alert": spending_rules.food_alert(spend, cap)}
+                "totals": spend.get("totals"), "food_alert": spending_rules.food_alert(spend, cap),
+                "spike": spending_rules.food_spike(spend), "checkin": scout_common.latest(root, "checkin")}
         except Exception:
             scout["spend"] = None
     except Exception:

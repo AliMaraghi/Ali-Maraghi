@@ -118,6 +118,11 @@ def run_briefing(ledger, goal: str = DEFAULT_GOAL, max_steps: int = agent_loop.M
     budget = Budget(ledger)
     api_key = load_api_key()
     llm = lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens)  # noqa: E731
+    try:                                                      # 07:00: fresh line status for the morning
+        from apex import commute
+        scout_common.record(ledger, "commute", commute.run(scout_common.load_config(ROOT), agents_runner.fetch_public, now), now)
+    except Exception as exc:
+        print(f"[agent] commute skipped: {type(exc).__name__}", file=sys.stderr)
     try:
         scout_common.record(ledger, "mission", scout_events.pick_mission(scout_common.latest(ROOT, "events"), llm, budget, now), now)
     except Exception as exc:

@@ -65,6 +65,11 @@ def main() -> int:
             pass
         wealth = scout_wealth.run(config, agents_runner.fetch_public, jobs_fetch, llm, budget, now)
         scout_common.record(ledger, "wealth", wealth, now)
+        try:                                                  # free: TfL line status for the owner's lines
+            from apex import commute
+            scout_common.record(ledger, "commute", commute.run(config, agents_runner.fetch_public, now), now)
+        except Exception as exc:
+            print(f"[scout] commute skipped: {type(exc).__name__}")
         try:                                                  # free, no model call; never stops the run
             from apex import scout_adult_events
             scout_common.record(ledger, "adult", scout_adult_events.run(config, agents_runner.fetch_public, now), now)

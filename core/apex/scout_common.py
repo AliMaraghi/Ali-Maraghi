@@ -35,6 +35,7 @@ DEFAULT_CONFIG = {
                       "londonpartypeople", "london-night-out", "tastour", "bored-in-london", "singlesclublondon"],
     "event_keywords": ["singles", "mixer", "speed dating", "wine tasting", "gallery", "networking", "tech",
                        "social", "founders"],
+    "commute_lines": [],                                 # TfL line ids; set privately on the server, not here
     "food_weekly_cap_pence": 10_000,                     # the owner's weekly limit for food ordered in or eaten out
     "job_keywords": "procurement manager",
     "job_location": "London",
@@ -61,11 +62,14 @@ def load_config(root: Path) -> dict:
 GROUP_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]{0,79}")
 
 
-def save_groups(root: Path, groups) -> int:
-    """Replace the watched Meetup groups in the owner's private config, keeping every other
-    setting in that file as it is. Returns how many groups are now watched."""
-    if not isinstance(groups, list) or not 1 <= len(groups) <= 20 or not all(isinstance(g, str) and GROUP_NAME.fullmatch(g) for g in groups):
-        raise ValueError("1-20 Meetup group names")
+def save_groups(root: Path, groups, key: str = "meetup_groups") -> int:
+    """Replace one list in the owner's private config (watched Meetup groups, or his commute
+    lines), keeping every other setting in that file as it is. Returns the new list's length."""
+    limit = {"meetup_groups": 20, "commute_lines": 8}.get(key)
+    if limit is None:
+        raise ValueError("Unknown setting")
+    if not isinstance(groups, list) or not 1 <= len(groups) <= limit or not all(isinstance(g, str) and GROUP_NAME.fullmatch(g) for g in groups):
+        raise ValueError("a short list of names")
     path = Path(root) / "runtime" / "inbox" / "scout_config.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
@@ -73,13 +77,13 @@ def save_groups(root: Path, groups) -> int:
         data = {}
     if not isinstance(data, dict):
         data = {}
-    data["meetup_groups"] = list(dict.fromkeys(groups))
+    data[key] = list(dict.fromkeys(groups))
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".tmp")
     temp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     os.chmod(temp, 0o600)
     os.replace(temp, path)
-    return len(data["meetup_groups"])
+    return len(data[key])
 
 
 def clean(text, limit: int) -> str:

@@ -45,7 +45,7 @@ const COPY = {
           + "dashboard - connecting here would mean anyone reaching this page, not just the owner, could "
           + "start linking a Google account. Manage the real connection on the console instead.",
         googleOpenConsole: "Open on console.apexcorelab.uk",
-        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", boldLabel: "Bolder, in my own typing style", voiceTitle: "My typing style", voiceHint: "Paste messages YOU wrote (WhatsApp, Instagram). Kept privately on your server and used only to match your style. Lines with links, emails or long numbers are dropped.", voiceSave: "Save my style", voiceSaved: "Style sample saved", voiceNone: "No style sample saved yet", lifeTitle: "Skin & voice", skinHint: "Choose a clear selfie in daylight. It is read once by the model on your own server and not stored. General cosmetic suggestions only, not a skin assessment or medical advice.", skinPick: "Choose a selfie", skinGo: "Suggest a routine", skinWait: "Looking… about a minute", voiceCoach: "Voice", voiceHint: "Speak normally for 10 seconds. Pitch is measured on this device; the recording is not sent or kept.", voiceRec: "Record 10 seconds", voiceRecing: "Recording…", voicePitch: "Typical pitch", voiceRange: "Range you used", voiceVoiced: "Share of time speaking", voiceRef: "For reference, adult male speech is usually about 85 to 155 Hz. Pace and tone are not measured here.", voiceNone: "Not enough clear speech was heard. Try again closer to the microphone.", voiceNoMic: "The microphone could not be used.", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
+        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", boldLabel: "Bolder, in my own typing style", voiceTitle: "My typing style", voiceHint: "Paste messages YOU wrote (WhatsApp, Instagram). Kept privately on your server and used only to match your style. Lines with links, emails or long numbers are dropped.", voiceSave: "Save my style", voiceSaved: "Style sample saved", voiceNone: "No style sample saved yet", planTitle: "Home & travel", mIncome: "Yearly income (£)", mSecond: "Second income (£)", mDeposit: "Deposit saved (£)", mPrice: "Property price (£)", mMultiple: "Lender multiple", mRate: "Interest rate %", mFirst: "First-time buyer", mLoan: "Loan at this multiple", mNeed: "Loan this price needs", mShort: "Short by", mEnough: "Covered at this multiple", mMaxPrice: "Highest price with this deposit", mDuty: "Stamp duty", mMonthly: "Monthly repayment over 25 years", mNote: "Arithmetic only, using stamp duty bands in force since 1 April 2025. Lenders decide the real multiple; this is to prepare for a broker, not advice.", pLinks: "Search links (open in your browser)", tripDest: "Destination", tripDays: "Days", tripLikes: "What you enjoy (optional)", tripGo: "Outline the trip", tripNote: "Structure only. A small model may name places wrongly; check each one. No prices or opening times.", lifeTitle: "Skin & voice", skinHint: "Choose a clear selfie in daylight. It is read once by the model on your own server and not stored. General cosmetic suggestions only, not a skin assessment or medical advice.", skinPick: "Choose a selfie", skinGo: "Suggest a routine", skinWait: "Looking… about a minute", voiceCoach: "Voice", voiceHint: "Speak normally for 10 seconds. Pitch is measured on this device; the recording is not sent or kept.", voiceRec: "Record 10 seconds", voiceRecing: "Recording…", voicePitch: "Typical pitch", voiceRange: "Range you used", voiceVoiced: "Share of time speaking", voiceRef: "For reference, adult male speech is usually about 85 to 155 Hz. Pace and tone are not measured here.", voiceNone: "Not enough clear speech was heard. Try again closer to the microphone.", voiceNoMic: "The microphone could not be used.", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
         bulkLabel: "Paste up to 10 bios, separated by a blank line between each:",
         bulkGenerate: "Generate All", bulkGenerating: "Generating all...",
         bulkEmpty: "Paste at least one profile first.", bulkProfile: "Profile",
@@ -76,7 +76,7 @@ const COPY = {
           + "اتصال از اینجا یعنی هر کسی که به این صفحه برسد، نه فقط مالک، می‌تواند شروع به اتصال حساب گوگل کند. "
           + "اتصال واقعی را از کنسول مدیریت کنید.",
         googleOpenConsole: "باز کردن در console.apexcorelab.uk",
-        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", boldLabel: "جسورتر، با سبک نوشتن خودم", voiceTitle: "سبک نوشتن من", voiceHint: "پیام‌هایی که خودت نوشته‌ای (واتس‌اپ، اینستاگرام) را اینجا بچسبان. به‌صورت خصوصی روی سرور خودت می‌ماند و فقط برای تقلید سبک تو استفاده می‌شود. خط‌های دارای لینک، ایمیل یا عدد طولانی حذف می‌شوند.", voiceSave: "سبکم را ذخیره کن", voiceSaved: "نمونهٔ سبک ذخیره شد", voiceNone: "هنوز نمونهٔ سبکی ذخیره نشده", lifeTitle: "پوست و صدا", skinHint: "یک سلفی واضح در نور روز انتخاب کن. فقط یک بار توسط مدل روی سرور خودت خوانده می‌شود و ذخیره نمی‌شود. فقط پیشنهاد عمومی آرایشی-مراقبتی است، نه ارزیابی پوست یا توصیهٔ پزشکی.", skinPick: "انتخاب سلفی", skinGo: "روتین پیشنهاد بده", skinWait: "در حال بررسی… حدود یک دقیقه", voiceCoach: "صدا", voiceHint: "۱۰ ثانیه عادی صحبت کن. زیر و بمی صدا روی همین دستگاه اندازه‌گیری می‌شود؛ صدا فرستاده یا نگه‌داری نمی‌شود.", voiceRec: "ضبط ۱۰ ثانیه", voiceRecing: "در حال ضبط…", voicePitch: "زیر و بمی معمول", voiceRange: "بازه‌ای که استفاده کردی", voiceVoiced: "سهم زمانِ صحبت", voiceRef: "برای مقایسه: صدای صحبت مرد بزرگسال معمولاً حدود ۸۵ تا ۱۵۵ هرتز است. سرعت و لحن اینجا اندازه‌گیری نمی‌شود.", voiceNone: "صدای واضح کافی شنیده نشد. نزدیک‌تر به میکروفون دوباره امتحان کن.", voiceNoMic: "میکروفون در دسترس نبود.", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
+        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", boldLabel: "جسورتر، با سبک نوشتن خودم", voiceTitle: "سبک نوشتن من", voiceHint: "پیام‌هایی که خودت نوشته‌ای (واتس‌اپ، اینستاگرام) را اینجا بچسبان. به‌صورت خصوصی روی سرور خودت می‌ماند و فقط برای تقلید سبک تو استفاده می‌شود. خط‌های دارای لینک، ایمیل یا عدد طولانی حذف می‌شوند.", voiceSave: "سبکم را ذخیره کن", voiceSaved: "نمونهٔ سبک ذخیره شد", voiceNone: "هنوز نمونهٔ سبکی ذخیره نشده", planTitle: "خانه و سفر", mIncome: "درآمد سالانه (£)", mSecond: "درآمد دوم (£)", mDeposit: "پیش‌پرداخت موجود (£)", mPrice: "قیمت ملک (£)", mMultiple: "ضریب وام‌دهنده", mRate: "نرخ بهره ٪", mFirst: "خریدار بار اول", mLoan: "وام با این ضریب", mNeed: "وامی که این قیمت لازم دارد", mShort: "کسری", mEnough: "با این ضریب پوشش داده می‌شود", mMaxPrice: "بالاترین قیمت با این پیش‌پرداخت", mDuty: "مالیات خرید (Stamp duty)", mMonthly: "قسط ماهانه در ۲۵ سال", mNote: "فقط حساب است، با نرخ‌های Stamp duty از ۱ آوریل ۲۰۲۵. ضریب واقعی را وام‌دهنده تعیین می‌کند؛ این برای آماده شدن پیش از مشاور وام است، نه توصیه.", pLinks: "لینک‌های جست‌وجو (در مرورگر خودت باز می‌شود)", tripDest: "مقصد", tripDays: "چند روز", tripLikes: "چه چیزهایی دوست داری (اختیاری)", tripGo: "برنامهٔ سفر را بچین", tripNote: "فقط ساختار است. مدل کوچک ممکن است نام جاها را اشتباه بگوید؛ هر کدام را بررسی کن. قیمت و ساعت کاری ندارد.", lifeTitle: "پوست و صدا", skinHint: "یک سلفی واضح در نور روز انتخاب کن. فقط یک بار توسط مدل روی سرور خودت خوانده می‌شود و ذخیره نمی‌شود. فقط پیشنهاد عمومی آرایشی-مراقبتی است، نه ارزیابی پوست یا توصیهٔ پزشکی.", skinPick: "انتخاب سلفی", skinGo: "روتین پیشنهاد بده", skinWait: "در حال بررسی… حدود یک دقیقه", voiceCoach: "صدا", voiceHint: "۱۰ ثانیه عادی صحبت کن. زیر و بمی صدا روی همین دستگاه اندازه‌گیری می‌شود؛ صدا فرستاده یا نگه‌داری نمی‌شود.", voiceRec: "ضبط ۱۰ ثانیه", voiceRecing: "در حال ضبط…", voicePitch: "زیر و بمی معمول", voiceRange: "بازه‌ای که استفاده کردی", voiceVoiced: "سهم زمانِ صحبت", voiceRef: "برای مقایسه: صدای صحبت مرد بزرگسال معمولاً حدود ۸۵ تا ۱۵۵ هرتز است. سرعت و لحن اینجا اندازه‌گیری نمی‌شود.", voiceNone: "صدای واضح کافی شنیده نشد. نزدیک‌تر به میکروفون دوباره امتحان کن.", voiceNoMic: "میکروفون در دسترس نبود.", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
         bulkLabel: "تا ۱۰ پروفایل را بچسبانید، بین هر کدام یک خط خالی بگذارید:",
         bulkGenerate: "تولید همه", bulkGenerating: "در حال تولید همه...",
         bulkEmpty: "ابتدا حداقل یک پروفایل وارد کنید.", bulkProfile: "پروفایل",
@@ -250,6 +250,96 @@ function BulkDatingSection({ lang, color, t }) {
         </div>
       )}
     </>
+  );
+}
+
+// Stamp Duty Land Tax for one main home in England/NI, bands in force from 1 April 2025.
+export function stampDuty(price, firstTime) {
+  if (firstTime && price <= 500000) return Math.max(0, price - 300000) * 0.05;
+  const bands = [[125000, 0], [250000, 0.02], [925000, 0.05], [1500000, 0.10], [Infinity, 0.12]];
+  let tax = 0, lower = 0;
+  for (const [upper, rate] of bands) {
+    if (price > lower) tax += (Math.min(price, upper) - lower) * rate;
+    lower = upper;
+  }
+  return tax;
+}
+
+const AREAS = ["Croydon", "Bexley", "Enfield", "Hillingdon", "Barking", "Romford"];
+
+// Mortgage arithmetic for a broker meeting, ready-made search links, and a trip outline.
+function PlanModal({ lang, color, onClose }) {
+  const t = COPY[lang];
+  const [v, setV] = useState({ income: 50000, second: 0, deposit: 45000, price: 450000, multiple: 4.5, rate: 5, first: true });
+  const [trip, setTrip] = useState({ destination: "", days: 3, interests: "", state: "idle", plan: null });
+  const set = (key) => (e) => setV({ ...v, [key]: e.target.type === "checkbox" ? e.target.checked : Number(e.target.value) || 0 });
+  const loan = (v.income + v.second) * v.multiple, need = Math.max(0, v.price - v.deposit), short = need - loan;
+  const monthlyRate = v.rate / 1200, months = 300;
+  const monthly = need > 0 ? (monthlyRate > 0 ? (need * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months)) : need / months) : 0;
+  const money = (x) => "£" + Math.round(x).toLocaleString("en-GB");
+  const field = (label, key, step) => (
+    <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, fontSize: 14 }}>
+      <span>{label}</span>
+      <input type="number" step={step || 1000} value={v[key]} onChange={set(key)} dir="ltr"
+             style={{ width: 130, padding: "6px 8px", borderRadius: 8, border: "1px solid #3a3a55", background: "#05060a", color: "#fff" }} />
+    </label>
+  );
+  const line = (label, value, warn) => (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}><span>{label}</span><span dir="ltr" style={{ color: warn ? "#ffb86b" : "#fff", fontWeight: 700 }}>{value}</span></div>
+  );
+  const go = async () => {
+    if (!trip.destination.trim()) return;
+    setTrip({ ...trip, state: "loading", plan: null });
+    try {
+      const res = await fetch("/api/lifestyle/itinerary", { method: "POST", headers: { "Content-Type": "application/json" },
+                                                           body: JSON.stringify({ destination: trip.destination.trim(), days: trip.days, interests: trip.interests }) });
+      const json = await res.json();
+      setTrip((s) => ({ ...s, state: res.ok ? "done" : "error", plan: res.ok ? json : null }));
+    } catch { setTrip((s) => ({ ...s, state: "error" })); }
+  };
+  const input = { width: "100%", boxSizing: "border-box", padding: "8px 10px", borderRadius: 8, border: "1px solid #3a3a55", background: "#05060a", color: "#fff", fontSize: 14 };
+  return (
+    <Modal title={t.planTitle} color={color} lang={lang} onClose={onClose}>
+      {field(t.mIncome, "income")}{field(t.mSecond, "second")}{field(t.mDeposit, "deposit")}{field(t.mPrice, "price", 5000)}
+      {field(t.mMultiple, "multiple", 0.25)}{field(t.mRate, "rate", 0.25)}
+      <label style={{ fontSize: 14, display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={v.first} onChange={set("first")} />{t.mFirst}</label>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8 }}>
+        {line(t.mLoan, money(loan))}
+        {line(t.mNeed, money(need))}
+        {short > 0 ? line(t.mShort, money(short), true) : line(t.mEnough, "\u2713")}
+        {line(t.mMaxPrice, money(loan + v.deposit))}
+        {line(t.mDuty, money(stampDuty(v.price, v.first)))}
+        {line(t.mMonthly, money(monthly))}
+      </div>
+      <div style={{ fontSize: 12, opacity: 0.7 }}>{t.mNote}</div>
+
+      <div style={{ borderTop: "1px solid #3a3a55", paddingTop: 12, fontSize: 15, fontWeight: 700 }}>{t.pLinks}</div>
+      <div dir="ltr" style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", fontSize: 14 }}>
+        {AREAS.map((area) => (
+          <a key={area} target="_blank" rel="noopener noreferrer" style={{ color }}
+             href={"https://duckduckgo.com/?q=" + encodeURIComponent(`(site:rightmove.co.uk OR site:zoopla.co.uk) house for sale ${area} garden under £${Math.round(v.price).toLocaleString("en-GB")}`)}>{area}</a>
+        ))}
+      </div>
+
+      <div style={{ borderTop: "1px solid #3a3a55", paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+        <input placeholder={t.tripDest} value={trip.destination} onChange={(e) => setTrip({ ...trip, destination: e.target.value })} maxLength={80} dir="auto" style={input} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <input type="number" min={1} max={5} value={trip.days} onChange={(e) => setTrip({ ...trip, days: Math.max(1, Math.min(5, Number(e.target.value) || 1)) })} dir="ltr" style={{ ...input, width: 90 }} aria-label={t.tripDays} />
+          <input placeholder={t.tripLikes} value={trip.interests} onChange={(e) => setTrip({ ...trip, interests: e.target.value })} maxLength={200} dir="auto" style={input} />
+        </div>
+        <button onClick={go} disabled={trip.state === "loading"} style={{ fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none", background: color, color: "#05060a", cursor: "pointer", opacity: trip.state === "loading" ? 0.6 : 1 }}>
+          {trip.state === "loading" ? t.datingGenerating : t.tripGo}
+        </button>
+        {trip.state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{t.errorGeneric}</div>}
+        {trip.state === "done" && trip.plan && trip.plan.days.map((day, i) => (
+          <div key={i} dir="auto" style={{ fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8 }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>{i + 1}</div>
+            {["morning", "afternoon", "evening"].filter((k) => day[k]).map((k) => <div key={k}>{day[k]}</div>)}
+          </div>
+        ))}
+        <div style={{ fontSize: 12, opacity: 0.7 }}>{t.tripNote}</div>
+      </div>
+    </Modal>
   );
 }
 
@@ -1019,6 +1109,7 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, onOpenChat, lastA
   const t = COPY[lang];
   const statusOf = (d) => (data && data[d] ? (lang === "fa" ? data[d].metric_fa : data[d].metric_en) || data[d].status : "");
   const areas = DOMAINS.map((d) => ({ id: d, icon: DOMAIN_ICON[d], label: t[d], status: statusOf(d), onOpen: () => setOpenModalDomain(d) }))
+    .concat([{ id: "plan", icon: "\u{1F3E0}", label: t.planTitle, status: "", onOpen: () => setOpenModalDomain("plan") }])
     .concat([{ id: "life", icon: "\u{2728}", label: t.lifeTitle, status: "", onOpen: () => setOpenModalDomain("life") }])
     .concat([{ id: "google", icon: "\u{2709}\u{FE0F}", label: "Gmail", status: "", onOpen: () => setOpenModalDomain("google") }]);
 
@@ -1030,6 +1121,9 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, onOpenChat, lastA
 
       {openModalDomain === "google" && (
         <GoogleModal lang={lang} onClose={() => setOpenModalDomain(null)} />
+      )}
+      {openModalDomain === "plan" && (
+        <PlanModal lang={lang} color="#8fd3ff" onClose={() => setOpenModalDomain(null)} />
       )}
       {openModalDomain === "life" && (
         <LifeModal lang={lang} color="#ff9ecb" onClose={() => setOpenModalDomain(null)} />

@@ -29,7 +29,7 @@ const T = {
     captureErr: "جواب نیامد. نوشته‌ات از بین نرفته؛ دوباره بفرست.",
     waiting: "منتظر تو", budget: "بودجهٔ ماه", scout: "دیده‌بان", none: "هیچ", of: "از", events: "رویداد", never: "هنوز اجرا نشده",
     focusOn: "حالت تمرکز", focusOff: "نمایش همه", chat: "گفت‌وگو", lang: "English",
-    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", foodOver: "سقف هفتگی غذای بیرون رد شد", foodLine: (cur, cap, week) => `هفتهٔ ${week}: ${cur} از سقف ${cap}`, foodThrough: "داده تا", foodOld: "داده قدیمی است؛ صورت‌حساب تازه آپلود کن", secSpend: "خرج‌ها", spendNone: "هنوز صورت‌حسابی آپلود نشده. از «حوزه‌ها ← بانک» فایل CSV بده.", foodAvg: "میانگین ۴ هفتهٔ آخر", reedPh: "کلید Reed را اینجا بچسبان", reedSave: "ذخیره", reedSaved: "کلید ذخیره شد؛ از اجرای بعدی دیده‌بان استفاده می‌شود", mission: "مأموریت امروز", hAi: "هوش محلی", hDb: "پایگاه داده", hEv: "دیده‌بان رویداد", hWe: "دیده‌بان پول و شغل", hAg: "گزارش روزانه", hOn: "روشن", hOff: "خاموش", hOk: "وصل", hErr: "خطا", hNever: "هنوز اجرا نشده", hCheck: "آزمون کامل سیستم", hRunning: "در حال آزمون… چند دقیقه طول می‌کشد", hPassed: "آزمون کامل: موفق", hFailed: "آزمون کامل: ناموفق در", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
+    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", foodOver: "سقف هفتگی غذای بیرون رد شد", foodLine: (cur, cap, week) => `هفتهٔ ${week}: ${cur} از سقف ${cap}`, foodThrough: "داده تا", foodOld: "داده قدیمی است؛ صورت‌حساب تازه آپلود کن", secSpend: "خرج‌ها", spendNone: "هنوز صورت‌حسابی آپلود نشده. از «حوزه‌ها ← بانک» فایل CSV بده.", foodAvg: "میانگین ۴ هفتهٔ آخر", reedPh: "کلید Reed را اینجا بچسبان", reedSave: "ذخیره", reedSaved: "کلید ذخیره شد؛ از اجرای بعدی دیده‌بان استفاده می‌شود", tube: "وضعیت مسیر", tubeBad: "اختلال در مسیر تو", tubeGood: "همهٔ خط‌هایت عادی‌اند", spikeTitle: "یک سؤال دربارهٔ خرج غذا", spikePh: "هر چه دربارهٔ آن هفته به ذهنت می‌رسد…", spikeSave: "ثبت", spikeSaved: "ثبت شد", mission: "مأموریت امروز", hAi: "هوش محلی", hDb: "پایگاه داده", hEv: "دیده‌بان رویداد", hWe: "دیده‌بان پول و شغل", hAg: "گزارش روزانه", hOn: "روشن", hOff: "خاموش", hOk: "وصل", hErr: "خطا", hNever: "هنوز اجرا نشده", hCheck: "آزمون کامل سیستم", hRunning: "در حال آزمون… چند دقیقه طول می‌کشد", hPassed: "آزمون کامل: موفق", hFailed: "آزمون کامل: ناموفق در", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
     noBrief: "هنوز گزارشی ساخته نشده. هر روز ساعت ۷ صبح ساخته می‌شود.", nothingYet: "در این نشست هنوز کاری نکرده‌ای.",
     job: "شغل", market: "بازار", noEvents: "در گروه‌های تو رویدادی پیدا نشد.", needsReed: "جست‌وجوی شغل به کلید رایگان Reed نیاز دارد.",
     info: "اطلاع‌رسانی است، نه توصیهٔ مالی", free: "مدل محلی: بدون هزینه", ago: "پیش", open: "باز کردن", agents: "وضعیت عامل‌ها",
@@ -46,7 +46,7 @@ const T = {
     captureErr: "No answer came back. Your text is still here; send it again.",
     waiting: "Waiting on you", budget: "Month's budget", scout: "Scout", none: "None", of: "of", events: "events", never: "not run yet",
     focusOn: "Focus mode", focusOff: "Show everything", chat: "Chat", lang: "فارسی",
-    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", foodOver: "Weekly eating-out and delivery limit exceeded", foodLine: (cur, cap, week) => `Week of ${week}: ${cur} against a limit of ${cap}`, foodThrough: "data to", foodOld: "This data is old; upload a newer statement", secSpend: "Spending", spendNone: "No statement uploaded yet. Use Areas → Banking to upload a CSV.", foodAvg: "Average of the last 4 weeks", reedPh: "Paste your Reed key here", reedSave: "Save", reedSaved: "Key saved; the scout uses it from its next run", mission: "Today\u2019s mission", hAi: "Local AI", hDb: "Database", hEv: "Event scout", hWe: "Wealth scout", hAg: "Daily briefing", hOn: "online", hOff: "offline", hOk: "connected", hErr: "error", hNever: "never run", hCheck: "Run full system test", hRunning: "Testing… this takes a few minutes", hPassed: "Full test: passed", hFailed: "Full test: failed at", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
+    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", foodOver: "Weekly eating-out and delivery limit exceeded", foodLine: (cur, cap, week) => `Week of ${week}: ${cur} against a limit of ${cap}`, foodThrough: "data to", foodOld: "This data is old; upload a newer statement", secSpend: "Spending", spendNone: "No statement uploaded yet. Use Areas → Banking to upload a CSV.", foodAvg: "Average of the last 4 weeks", reedPh: "Paste your Reed key here", reedSave: "Save", reedSaved: "Key saved; the scout uses it from its next run", tube: "Line status", tubeBad: "Disruption on your route", tubeGood: "All your lines are running normally", spikeTitle: "A question about food spending", spikePh: "Anything you remember about that week…", spikeSave: "Save", spikeSaved: "Saved", mission: "Today\u2019s mission", hAi: "Local AI", hDb: "Database", hEv: "Event scout", hWe: "Wealth scout", hAg: "Daily briefing", hOn: "online", hOff: "offline", hOk: "connected", hErr: "error", hNever: "never run", hCheck: "Run full system test", hRunning: "Testing… this takes a few minutes", hPassed: "Full test: passed", hFailed: "Full test: failed at", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
     noBrief: "No briefing yet. One is written every day at 7am.", nothingYet: "Nothing done yet this session.",
     job: "Job", market: "Market", noEvents: "No upcoming events found in your groups.", needsReed: "Job search needs a free Reed API key.",
     info: "Information, not financial advice", free: "Local model: no cost", ago: "ago", open: "Open", agents: "Agent status",
@@ -77,6 +77,30 @@ function ago(seconds, lang) {
 }
 
 // The ONE thing. Fixed priority, top wins; no scoring, no model.
+// When one week of food spending runs well above the four before it, ask - once per week -
+// and keep the owner's own answer. The question states figures only; it suggests no reason.
+function SpikeCheckin({ spend, t }) {
+  const [note, setNote] = useState("");
+  const [saved, setSaved] = useState(false);
+  const spike = spend && spend.spike;
+  if (!spike || (spend.checkin && spend.checkin.week_start === spike.week_start)) return null;
+  const save = () => fetch("/api/spend/checkin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week: spike.week_start, note }) })
+    .then((r) => { if (r.ok) setSaved(true); }).catch(() => {});
+  return (
+    <Card style={{ marginTop: 14 }}>
+      <div style={{ color: C.accent, fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{t.spikeTitle}</div>
+      <div dir="ltr" style={{ lineHeight: 1.6 }}>{spike.question}</div>
+      {saved ? <div style={{ color: C.ok, marginTop: 10 }}>{t.spikeSaved}</div> : (
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t.spikePh} maxLength={600} dir="auto"
+                 style={{ flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: 10, border: `1px solid ${C.line}`, background: C.bg, color: C.text, fontFamily: FONT }} />
+          <button onClick={save} disabled={!note.trim()} style={{ padding: "8px 14px", borderRadius: 10, border: `1px solid ${C.line}`, background: "transparent", color: C.text, cursor: "pointer", fontFamily: FONT }}>{t.spikeSave}</button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 const gbp = (pence) => "£" + (pence / 100).toFixed(2);
 
 // The owner's Reed job-search key goes straight from this box to his own server. It is never
@@ -103,6 +127,11 @@ function pickNow(data, unreachable, t) {
   const pending = briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0;
   if (pending > 0) return { tone: "need", title: t.approvals(pending), body: t.approvalsBody, href: "https://console.apexcorelab.uk/", action: t.approvalsBtn };
   if (budget && budget.warning) return { tone: "need", title: t.budgetWarn, body: t.budgetWarnBody };
+  const tube = scout && scout.commute;
+  const tubeFresh = tube && tube.generated_at && Date.now() / 1000 - tube.generated_at < 5 * 3600;
+  if (tubeFresh && tube.lines && tube.lines.some((l) => !l.good)) return { tone: "need", title: t.tubeBad, ltr: true,
+    body: tube.lines.filter((l) => !l.good).map((l) => `${l.name}: ${l.state}`).join(" · "),
+    quote: (tube.lines.find((l) => !l.good && l.reason) || {}).reason || null };
   const food = scout && scout.spend && scout.spend.food_alert;
   if (food && food.exceeded && !food.stale) return { tone: "need", title: t.foodOver, ltr: true,
     body: `${t.foodLine(gbp(food.current_pence), gbp(food.cap_pence), food.week_start)} · ${t.foodThrough} ${food.data_through}` };
@@ -314,6 +343,13 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
           )}
         </Card>
 
+        <SpikeCheckin spend={scout && scout.spend} t={t} />
+        {scout && scout.commute && scout.commute.lines && scout.commute.lines.length > 0 && (
+          <div dir="ltr" style={{ marginTop: 12, color: C.muted, fontSize: 14, display: "flex", flexWrap: "wrap", gap: "4px 14px" }}>
+            <span>{t.tube} · {ago(scout.commute.generated_at, lang)}:</span>
+            {scout.commute.lines.map((l) => <span key={l.id} style={{ color: l.good ? C.ok : C.need }}>{l.name}: {l.state}</span>)}
+          </div>
+        )}
         <div style={{ height: 14 }} />
         <Capture lang={lang} t={t} />
 
