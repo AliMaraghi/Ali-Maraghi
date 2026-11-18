@@ -258,16 +258,18 @@ function VoiceSection({ color, t }) {
   const [text, setText] = useState("");
   const [saved, setSaved] = useState(null); // null = unknown
   const [busy, setBusy] = useState(false);
+  const [source, setSource] = useState("paste");
+  const [have, setHave] = useState([]);
   useEffect(() => {
-    fetch("/api/dating/voice").then((r) => (r.ok ? r.json() : null)).then((j) => { if (j) setSaved(!!j.saved); }).catch(() => {});
+    fetch("/api/dating/voice").then((r) => (r.ok ? r.json() : null)).then((j) => { if (j) { setSaved(!!j.saved); setHave(j.sources || []); } }).catch(() => {});
   }, []);
   const save = async () => {
     if (!text.trim()) return;
     setBusy(true);
     try {
       const res = await fetch("/api/dating/voice", { method: "POST", headers: { "Content-Type": "application/json" },
-                                                     body: JSON.stringify({ text }) });
-      if (res.ok) { setSaved(true); setText(""); }
+                                                     body: JSON.stringify({ text, source }) });
+      if (res.ok) { setSaved(true); setText(""); setHave((h) => (h.includes(source) ? h : h.concat([source]))); }
     } catch { /* stays unsaved; the status line says so */ }
     setBusy(false);
   };
@@ -278,6 +280,14 @@ function VoiceSection({ color, t }) {
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={200000} dir="auto"
                 style={{ width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
                          background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical" }} />
+      <div dir="ltr" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {[["paste", "Other"], ["whatsapp", "WhatsApp"], ["instagram", "Instagram"], ["facebook", "Facebook"], ["gmail", "Gmail"]].map(([key, label]) => (
+          <button key={key} onClick={() => setSource(key)} style={{
+            fontSize: 12, padding: "4px 10px", borderRadius: 6, cursor: "pointer", color: "#fff",
+            border: source === key ? `1px solid ${color}` : "1px solid #3a3a55", background: source === key ? `${color}22` : "transparent",
+          }}>{have.includes(key) ? "\u2713 " : ""}{label}</button>
+        ))}
+      </div>
       <button onClick={save} disabled={busy}
               style={{ fontSize: 14, fontWeight: 700, padding: "8px 14px", borderRadius: 8, border: `1px solid ${color}`,
                        background: "transparent", color: "#fff", cursor: busy ? "default" : "pointer" }}>

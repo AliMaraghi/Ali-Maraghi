@@ -53,6 +53,17 @@ class Ghostwriter(unittest.TestCase):
         with self.assertRaises(ValueError):
             ghostwriter.save_voice(root, "   ")
 
+    def test_sources_are_kept_apart_and_all_used(self):
+        root = Path(tempfile.mkdtemp())
+        ghostwriter.save_voice(root, "insta line one", "instagram")
+        ghostwriter.save_voice(root, "Kind of you to say so, speak tomorrow", "gmail")
+        (root / "runtime" / "inbox" / "persona_samples_chat.md").write_text("# header\n\n## Samples\n\nfrom an export\n")
+        self.assertEqual(ghostwriter.sources_present(root), ["gmail", "instagram", "persona_samples_chat.md"])
+        text = ghostwriter.samples(root)
+        self.assertTrue(all(part in text for part in ("insta line one", "from an export", "speak tomorrow")) and "header" not in text)
+        with self.assertRaises(ValueError):
+            ghostwriter.save_voice(root, "x y", "telegram")
+
 
 if __name__ == "__main__":
     unittest.main()

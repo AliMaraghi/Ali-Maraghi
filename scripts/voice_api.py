@@ -480,13 +480,16 @@ class VoiceChatApp:
         # (apex/ghostwriter.py). GET says only whether a sample exists - it is never sent back.
         from apex import ghostwriter
         if method == "GET":
-            return self._respond(start_response, 200, {"saved": bool(ghostwriter.samples(ROOT))})
+            return self._respond(start_response, 200, {"saved": bool(ghostwriter.samples(ROOT)),
+                                                       "sources": ghostwriter.sources_present(ROOT)})
         length = environ.get("CONTENT_LENGTH", "")
         if not length.isdecimal() or not 1 <= int(length) <= 400_000:
             return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
         try:
             body = json.loads(environ["wsgi.input"].read(int(length)))
-            lines = ghostwriter.save_voice(ROOT, body.get("text") if isinstance(body, dict) else None)
+            if not isinstance(body, dict):
+                raise ValueError("body")
+            lines = ghostwriter.save_voice(ROOT, body.get("text"), body.get("source") or "paste")
         except (json.JSONDecodeError, ValueError):
             return self._respond(start_response, 400, {"error": "EMPTY_SAMPLE"})
         except OSError:
