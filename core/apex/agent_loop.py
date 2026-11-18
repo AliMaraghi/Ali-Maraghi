@@ -227,7 +227,8 @@ def _propose(book, run_id: str, index: int, args: dict, root: Path) -> dict:
         # not queued; the findings go back to the model so it can redraft and propose again.
         from . import persona_twin
         channel = payload.get("channel") if isinstance(payload.get("channel"), str) else None
-        verdict = persona_twin.review(text, persona_twin.load_profile(root), channel=channel, mode="draft")
+        register = "chat" if kind == "dating-message-send" else "written"
+        verdict = persona_twin.review(text, persona_twin.load_profile(root, register), channel=channel, mode="draft")
         if verdict.status != "PASS":
             raise ToolError(f"CRITIC_{verdict.status}: " + "; ".join(f"{f.rule} {f.detail}" for f in verdict.findings)[:600])
     if book is None:

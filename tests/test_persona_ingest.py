@@ -53,5 +53,49 @@ class IngestTests(unittest.TestCase):
                 persona_ingest.analyse(box, set())
 
 
+class ChatIngestTests(unittest.TestCase):
+    ANDROID = ("12/03/2024, 21:15 - Messages and calls are end-to-end encrypted.\n"
+               "12/03/2024, 21:15 - Ali M: are you still coming on friday because I booked the table for eight and they want numbers\n"
+               "12/03/2024, 21:16 - Sara: yes!! and this private reply from someone else must never be read or stored anywhere\n"
+               "12/03/2024, 21:17 - Ali M: great\n12/03/2024, 21:17 - Ali M: I will bring the tickets\nand the second line of my own message continues here too\n"
+               "12/03/2024, 21:18 - Ali M: <Media omitted>\n"
+               "13/03/2024, 09:00 - Ali M: send the deposit to 12345678 before noon please or they will give the table away to others\n")
+    IOS = "[05/01/2023, 18:02:11] Ali M: سلام امشب دیرتر می‌رسم چون جلسه طول کشید و باید یک گزارش دیگر هم بفرستم بعد راه می‌افتم\n[05/01/2023, 18:03:00] Reza: باشه\n"
+
+    def test_only_owner_lines_from_whatsapp_and_meta(self):
+        import zipfile
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp) / "chats"
+            folder.mkdir()
+            (folder / "WhatsApp Chat with Sara.txt").write_text(self.ANDROID, encoding="utf-8")
+            with zipfile.ZipFile(folder / "export.zip", "w") as archive:
+                archive.writestr("_chat.txt", self.IOS)
+            meta = {"participants": [{"name": "Ali M"}, {"name": "Tom"}], "messages": [
+                {"sender_name": "Ali M", "timestamp_ms": 1_700_000_000_000, "content": "I think we should leave earlier than planned because the trains are a mess on sundays"},
+                {"sender_name": "Tom", "timestamp_ms": 1_700_000_100_000, "content": "another person's message that must be skipped completely and never sampled"},
+                {"sender_name": "Ali M", "timestamp_ms": 1_300_000_000_000, "content": "this one is from 2011 and is older than the cut-off so it is ignored entirely here"}]}
+            (folder / "message_1.json").write_text(json.dumps(meta), encoding="utf-8")
+            stats, samples = persona_ingest.analyse_chats(folder, {"Ali M"}, 2012, 60)
+            joined = " ".join(samples)
+            self.assertEqual(stats["chat_files_with_your_messages"], 3)
+            self.assertEqual(stats["by_language"], {"en": 4, "fa": 1})
+            self.assertIn("booked the table", joined)
+            self.assertIn("second line of my own message", joined)             # multi-line owner message kept together
+            self.assertIn("trains are a mess", joined)
+            self.assertTrue(any("جلسه" in sample for sample in samples))
+            for forbidden in ("private reply", "another person", "12345678", "Media omitted", "2011", "باشه", "end-to-end"):
+                self.assertNotIn(forbidden, joined)
+            root = Path(tmp) / "root"
+            persona_ingest.write_chat_outputs(root, stats, samples)
+            self.assertEqual(len(persona_twin.load_profile(root, "chat").samples), len(samples))
+            self.assertEqual(persona_twin.load_profile(root).samples, ())       # chat samples do not leak into the written register
+            self.assertNotIn("table", json.dumps(stats))
+
+    def test_owner_name_is_required(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                persona_ingest.analyse_chats(Path(tmp), set())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -157,3 +157,139 @@ def write_outputs(root: Path, stats: dict, samples: list[str]) -> tuple[Path, Pa
         path.write_text(content, encoding="utf-8")
         path.chmod(0o600)
     return stats_path, samples_path
+
+
+# ---- chat archives: WhatsApp "Export chat" (.txt or .zip) and Instagram/Facebook message JSON ----
+# Same rule as mail: only what the OWNER wrote is read. Other people's messages are skipped
+# line by line and never stored, counted by name or sampled.
+import io
+import zipfile
+from datetime import datetime
+
+WA_LINE = re.compile(
+    r"^‎?\[?(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4}),? (\d{1,2}):(\d{2})(?::\d{2})?(?:\s?[APap]\.?[Mm]\.?)?\]?(?: -)? ([^:]{1,60}): (.*)$")
+WA_SKIP = re.compile(r"<Media omitted>|omitted$|^This message was deleted|^You deleted this message|^Missed (voice|video) call|"
+                     r"^‎|^(image|video|audio|sticker|GIF|document) omitted|<attached:|^null$|^Messages and calls are end-to-end", re.I)
+MAX_ARCHIVE_MEMBER = 80 * 1024 * 1024
+
+
+def _whatsapp_turns(text: str, owner_names: set[str]):
+    """Yields (year, text) for each run of consecutive owner messages (one 'turn')."""
+    year, parts, mine, day = None, [], False, None
+    for line in text.replace("\r", "").split("\n"):
+        match = WA_LINE.match(line)
+        if match:
+            sender = match.group(6).strip().lower()
+            is_owner = sender in owner_names
+            this_day = match.group(1, 2, 3)
+            if parts and not (is_owner and mine and this_day == day):       # someone else spoke, or a new day began
+                yield year, " ".join(parts)
+                parts = []
+            mine, day = is_owner, this_day
+            body = match.group(7).strip()
+            if is_owner and body and not WA_SKIP.search(body):
+                raw_year = int(match.group(3))
+                year = raw_year + 2000 if raw_year < 100 else raw_year
+                parts.append(body)
+        elif mine and parts and line.strip() and not WA_SKIP.search(line):
+            parts.append(line.strip())                         # continuation of the owner's own multi-line message
+    if parts:
+        yield year, " ".join(parts)
+
+
+def _fix_meta(text: str) -> str:
+    """Meta exports store UTF-8 as Latin-1 escapes; undo that when it applies."""
+    try:
+        return text.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return text
+
+
+def _meta_turns(raw: bytes, owner_names: set[str]):
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return
+    messages = data.get("messages") if isinstance(data, dict) else None
+    if not isinstance(messages, list):
+        return
+    for message in messages:
+        if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+            continue
+        if _fix_meta(str(message.get("sender_name", ""))).strip().lower() not in owner_names:
+            continue
+        try:
+            year = datetime.utcfromtimestamp(int(message.get("timestamp_ms", 0)) / 1000).year
+        except (ValueError, OverflowError, OSError):
+            continue
+        yield year, _fix_meta(message["content"]).strip()
+
+
+def _members(path: Path):
+    """(name, bytes) for each readable chat file under a file, folder or .zip. Nothing is extracted to disk."""
+    files = [path] if path.is_file() else sorted(p for p in path.rglob("*") if p.is_file() and not p.is_symlink())
+    for file in files:
+        suffix = file.suffix.lower()
+        if suffix in (".txt", ".json") and file.stat().st_size <= MAX_ARCHIVE_MEMBER:
+            yield file.name, file.read_bytes()
+        elif suffix == ".zip":
+            try:
+                with zipfile.ZipFile(file) as archive:
+                    for info in archive.infolist():
+                        if info.filename.lower().endswith((".txt", ".json")) and 0 < info.file_size <= MAX_ARCHIVE_MEMBER:
+                            yield info.filename, archive.read(info)
+            except (zipfile.BadZipFile, OSError):
+                continue
+
+
+def analyse_chats(path: Path, owner_names: set[str], since_year: int = 2012, max_samples: int = 60,
+                  red_lines: tuple[str, ...] = ()) -> tuple[dict, list[str]]:
+    owners = {n.strip().lower() for n in owner_names if n.strip()}
+    if not owners:
+        raise ValueError("at least one owner display name is required (exactly as it appears in the export)")
+    red = [term.lower() for term in red_lines]
+    by_year: Counter = Counter()
+    by_language: Counter = Counter()
+    files = turns = 0
+    lengths: list[int] = []
+    candidates: dict[int, list[str]] = {}
+    for name, raw in _members(Path(path)):
+        source = _meta_turns(raw, owners) if name.lower().endswith(".json") else _whatsapp_turns(raw.decode("utf-8", errors="replace"), owners)
+        found = False
+        for year, text in source:
+            if not year or year < since_year or not text:
+                continue
+            found = True
+            turns += 1
+            words = text.split()
+            lengths.append(len(words))
+            by_year[year] += 1
+            by_language["fa" if len(PERSIAN.findall(text)) > 0.3 * len(text.replace(" ", "")) else "en"] += 1
+            lowered = text.lower()
+            if 8 <= len(words) <= 70 and not SENSITIVE.search(text) and not any(term in lowered for term in red):
+                bucket = candidates.setdefault(year, [])
+                if len(bucket) < 40:
+                    bucket.append(" ".join(words))
+        files += 1 if found else 0
+    samples: list[str] = []
+    years, index = sorted(candidates, reverse=True), 0
+    while len(samples) < max_samples and any(index < len(candidates[y]) for y in years):
+        for year in years:
+            if index < len(candidates[year]) and len(samples) < max_samples:
+                samples.append(candidates[year][index])
+        index += 1
+    stats = {"chat_files_with_your_messages": files, "your_turns_used": turns, "since_year": since_year,
+             "by_year": dict(sorted(by_year.items())), "by_language": dict(by_language),
+             "median_words_per_turn": sorted(lengths)[len(lengths) // 2] if lengths else 0, "samples_kept": len(samples)}
+    return stats, samples
+
+
+def write_chat_outputs(root: Path, stats: dict, samples: list[str]) -> tuple[Path, Path]:
+    inbox = Path(root) / "runtime" / "inbox"
+    inbox.mkdir(parents=True, exist_ok=True, mode=0o700)
+    stats_path, samples_path = inbox / "persona_stats_chat.json", inbox / "persona_samples_chat.md"
+    for path, content in ((stats_path, json.dumps(stats, ensure_ascii=False, indent=2)),
+                          (samples_path, "# Chat-register samples from messages you sent (generated; safe to delete)\n\n## Samples\n\n" + "\n\n".join(samples) + "\n")):
+        path.write_text(content, encoding="utf-8")
+        path.chmod(0o600)
+    return stats_path, samples_path
