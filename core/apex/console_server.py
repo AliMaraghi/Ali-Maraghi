@@ -123,7 +123,15 @@ class ConsoleApp:
                 if isinstance(self.verifier,ReloadingVerifier) and self.verifier.verifier.owner != self.google_routes.owner:
                     raise PermissionError('Access owner configuration changed')
                 code,body,extra,kind=self.google_routes.handle(environ)
-            except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
+            except PermissionError as exc:
+                # The caller is already the Access-verified owner; a fixed reason word (never the raw
+                # message) lets them tell an expired page from the stop switch without server logs.
+                text=str(exc)
+                reason=next((word for marker,word in (('Durable development stop','STOP_SWITCH_ACTIVE'),('Owner session','SESSION_EXPIRED_RELOAD_PAGE'),
+                    ('Session cap','SESSION_CAP'),('Same-origin','ORIGIN_OR_FORM_TYPE'),('CSRF','CSRF_MISMATCH_RELOAD_PAGE'),
+                    ('Exact origin','HOST_HEADER'),('Owner required','OWNER_MISMATCH'),('Connect Google first','CONNECT_FIRST'),
+                    ('Access owner','ACCESS_OWNER_CHANGED')) if marker in text),'OTHER')
+                code=403;body=('{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED","reason":"'+reason+'"}').encode()
             except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif self.meta_routes and path_info in META_PATHS:
