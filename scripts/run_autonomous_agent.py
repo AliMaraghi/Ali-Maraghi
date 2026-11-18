@@ -28,8 +28,9 @@ from apex.kernel.budget import Budget                         # noqa: E402
 from apex.kernel.memory import Ledger                         # noqa: E402
 from apex.kernel.policy import enforce_durable_stop           # noqa: E402
 
-DEFAULT_GOAL = ("Analyze my latest bank statements, check arXiv for new papers, generate dating "
-                "drafts for me to review, and summarize everything into a daily briefing.")
+DEFAULT_GOAL = ("First call read_scouts. Then check arXiv for new papers. Then write a short daily "
+                "briefing: today's best event and why, the job and money headline the scouts found, and "
+                "anything notable in the papers. If a tool fails, say so in one line and move on.")
 APPROVALS_CONFIG = "/etc/apex/approvals-runtime.json"         # same file agents_runner.py reads
 PRICE_MILLIPENCE_PER_STEP = 2_000                             # same flat 2p/call estimate as voice_api.py
 
@@ -67,38 +68,70 @@ def main() -> int:
     if not 1 <= args.max_steps <= agent_loop.MAX_STEPS:
         sys.exit(f"--max-steps must be 1..{agent_loop.MAX_STEPS}")
 
-    from apex.agents_research import call_anthropic, load_api_key
-    import agents_runner                                      # scripts/agents_runner.py: fetch_public
-    import dating_agent                                       # scripts/dating_agent.py: generate_openers
-
     now = time.time()
     with Ledger(ROOT) as ledger:
         enforce_durable_stop(ledger)
-        budget = Budget(ledger)
-        api_key = load_api_key()
-        try:
-            from apex import semantic_memory
-            memory = semantic_memory.open_if_enabled(ledger.db)   # None unless APEX_LLM_PROVIDER=ollama
-        except Exception:
-            memory = None
-        toolbox = agent_loop.Toolbox(
-            root=ROOT, fetch=agents_runner.fetch_public,
-            openers=lambda profile: dating_agent.generate_openers(budget, profile), memory=memory, now=now)
-        result = agent_loop.run(
-            args.goal, toolbox, budget,
-            llm=lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens),
-            book=approval_book(ledger), max_steps=args.max_steps)
-        key = agent_loop.record_briefing(ledger, args.goal, result, now=now)
-        if memory is not None and result["status"] == "COMPLETED":
-            try:
-                memory.add("briefing", key, f"Daily briefing {time.strftime('%Y-%m-%d', time.gmtime(now))}: {result['report']}")
-            except Exception:
-                pass
+        result, key = run_briefing(ledger, args.goal, args.max_steps, now)
 
     # Counts and status only on stdout/journald - never briefing content (same rule as nightly_run.py).
     print(f"[agent] {result['status']} event={key} steps={len(result['trace'])} "
-          f"proposals={len(result['proposals'])}")
+          f"proposals={len(result['proposals'])} digest={result.get('digest_used', False)}")
     return 0 if result["status"] == "COMPLETED" else 1
+
+
+def scout_digest(root) -> str:
+    """Plain facts from the scouts' own records, used when the planning model does not finish."""
+    from apex import scout_common
+    events, wealth = scout_common.latest(root, "events") or {}, scout_common.latest(root, "wealth") or {}
+    lines = [f"Event: {e.get('title')} ({e.get('start')})" for e in (events.get("picked") or [])[:3]]
+    job, alert = wealth.get("job") or {}, wealth.get("alert") or {}
+    if job.get("title"):
+        lines.append(f"Job: {job['title']}" + (f" at {job['employer']}" if job.get("employer") else ""))
+    elif wealth.get("job_status"):
+        lines.append(f"Job search: {wealth['job_status']}")
+    if alert.get("headline"):
+        lines.append(f"Money headline: {alert['headline']} ({alert.get('source', 'source not recorded')})")
+    return "\n".join(lines)
+
+
+def run_briefing(ledger, goal: str = DEFAULT_GOAL, max_steps: int = agent_loop.MAX_STEPS, now: float | None = None):
+    """One daily run: today's mission from the scouts' picks, then the bounded planning loop. If
+    the loop does not finish, the briefing still carries the scouts' facts, labelled as such."""
+    from apex.agents_research import call_anthropic, load_api_key
+    from apex import scout_common, scout_events
+    import agents_runner                                      # scripts/agents_runner.py: fetch_public
+    import dating_agent                                       # scripts/dating_agent.py: generate_openers
+
+    now = time.time() if now is None else now
+    budget = Budget(ledger)
+    api_key = load_api_key()
+    llm = lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens)  # noqa: E731
+    try:
+        scout_common.record(ledger, "mission", scout_events.pick_mission(scout_common.latest(ROOT, "events"), llm, budget, now), now)
+    except Exception as exc:
+        print(f"[agent] mission skipped: {type(exc).__name__}", file=sys.stderr)
+    try:
+        from apex import semantic_memory
+        memory = semantic_memory.open_if_enabled(ledger.db)   # None unless APEX_LLM_PROVIDER=ollama
+    except Exception:
+        memory = None
+    toolbox = agent_loop.Toolbox(
+        root=ROOT, fetch=agents_runner.fetch_public,
+        openers=lambda profile: dating_agent.generate_openers(budget, profile), memory=memory, now=now)
+    result = agent_loop.run(goal, toolbox, budget, llm=llm, book=approval_book(ledger), max_steps=max_steps)
+    if result["status"] != "COMPLETED":
+        digest = scout_digest(ROOT)
+        if digest:
+            result["report"] += "\n\nFrom the scouts' own records (not written by the planning model):\n" + digest
+            result["digest_used"] = True
+    key = agent_loop.record_briefing(ledger, goal, result, now=now)
+    if memory is not None and result["status"] == "COMPLETED":
+        try:
+            memory.add("briefing", key, f"Daily briefing {time.strftime('%Y-%m-%d', time.gmtime(now))}: {result['report']}")
+        except Exception:
+            pass
+
+    return result, key
 
 
 if __name__ == "__main__":

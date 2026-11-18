@@ -686,6 +686,8 @@ def dashboard_payload(root: Path) -> dict:
         from apex import scout_common
         scout = {"events": scout_common.latest(root, "events"), "wealth": scout_common.latest(root, "wealth"),
                  "adult": scout_common.latest(root, "adult")}
+        from apex import system_health
+        scout["mission"] = system_health.mission(root)
     except Exception:
         scout = None
     return {"finance": finance, "academic": academic, "dating": dating, "banking": banking,

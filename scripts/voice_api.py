@@ -309,6 +309,17 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/system_health":
+            if method != "GET":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])
+                return [b""]
+            from apex import system_health
+            return self._respond(start_response, 200, system_health.status(ROOT))
+        if path == "/api/system_check":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._system_check(start_response)
         if path == "/api/dating/voice":
             if method not in ("GET", "POST"):
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
@@ -474,6 +485,27 @@ class VoiceChatApp:
             return self._respond(start_response, 502, {"error": f"CATEGORIZE_FAILED:{exc}"})
         self.budget.settle(key, 1)
         return self._respond(start_response, 200, result)
+
+    def _system_check(self, start_response):
+        # Starts scripts/e2e_test.py as its own process (it runs the scouts and one briefing for
+        # real, a few minutes on the local model). One at a time; the result is read back through
+        # /api/system_health. Nothing in the request is passed to the process.
+        import subprocess
+        from apex import system_health
+        target = ROOT.joinpath(*system_health.E2E_FILE)
+        try:
+            last = json.loads(target.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            last = {}
+        if last.get("state") == "running" and time.time() - float(last.get("started") or 0) < 1800:
+            return self._respond(start_response, 429, {"error": "ALREADY_RUNNING"})
+        try:
+            subprocess.Popen([sys.executable, "-B", str(ROOT / "scripts" / "e2e_test.py"), "--json", str(target)],
+                             cwd=str(ROOT), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, start_new_session=True)
+        except OSError:
+            return self._respond(start_response, 502, {"error": "CANNOT_START"})
+        return self._respond(start_response, 200, {"started": True})
 
     def _dating_voice(self, environ, start_response, method):
         # The owner's own past messages, kept privately on this server as a style sample

@@ -29,7 +29,7 @@ const T = {
     captureErr: "جواب نیامد. نوشته‌ات از بین نرفته؛ دوباره بفرست.",
     waiting: "منتظر تو", budget: "بودجهٔ ماه", scout: "دیده‌بان", none: "هیچ", of: "از", events: "رویداد", never: "هنوز اجرا نشده",
     focusOn: "حالت تمرکز", focusOff: "نمایش همه", chat: "گفت‌وگو", lang: "English",
-    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
+    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", mission: "مأموریت امروز", hAi: "هوش محلی", hDb: "پایگاه داده", hEv: "دیده‌بان رویداد", hWe: "دیده‌بان پول و شغل", hAg: "گزارش روزانه", hOn: "روشن", hOff: "خاموش", hOk: "وصل", hErr: "خطا", hNever: "هنوز اجرا نشده", hCheck: "آزمون کامل سیستم", hRunning: "در حال آزمون… چند دقیقه طول می‌کشد", hPassed: "آزمون کامل: موفق", hFailed: "آزمون کامل: ناموفق در", secOpen: "صحنهٔ باز و شبانهٔ لندن", openNone: "رویداد عمومی تازه‌ای پیدا نشد.", openBrowse: "خودت باز کن (نیاز به عضویت یا ورود دارند):", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
     noBrief: "هنوز گزارشی ساخته نشده. هر روز ساعت ۷ صبح ساخته می‌شود.", nothingYet: "در این نشست هنوز کاری نکرده‌ای.",
     job: "شغل", market: "بازار", noEvents: "در گروه‌های تو رویدادی پیدا نشد.", needsReed: "جست‌وجوی شغل به کلید رایگان Reed نیاز دارد.",
     info: "اطلاع‌رسانی است، نه توصیهٔ مالی", free: "مدل محلی: بدون هزینه", ago: "پیش", open: "باز کردن", agents: "وضعیت عامل‌ها",
@@ -46,7 +46,7 @@ const T = {
     captureErr: "No answer came back. Your text is still here; send it again.",
     waiting: "Waiting on you", budget: "Month's budget", scout: "Scout", none: "None", of: "of", events: "events", never: "not run yet",
     focusOn: "Focus mode", focusOff: "Show everything", chat: "Chat", lang: "فارسی",
-    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
+    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", mission: "Today\u2019s mission", hAi: "Local AI", hDb: "Database", hEv: "Event scout", hWe: "Wealth scout", hAg: "Daily briefing", hOn: "online", hOff: "offline", hOk: "connected", hErr: "error", hNever: "never run", hCheck: "Run full system test", hRunning: "Testing… this takes a few minutes", hPassed: "Full test: passed", hFailed: "Full test: failed at", secOpen: "London open-minded and night scene", openNone: "No new public events found.", openBrowse: "Open these yourself (membership or sign-in needed):", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
     noBrief: "No briefing yet. One is written every day at 7am.", nothingYet: "Nothing done yet this session.",
     job: "Job", market: "Market", noEvents: "No upcoming events found in your groups.", needsReed: "Job search needs a free Reed API key.",
     info: "Information, not financial advice", free: "Local model: no cost", ago: "ago", open: "Open", agents: "Agent status",
@@ -84,6 +84,10 @@ function pickNow(data, unreachable, t) {
   const pending = briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0;
   if (pending > 0) return { tone: "need", title: t.approvals(pending), body: t.approvalsBody, href: "https://console.apexcorelab.uk/", action: t.approvalsBtn };
   if (budget && budget.warning) return { tone: "need", title: t.budgetWarn, body: t.budgetWarnBody };
+  const mission = scout && scout.mission && scout.mission.event;
+  if (mission) return { tone: "ok", title: t.mission, body: [mission.title, mission.start, mission.location].filter(Boolean).join(" · "),
+                        quote: scout.mission.ice_breaker || null,
+                        href: mission.url && /^https:\/\//.test(mission.url) ? mission.url : null, action: t.eventBtn, ltr: true };
   const event = scout && scout.events && scout.events.picked && scout.events.picked[0];
   if (event) return { tone: "ok", title: t.event, body: [event.title, event.start, event.location].filter(Boolean).join(" · "),
                       href: event.url && /^https:\/\//.test(event.url) ? event.url : null, action: t.eventBtn, ltr: true };
@@ -156,6 +160,54 @@ function Capture({ lang, t }) {
   );
 }
 
+// The heartbeat: five parts, each green only on evidence (a live probe or a recent record).
+// Polls every 10 seconds; if the health endpoint itself cannot be reached every dot is red.
+function Health({ t, lang }) {
+  const [health, setHealth] = useState(null);
+  const [down, setDown] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => fetch("/api/system_health", { cache: "no-store" })
+      .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then((j) => { if (!cancelled) { setHealth(j); setDown(false); } })
+      .catch(() => { if (!cancelled) setDown(true); });
+    poll();
+    const timer = setInterval(poll, 10000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, []);
+  const checks = (!down && health && health.checks) || {};
+  const run = (c) => (c && c.last_run ? ago(c.last_run, lang) : t.hNever);
+  const items = [
+    [t.hAi, checks.local_ai, (c) => (c && c.ok ? t.hOn : t.hOff)],
+    [t.hDb, checks.database, (c) => (c && c.ok ? t.hOk : t.hErr)],
+    [t.hEv, checks.event_scout, run], [t.hWe, checks.wealth_scout, run], [t.hAg, checks.agent_loop, run],
+  ];
+  const e2e = !down && health && health.e2e;
+  const failedStep = e2e && e2e.state === "failed" && e2e.steps && e2e.steps.find((s) => !s.ok);
+  const start = () => fetch("/api/system_check", { method: "POST" }).then(() => setHealth((h) => (h ? { ...h, e2e: { state: "running" } } : h))).catch(() => {});
+  return (
+    <div style={{ marginTop: 16, padding: "12px 14px", border: `1px solid ${C.line}`, borderRadius: 14, background: C.card }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 18px", fontSize: 14 }}>
+        {items.map(([label, check, text]) => (
+          <span key={label} title={(check && check.detail) || ""} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 9, height: 9, borderRadius: 9, background: check && check.ok ? C.ok : C.bad, display: "inline-block" }} />
+            <span style={{ color: C.muted }}>{label}:</span> <span>{text(check)}</span>
+          </span>
+        ))}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, marginTop: 10, fontSize: 13 }}>
+        <button onClick={start} disabled={!!(e2e && e2e.state === "running")}
+                style={{ padding: "6px 12px", borderRadius: 10, border: `1px solid ${C.line}`, background: "transparent", color: C.text, cursor: "pointer", fontFamily: FONT }}>
+          {t.hCheck}
+        </button>
+        {e2e && e2e.state === "running" && <span style={{ color: C.need }}>{t.hRunning}</span>}
+        {e2e && e2e.state === "passed" && <span style={{ color: C.ok }}>{t.hPassed} · {ago(e2e.finished, lang)}</span>}
+        {failedStep && <span dir="auto" style={{ color: C.bad }}>{t.hFailed} {failedStep.name}: {failedStep.detail}</span>}
+      </div>
+    </div>
+  );
+}
+
 // One line per job that runs without the owner: when it last recorded something, and whether
 // that is later than its own schedule allows. Times come from the journal, never from a guess.
 function AutoRows({ auto, t, lang }) {
@@ -223,12 +275,15 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
           </div>
         </div>
 
+        <Health t={t} lang={lang} />
+
         <h1 style={{ fontSize: 34, fontWeight: 700, margin: "26px 0 18px", lineHeight: 1.3 }}>{hello}</h1>
 
         <Card tone={now.tone}>
           <div style={{ color: now.tone === "need" ? C.need : now.tone === "bad" ? C.bad : C.accent, fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{t.now}</div>
           <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.45 }}>{now.title}</div>
           <div dir={now.ltr ? "auto" : undefined} style={{ color: C.muted, marginTop: 8 }}>{now.body}</div>
+          {now.quote ? <div dir="auto" style={{ marginTop: 10, fontSize: 17 }}>“{now.quote}”</div> : null}
           {now.href && (
             <a href={now.href} target="_blank" rel="noopener noreferrer" style={{
               display: "inline-block", marginTop: 16, padding: "12px 22px", borderRadius: 14, background: now.tone === "need" ? C.need : C.accent,

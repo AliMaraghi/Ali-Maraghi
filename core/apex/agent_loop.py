@@ -89,6 +89,21 @@ class Toolbox:
         return self.root / "runtime" / "inbox"
 
     # ---- read-only tools ---------------------------------------------------
+    def read_scouts(self) -> dict:
+        """What the Opportunity Scouts last recorded: picked events, one job, one money headline."""
+        from . import scout_common
+        events, wealth = scout_common.latest(self.root, "events") or {}, scout_common.latest(self.root, "wealth") or {}
+        opened = scout_common.latest(self.root, "adult") or {}
+        if not (events or wealth or opened):
+            raise ToolError("NO_SCOUT_DATA: the scouts have not recorded a run yet")
+        keep = lambda e: {k: str(e.get(k) or "")[:160] for k in ("title", "start", "location", "why", "opener") if e.get(k)}  # noqa: E731
+        alert, job = wealth.get("alert") or {}, wealth.get("job") or {}
+        return {"events": [keep(e) for e in (events.get("picked") or [])[:3]],
+                "open_scene_events": [keep(e) for e in (opened.get("picked") or [])[:3]],
+                "job": {k: str(job.get(k) or "")[:160] for k in ("title", "employer", "location") if job.get(k)} or wealth.get("job_status"),
+                "money_headline": {k: str(alert.get(k) or "")[:200] for k in ("headline", "note", "source") if alert.get(k)},
+                "scouts_ran_at": events.get("generated_at") or wealth.get("generated_at")}
+
     def fetch_rss(self, limit: int = 15) -> dict:
         from . import rss
         if self.fetch is None:
@@ -180,6 +195,7 @@ class Toolbox:
 
 
 TOOLS = {
+    "read_scouts": ("What the Opportunity Scouts last found: events, one job, one money headline. args: {}", set()),
     "fetch_rss": ("Latest titles from the allowlisted arXiv/MIT feeds. args: {\"limit\": 1-30}", {"limit"}),
     "parse_bank_csv": ("Aggregate one owner-supplied statement CSV. args: {} to list files, or "
                        "{\"file\": \"name.csv\", \"fmt\": \"generic\"|\"paypal\"}", {"file", "fmt"}),
