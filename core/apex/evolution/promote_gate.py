@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 from ..kernel.budget import BudgetDenied, window_start
-from . import config, evaluator
+from . import config, evaluator, guard
 
 MIN_IMPROVEMENT = 0.05
 EVOLUTION_MONTHLY_CAP_PENCE = 500
@@ -95,7 +95,8 @@ def consider(ledger, book, candidate_source: str, generation: str, examples: lis
                                                 "target_heuristics.py (current)", "target_heuristics.py (candidate)"))
             proposal_id = f"evo.{int(now)}"
             state = book.propose(proposal_id, "opportunity", "evolution-promote", PROPOSER,
-                                 {"diff": diff[:8000], "baseline_score": b, "candidate_score": c,
+                                 {"diff": diff[:8000], "block": guard.split(candidate_source)[1],
+                                  "baseline_score": b, "candidate_score": c,
                                   "gain": round(gain, 4), "examples": len(examples), "benchmark_mode": mode},
                                  [f"evolution:{generation}"],
                                  commentary=(f"Evolved ranking weights: {b:.3f} -> {c:.3f} on {len(examples)} "
