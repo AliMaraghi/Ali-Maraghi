@@ -688,7 +688,45 @@ def dashboard_payload(root: Path) -> dict:
     except Exception:
         scout = None
     return {"finance": finance, "academic": academic, "dating": dating, "banking": banking,
-            "briefing": briefing, "budget": budget_status, "scout": scout, "generated_at": time.time()}
+            "briefing": briefing, "budget": budget_status, "scout": scout,
+            "automation": automation_status(root, briefing, scout), "generated_at": time.time()}
+
+
+def automation_status(root: Path, briefing, scout) -> dict:
+    """What runs by itself, from records only: when each job last wrote to the journal and what
+    it reported. Nothing here asks systemd or assumes a job is alive - a job that stopped simply
+    shows an old time. Fields are None when a job has never recorded anything."""
+    import sqlite3
+    from apex import local_llm
+    out = {"model": local_llm.model() if local_llm.enabled() else None, "local_model": local_llm.enabled(),
+           "scout_last": None, "scout_interval": 4 * 3600, "briefing_last": None,
+           "gmail": None, "backup": None}
+    events = (scout or {}).get("events") or {}
+    wealth = (scout or {}).get("wealth") or {}
+    stamps = [x.get("generated_at") for x in (events, wealth) if isinstance(x.get("generated_at"), (int, float))]
+    out["scout_last"] = max(stamps) if stamps else None
+    if briefing and isinstance(briefing.get("generated_at"), (int, float)):
+        out["briefing_last"] = briefing["generated_at"]
+    path = root / "runtime" / "kernel.sqlite3"
+    if not path.is_file():
+        return out
+    db = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=5)
+    try:
+        try:
+            row = db.execute("SELECT enabled,remaining,failures,next_due FROM connector_schedules WHERE connector='gmail'").fetchone()
+            if row:
+                out["gmail"] = {"enabled": bool(row[0]), "remaining": row[1], "failures": row[2], "next_due": row[3]}
+        except sqlite3.Error:
+            pass
+        try:
+            row = db.execute("SELECT last_attempt,last_success,last_state,bytes FROM offsite_backup").fetchone()
+            if row:
+                out["backup"] = {"last_attempt": row[0], "last_success": row[1], "state": row[2], "bytes": row[3]}
+        except sqlite3.Error:
+            pass
+    finally:
+        db.close()
+    return out
 
 
 def _general_status(ledger, now: float) -> str:

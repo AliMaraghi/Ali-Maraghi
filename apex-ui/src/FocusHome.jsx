@@ -29,7 +29,7 @@ const T = {
     captureErr: "جواب نیامد. نوشته‌ات از بین نرفته؛ دوباره بفرست.",
     waiting: "منتظر تو", budget: "بودجهٔ ماه", scout: "دیده‌بان", none: "هیچ", of: "از", events: "رویداد", never: "هنوز اجرا نشده",
     focusOn: "حالت تمرکز", focusOff: "نمایش همه", chat: "گفت‌وگو", lang: "English",
-    secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
+    secAuto: "کارهای خودکار", autoModel: "مدل", autoModelCloud: "مدل ابری", autoScout: "دیده‌بان فرصت", autoBrief: "گزارش صبح", autoGmail: "هم‌گام‌سازی Gmail", autoBackup: "پشتیبان در Drive", autoNext: "بعدی", autoOn: "روشن", autoOff: "خاموش", autoFail: "خطا", autoLate: "دیر شده", autoEvery4: "هر ۴ ساعت", autoDaily7: "هر روز ۷ صبح", autoDaily: "روزی یک بار", autoNotSet: "راه‌اندازی نشده", secScout: "رویدادها و فرصت‌ها", secBrief: "گزارش صبح", secAreas: "حوزه‌ها", secWhere: "کجا بودم؟",
     noBrief: "هنوز گزارشی ساخته نشده. هر روز ساعت ۷ صبح ساخته می‌شود.", nothingYet: "در این نشست هنوز کاری نکرده‌ای.",
     job: "شغل", market: "بازار", noEvents: "در گروه‌های تو رویدادی پیدا نشد.", needsReed: "جست‌وجوی شغل به کلید رایگان Reed نیاز دارد.",
     info: "اطلاع‌رسانی است، نه توصیهٔ مالی", free: "مدل محلی: بدون هزینه", ago: "پیش", open: "باز کردن", agents: "وضعیت عامل‌ها",
@@ -46,7 +46,7 @@ const T = {
     captureErr: "No answer came back. Your text is still here; send it again.",
     waiting: "Waiting on you", budget: "Month's budget", scout: "Scout", none: "None", of: "of", events: "events", never: "not run yet",
     focusOn: "Focus mode", focusOff: "Show everything", chat: "Chat", lang: "فارسی",
-    secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
+    secAuto: "Runs by itself", autoModel: "Model", autoModelCloud: "Cloud model", autoScout: "Opportunity scout", autoBrief: "Morning briefing", autoGmail: "Gmail sync", autoBackup: "Drive backup", autoNext: "next", autoOn: "on", autoOff: "off", autoFail: "failed", autoLate: "overdue", autoEvery4: "every 4 hours", autoDaily7: "daily at 7am", autoDaily: "once a day", autoNotSet: "not set up", secScout: "Events and openings", secBrief: "Morning briefing", secAreas: "Areas", secWhere: "Where was I?",
     noBrief: "No briefing yet. One is written every day at 7am.", nothingYet: "Nothing done yet this session.",
     job: "Job", market: "Market", noEvents: "No upcoming events found in your groups.", needsReed: "Job search needs a free Reed API key.",
     info: "Information, not financial advice", free: "Local model: no cost", ago: "ago", open: "Open", agents: "Agent status",
@@ -156,6 +156,29 @@ function Capture({ lang, t }) {
   );
 }
 
+// One line per job that runs without the owner: when it last recorded something, and whether
+// that is later than its own schedule allows. Times come from the journal, never from a guess.
+function AutoRows({ auto, t, lang }) {
+  if (!auto) return <div style={{ color: C.muted }}>—</div>;
+  const nowS = Date.now() / 1000;
+  const late = (last, every) => last && nowS - last > every * 1.5;
+  const rows = [
+    [t.autoModel, auto.local_model ? auto.model : t.autoModelCloud, null, false],
+    [t.autoScout, auto.scout_last ? ago(auto.scout_last, lang) : t.never, t.autoEvery4, late(auto.scout_last, auto.scout_interval || 14400)],
+    [t.autoBrief, auto.briefing_last ? ago(auto.briefing_last, lang) : t.never, t.autoDaily7, late(auto.briefing_last, 86400)],
+    [t.autoGmail, !auto.gmail ? t.autoNotSet : !auto.gmail.enabled ? t.autoOff
+      : auto.gmail.failures ? `${t.autoFail} ×${num(auto.gmail.failures, lang)}` : t.autoOn, null, !!(auto.gmail && auto.gmail.failures)],
+    [t.autoBackup, !auto.backup ? t.autoNotSet : auto.backup.last_success ? ago(auto.backup.last_success, lang) : t.autoFail,
+      t.autoDaily, !!(auto.backup && (auto.backup.state !== "UPLOADED" || late(auto.backup.last_success, 86400)))],
+  ];
+  return rows.map(([label, value, hint, warn]) => (
+    <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "9px 0", borderBottom: `1px solid ${C.line}` }}>
+      <div>{label}{hint ? <span style={{ color: C.muted, fontSize: 13 }}> · {hint}</span> : null}</div>
+      <div dir="auto" style={{ color: warn ? C.need : C.text, fontWeight: 600 }}>{value}{warn && value !== t.autoFail ? ` · ${t.autoLate}` : ""}</div>
+    </div>
+  ));
+}
+
 function Stat({ label, value, sub, tone }) {
   return (
     <div style={{ flex: "1 1 150px", background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 16px" }}>
@@ -227,6 +250,10 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
               <Stat label={t.scout} value={events ? `${num(eventCount, lang)} ${t.events}` : "—"}
                     sub={events ? ago(events.generated_at, lang) : t.never} />
             </div>
+
+            <Section id="auto" title={t.secAuto}>
+              <AutoRows auto={data && data.automation} t={t} lang={lang} />
+            </Section>
 
             <Section id="scout" title={t.secScout} hint={events ? ago(events.generated_at, lang) : null}>
               {eventCount === 0 && <div style={{ color: C.muted }}>{t.noEvents}</div>}
