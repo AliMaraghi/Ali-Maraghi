@@ -5,8 +5,10 @@ import { Mic, MicOff, Camera, CameraOff, Eye, EyeOff, User, Circle } from "lucid
 import Webcam from "react-webcam";
 import * as faceapi from "face-api.js";
 import AvatarStage from "./AvatarStage.jsx";
+import CoreGraph from "./CoreGraph.jsx";
 import SwarmPanel from "./SwarmPanel.jsx";
 import ExecutiveDashboard from "./ExecutiveDashboard.jsx";
+import { useRemembered } from "./FocusHome.jsx";
 
 const VRM_URL = "/models/ali.vrm"; // owner-provided asset; absent until the owner places one there
 
@@ -164,7 +166,7 @@ async function getReply(transcript, lang) {
 }
 
 export default function App() {
-  const [lang, setLang] = useState("en");
+  const [lang, setLang] = useRemembered("lang", "fa"); // same remembered choice as the dashboard
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [reply, setReply] = useState("");
@@ -343,9 +345,14 @@ export default function App() {
     <div style={{ width: "100vw", height: "100vh", position: "relative", color: "#dff6ff", fontFamily: "system-ui, sans-serif" }}>
       <style>{"@keyframes apexPulse { 0%,100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }"}</style>
       <div style={{ position: "absolute", inset: 0 }}>
-        <Scene listening={listening} speaking={speaking} thinking={thinking} mouthIntensityRef={mouthIntensityRef}
-               faceDetected={faceDetected} presenceMode={presenceMode}
-               vrmStatus={vrmStatus} onVrmLoaded={() => setVrmStatus("loaded")} onVrmError={() => setVrmStatus("error")} />
+        {presenceMode === "avatar" ? (
+          <Scene listening={listening} speaking={speaking} thinking={thinking} mouthIntensityRef={mouthIntensityRef}
+                 faceDetected={faceDetected} presenceMode={presenceMode}
+                 vrmStatus={vrmStatus} onVrmLoaded={() => setVrmStatus("loaded")} onVrmError={() => setVrmStatus("error")} />
+        ) : (
+          <CoreGraph listening={listening} speaking={speaking} thinking={thinking}
+                     mouthIntensityRef={mouthIntensityRef} lang={lang} />
+        )}
       </div>
 
       <div style={{ position: "absolute", top: 20, left: 20 }}>
@@ -374,7 +381,7 @@ export default function App() {
 
       {/* Camera preview + presence indicator: visible proof the camera is on whenever it is,
           never hidden - the whole point of this block is that nothing here happens invisibly. */}
-      <div style={{ position: "absolute", top: 70, left: 20, display: "flex", flexDirection: "column", gap: 10, width: 220 }}>
+      <div style={{ position: "absolute", top: window.innerWidth < 700 ? 64 : 70, left: 20, display: "flex", flexDirection: "column", gap: 10, width: window.innerWidth < 700 ? 150 : 220 }}>
         <button
           onClick={() => { setCameraEnabled((v) => !v); if (cameraEnabled) { setModelsLoaded(false); setFaceDetected(false); } }}
           style={{
@@ -411,7 +418,7 @@ export default function App() {
         )}
       </div>
 
-      <div style={{ position: "absolute", top: 20, right: 20, display: "flex", gap: 8 }}>
+      <div style={{ position: "absolute", top: window.innerWidth < 700 ? 64 : 20, right: 52, display: "flex", gap: 8 }}>
         <button
           onClick={() => setPresenceMode((m) => (m === "sphere" ? "avatar" : "sphere"))}
           title="Presence mode: sphere (efficient fallback) or avatar (placeholder rig)"
@@ -421,7 +428,7 @@ export default function App() {
           }}
         >
           {presenceMode === "avatar" ? <User size={14} /> : <Circle size={14} />}
-          {presenceMode === "avatar" ? "Avatar" : "Sphere"}
+          {presenceMode === "avatar" ? "Avatar" : "Core"}
         </button>
         {Object.keys(LANGS).map((code) => (
           <button
