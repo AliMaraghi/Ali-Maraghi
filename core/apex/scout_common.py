@@ -26,14 +26,15 @@ URLISH = re.compile(r"https?://\S+|www\.\S+", re.I)
 DEFAULT_CONFIG = {
     # Who the events are being ranked for. Edit runtime/inbox/scout_config.json to change it;
     # that folder is never committed, so personal details stay out of the repository.
-    "profile": "A London-based tech professional in their 40s looking for good tech networking "
-               "and well-run singles or social events.",
+    "profile": "A London-based man in his 40s working in tech who wants good tech networking and "
+               "well-run singles or social events where he can meet single women of about 30 to 45.",
     # Public London groups whose calendars answered on 2026-11-18 (tech/startup networking, then
     # social nights). Watching a group needs no membership; attending is the owner's own step.
     "meetup_groups": ["london-technology-community", "london-entrepreneur-startup-network-tech-business-ecommerce",
                       "london-new-tech", "TechSocialLondon", "disruptive-tech-lon", "speed-network-now",
                       "londonpartypeople", "london-night-out", "tastour", "bored-in-london", "singlesclublondon"],
-    "event_keywords": ["singles", "mixer", "speed dating", "networking", "tech", "social", "founders"],
+    "event_keywords": ["singles", "mixer", "speed dating", "wine tasting", "gallery", "networking", "tech",
+                       "social", "founders"],
     "job_keywords": "procurement manager",
     "job_location": "London",
     "finance_keywords": ["FTSE", "interest rate", "inflation", "Bank of England", "pound", "gold",

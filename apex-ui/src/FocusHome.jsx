@@ -261,6 +261,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                 <div key={i} dir="auto" style={{ marginBottom: 14 }}>
                   {e.url && /^https:\/\//.test(e.url) ? <a href={e.url} target="_blank" rel="noopener noreferrer" style={link}>{e.title}</a> : e.title}
                   <div style={{ color: C.muted, fontSize: 14 }}>{[e.start, e.location, e.why].filter(Boolean).join(" · ")}</div>
+                  {e.opener ? <div style={{ fontSize: 14, marginTop: 4 }}>“{e.opener}”</div> : null}
                 </div>
               ))}
               {wealth && (

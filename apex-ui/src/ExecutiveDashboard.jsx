@@ -45,7 +45,7 @@ const COPY = {
           + "dashboard - connecting here would mean anyone reaching this page, not just the owner, could "
           + "start linking a Google account. Manage the real connection on the console instead.",
         googleOpenConsole: "Open on console.apexcorelab.uk",
-        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)",
+        bulkTab: "One at a time", bulkTabBulk: "Bulk (up to 10)", magnetTab: "My profile", magnetHint: "Write a few true lines about yourself: work, interests, what you enjoy, what you are looking for. Used once, not stored.", magnetGo: "Write my profile", magnetBio: "Instagram bio", magnetPosts: "Post ideas", magnetHooks: "Replies when someone answers your story",
         bulkLabel: "Paste up to 10 bios, separated by a blank line between each:",
         bulkGenerate: "Generate All", bulkGenerating: "Generating all...",
         bulkEmpty: "Paste at least one profile first.", bulkProfile: "Profile",
@@ -76,7 +76,7 @@ const COPY = {
           + "اتصال از اینجا یعنی هر کسی که به این صفحه برسد، نه فقط مالک، می‌تواند شروع به اتصال حساب گوگل کند. "
           + "اتصال واقعی را از کنسول مدیریت کنید.",
         googleOpenConsole: "باز کردن در console.apexcorelab.uk",
-        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)",
+        bulkTab: "یکی‌یکی", bulkTabBulk: "دسته‌ای (تا ۱۰ مورد)", magnetTab: "پروفایل من", magnetHint: "چند خط واقعی دربارهٔ خودت بنویس: کار، علاقه‌ها، چیزهایی که دوست داری، دنبال چه هستی. فقط یک بار استفاده می‌شود و ذخیره نمی‌شود.", magnetGo: "پروفایلم را بنویس", magnetBio: "بیوی اینستاگرام", magnetPosts: "ایده‌های پست", magnetHooks: "جواب وقتی کسی به استوری‌ات پاسخ می‌دهد",
         bulkLabel: "تا ۱۰ پروفایل را بچسبانید، بین هر کدام یک خط خالی بگذارید:",
         bulkGenerate: "تولید همه", bulkGenerating: "در حال تولید همه...",
         bulkEmpty: "ابتدا حداقل یک پروفایل وارد کنید.", bulkProfile: "پروفایل",
@@ -253,6 +253,64 @@ function BulkDatingSection({ lang, color, t }) {
   );
 }
 
+// The owner's own notes -> bio, post ideas, story replies. Drafts only: nothing is posted or sent.
+function MagnetSection({ lang, color, t }) {
+  const [notes, setNotes] = useState("");
+  const [state, setState] = useState("idle"); // idle | loading | done | error
+  const [result, setResult] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const go = async () => {
+    if (!notes.trim()) { setState("error"); setErrorMsg(t.datingEmpty); return; }
+    setState("loading");
+    try {
+      const res = await fetch("/api/dating/magnet", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ notes: notes.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setErrorMsg(res.status === 402 ? (lang === "fa" ? "سقف بودجه روزانه پر شده است." : "Budget cap reached.") : t.errorGeneric);
+        setState("error");
+        return;
+      }
+      setResult(json); setState("done");
+    } catch { setErrorMsg(t.errorGeneric); setState("error"); }
+  };
+  const row = (text, i) => (
+    <div key={i} dir="auto" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10,
+                                     fontSize: 14, background: "rgba(255,255,255,0.04)", padding: 12, borderRadius: 8 }}>
+      <div style={{ whiteSpace: "pre-wrap", flex: 1 }}>{text}</div>
+      <CopyButton text={text} label={t.copy} copiedLabel={t.copied} />
+    </div>
+  );
+  const group = (title, items) => items && items.length > 0 && (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ fontSize: 13, opacity: 0.85 }}>{title}</div>
+      {items.map(row)}
+    </div>
+  );
+  return (
+    <>
+      <div style={{ fontSize: 13, opacity: 0.85 }}>{t.magnetHint}</div>
+      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} maxLength={2000} dir="auto"
+                style={{ width: "100%", boxSizing: "border-box", borderRadius: 8, border: "1px solid #3a3a55",
+                         background: "#05060a", color: "#fff", padding: 10, fontSize: 14, resize: "vertical" }} />
+      <button onClick={go} disabled={state === "loading"}
+              style={{ fontSize: 15, fontWeight: 700, padding: "10px 14px", borderRadius: 8, border: "none", background: color,
+                       color: "#05060a", cursor: state === "loading" ? "default" : "pointer", opacity: state === "loading" ? 0.6 : 1 }}>
+        {state === "loading" ? t.datingGenerating : t.magnetGo}
+      </button>
+      {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{errorMsg}</div>}
+      {state === "done" && result && (
+        <>
+          {group(t.magnetBio, result.bio ? [result.bio] : [])}
+          {group(t.magnetPosts, result.posts)}
+          {group(t.magnetHooks, result.hooks)}
+        </>
+      )}
+    </>
+  );
+}
+
 function DatingModal({ lang, color, onClose }) {
   const t = COPY[lang];
   const [tab, setTab] = useState("single"); // single | bulk
@@ -304,7 +362,7 @@ function DatingModal({ lang, color, onClose }) {
   return (
     <Modal title={COPY[lang].dating} color={color} lang={lang} onClose={onClose}>
       <div style={{ display: "flex", gap: 8 }}>
-        {[["single", t.bulkTab], ["bulk", t.bulkTabBulk]].map(([key, label]) => (
+        {[["single", t.bulkTab], ["bulk", t.bulkTabBulk], ["magnet", t.magnetTab]].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
             fontSize: 13, padding: "6px 12px", borderRadius: 6, cursor: "pointer",
             border: tab === key ? `1px solid ${color}` : "1px solid #3a3a55",
@@ -361,6 +419,7 @@ function DatingModal({ lang, color, onClose }) {
       )}
 
       {tab === "bulk" && <BulkDatingSection lang={lang} color={color} t={t} />}
+      {tab === "magnet" && <MagnetSection lang={lang} color={color} t={t} />}
     </Modal>
   );
 }

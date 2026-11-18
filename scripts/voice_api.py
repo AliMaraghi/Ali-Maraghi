@@ -309,6 +309,11 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
                 return [b""]
             return self._banking_parse(environ, start_response)
+        if path == "/api/dating/magnet":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            return self._dating_magnet(environ, start_response)
         if path == "/api/dating/bulk_queue":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
@@ -463,6 +468,32 @@ class VoiceChatApp:
                 pass
             return self._respond(start_response, 502, {"error": f"CATEGORIZE_FAILED:{exc}"})
         self.budget.settle(key, 1)
+        return self._respond(start_response, 200, result)
+
+    def _dating_magnet(self, environ, start_response):
+        # The owner's own notes about himself -> bio, post ideas and story replies. Budget-gated
+        # (scout-step), nothing stored, nothing posted anywhere (see apex/magnet_profile.py).
+        length = environ.get("CONTENT_LENGTH", "")
+        if not length.isdecimal() or not 1 <= int(length) <= 20_000:
+            return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+        try:
+            body = json.loads(environ["wsgi.input"].read(int(length)))
+        except json.JSONDecodeError:
+            return self._respond(start_response, 400, {"error": "INVALID_JSON"})
+        notes = body.get("notes") if isinstance(body, dict) else None
+        if not isinstance(notes, str) or not notes.strip():
+            return self._respond(start_response, 400, {"error": "EMPTY_NOTES"})
+        from apex import magnet_profile
+        from apex.agents_research import call_anthropic, load_api_key
+        try:
+            api_key = load_api_key()
+        except Exception:
+            return self._respond(start_response, 502, {"error": "NO_MODEL"})
+        llm = lambda system, user_text, max_tokens: call_anthropic(api_key, system, user_text, max_tokens=max_tokens)  # noqa: E731
+        result = magnet_profile.generate(llm, self.budget, notes)
+        if result["status"] != "OK":
+            denied = str(result.get("model_note", "")).startswith("budget:")
+            return self._respond(start_response, 402 if denied else 502, {"error": result.get("model_note") or result["status"]})
         return self._respond(start_response, 200, result)
 
     def _dating_bulk_queue(self, environ, start_response):
