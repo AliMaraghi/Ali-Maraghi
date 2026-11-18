@@ -25,7 +25,9 @@ LD = re.compile(rb'<script type="application/ld\+json"[^>]*>(.*?)</script>', re.
 EVENT_URL = re.compile(r"https://events\.humanitix\.com/[A-Za-z0-9][A-Za-z0-9_-]{0,150}")
 HORIZON_DAYS, TOP = 90, 5
 DEFAULT_HOSTS = ["feeldco"]
-KEYWORDS = ("social", "cabaret", "party", "rave", "lifestyle", "kink", "bdsm", "play", "munch", "singles")
+# What the owner asked to be flagged first. Matching is on the published title only.
+PRIORITY = ("under 35", "under-35", "u35", "munch", "kink", "bdsm", "group play", "rave", "lifestyle")
+KEYWORDS = PRIORITY + ("social", "cabaret", "party", "play", "singles")
 
 
 def host_url(host: str) -> str:
@@ -82,5 +84,6 @@ def run(config: dict, fetch, now: float | None = None) -> dict:
             seen.add(event["url"])
             event["matched"] = [k for k in KEYWORDS if k in event["title"].lower()]
             upcoming.append(event)
+    upcoming.sort(key=lambda e: (not any(k in e["matched"] for k in PRIORITY), e["start"]))
     return {"event": "scout_adult_events", "status": "OK" if upcoming else "NO_EVENTS", "hosts": len(hosts),
             "feeds_failed": failed, "considered": len(found), "picked": upcoming[:TOP]}
