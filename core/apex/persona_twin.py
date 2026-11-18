@@ -147,10 +147,13 @@ def parse_profile(markdown: str) -> PersonaProfile:
 
 
 def load_profile(root: Path) -> PersonaProfile:
-    path = Path(root).joinpath(*STYLE_FILE)
-    if not path.is_file() or path.is_symlink() or path.stat().st_size > 200_000:
-        return PersonaProfile()
-    return parse_profile(path.read_text(encoding="utf-8", errors="replace"))
+    """The owner's own style file, plus samples generated from sent mail (persona_ingest) if present."""
+    texts = []
+    for name in (STYLE_FILE[-1], "persona_samples.md"):
+        path = Path(root).joinpath(*STYLE_FILE[:-1], name)
+        if path.is_file() and not path.is_symlink() and path.stat().st_size <= 400_000:
+            texts.append(path.read_text(encoding="utf-8", errors="replace"))
+    return parse_profile("\n\n".join(texts)) if texts else PersonaProfile()
 
 
 def system_context(profile: PersonaProfile) -> str:
