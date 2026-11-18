@@ -18,7 +18,7 @@ class GoogleConnection:
 
     def begin(self, authenticated_owner, session):
         if authenticated_owner != self.state.owner:raise PermissionError('Owner required')
-        return self.state.begin(session,['gmail'])
+        return self.state.begin(session,['gmail','drive'])
 
     def callback(self, authenticated_owner, session, state, code):
         if authenticated_owner != self.state.owner:raise PermissionError('Owner required')

@@ -48,7 +48,7 @@ class TokenBroker:
         if type(lifetime) is not int or not 60 <= lifetime <= 86400:
             raise ValueError('Invalid token lifetime')
         scope = response.get('scope', previous.get('scope') if previous else None)
-        allowed = {'openid', 'email', 'https://www.googleapis.com/auth/userinfo.email', SCOPES['gmail']}
+        allowed = {'openid', 'email', 'https://www.googleapis.com/auth/userinfo.email', SCOPES['gmail'], SCOPES['drive']}
         if not isinstance(scope, str) or SCOPES['gmail'] not in scope.split() or set(scope.split()) - allowed:
             raise PermissionError('Unexpected or missing granted scopes')
         refresh = response.get('refresh_token', previous.get('refresh_token') if previous else None)
@@ -79,6 +79,11 @@ class TokenBroker:
                 current = self._normalized(response, current)
                 self._save(current, generation, 'CREDENTIAL_REFRESHED')
             return current['access_token']
+
+    def granted_scope(self):
+        """The scope string of the installed grant, or '' when there is none."""
+        data, _ = self._load()
+        return data.get('scope', '') if data and data.get('status') != 'REVOKED' else ''
 
     def disconnect(self):
         """Local revocation only; does not claim Google-side grant revocation."""

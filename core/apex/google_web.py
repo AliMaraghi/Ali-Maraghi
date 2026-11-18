@@ -23,6 +23,7 @@ from .google_tokens import TokenBroker
 from .google_connect import GoogleConnection
 from .gmail_sync import GmailSync
 from .kernel.schedules import Schedules
+from . import drive_backup
 
 ORIGIN='https://console.apexcorelab.uk'
 COOKIE='__Host-apex-owner'
@@ -57,6 +58,17 @@ def components(ledger,cfg):
     broker=TokenBroker(ledger,cfg['encryption_key'].encode(),cfg['owner'],cfg['client_id'],policy)
     state=OAuthState(ledger,cfg['encryption_key'].encode(),cfg['client_id'],cfg['redirect_uri'],cfg['owner'])
     return policy,broker,GoogleConnection(state,broker,cfg['client_secret'])
+
+
+def scheduled_offsite_backup(ledger,path,root):
+    """Worker handler: at most one encrypted journal upload a day to the owner's own Drive.
+
+    Does nothing until the owner has granted the Drive scope and placed the passphrase file.
+    """
+    cfg=protected_json(path)
+    load_config(path,cfg['owner'])
+    policy,broker,connection=components(ledger,cfg)
+    return drive_backup.run_if_due(ledger,root,broker.granted_scope(),connection.token)
 
 
 def scheduled_gmail_sync(ledger,path,owner_digest):
@@ -160,5 +172,5 @@ class GoogleRoutes:
             recurring=next((r for r in Schedules(ledger).connector_status() if r['connector']=='gmail'),None)
             recurring='Recurring sync: not armed' if recurring is None else ('Recurring sync: '+('enabled' if recurring['enabled'] else 'disabled')+', remaining runs '+str(recurring['remaining'])+', consecutive failures '+str(recurring['failures']))
             controls=''.join('<form method="post" action="'+route+'"><input type="hidden" name="csrf" value="'+html.escape(row[1])+'"><button>'+label+'</button></form>' for route,label in [('/auth/google/start','Connect / reconnect Google'),('/connections/google/sync','Sync one bounded metadata page'),('/connections/google/schedule','Enable recurring sync (15 min, 7 days)'),('/connections/google/unschedule','Disable recurring sync'),('/auth/google/disconnect','Disconnect locally'),('/auth/logout','End application session')])
-            page='<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google connection</title><body><main><h1>Google connection</h1><p>'+html.escape(status)+'</p><p>'+html.escape(recurring)+' (runs only when the supervised worker has Google configuration).</p><p>Metadata only. Local disconnect does not revoke the Google grant. A bounded page is not a full mailbox backfill.</p>'+controls+'<a href="/console">Founder console</a></main></body></html>'
+            page='<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google connection</title><body><main><h1>Google connection</h1><p>'+html.escape(status)+'</p><p>'+html.escape(recurring)+' (runs only when the supervised worker has Google configuration).</p><p>'+html.escape(drive_backup.status(ledger,broker.granted_scope()))+'</p><p>Metadata only. Local disconnect does not revoke the Google grant. A bounded page is not a full mailbox backfill.</p>'+controls+'<a href="/console">Founder console</a></main></body></html>'
             return 200,page.encode(),headers,'text/html; charset=utf-8'

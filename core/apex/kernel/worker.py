@@ -40,6 +40,15 @@ def cycle(root, google_config=None):
         except ValueError:released=[];outcomes.append({'stage':'schedule','state':'BLOCKED_INPUT_OR_CODE'})
         try:connector_outcomes=run_connectors(ledger,scheduler,google_config)
         except PermissionError:connector_outcomes=[]  # Durable stop raised during settlement.
+        if google_config is not None:
+            # Encrypted off-site journal copy, at most once a day; it stays idle until the owner
+            # has granted the Drive scope and placed the passphrase file. Never fatal to the cycle.
+            try:
+                from ..google_web import scheduled_offsite_backup
+                backup_state=scheduled_offsite_backup(ledger,google_config,root)
+                if backup_state:outcomes.append({'stage':'offsite_backup','state':backup_state})
+            except Exception as failure:
+                outcomes.append({'stage':'offsite_backup','state':'FAILED','error_type':type(failure).__name__})
         # Persist admission before executing. A crash may defer an admitted graph
         # by one rotation, but cannot repeatedly pin the head of the queue.
         # Job leases, not this cursor, fence actual execution attempts.

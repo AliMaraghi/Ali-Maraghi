@@ -14,7 +14,9 @@ from cryptography.fernet import Fernet
 from .kernel.schema import strict_json
 from .kernel.policy import enforce_durable_stop
 
-SCOPES={'gmail':'https://www.googleapis.com/auth/gmail.readonly'}
+SCOPES={'gmail':'https://www.googleapis.com/auth/gmail.readonly',
+        # drive.file reaches only files this application itself creates (the encrypted journal backup).
+        'drive':'https://www.googleapis.com/auth/drive.file'}
 
 
 def digest(value):return hashlib.sha256(value.encode()).hexdigest()
@@ -42,10 +44,10 @@ class OAuthState:
 
     def begin(self,owner_session,services):
         bounded(owner_session,32,256)
-        if type(services) not in (list,tuple) or services!=['gmail'] and services!=('gmail',):
-            raise ValueError('Only reviewed Gmail scope profile currently supported')
+        if type(services) not in (list,tuple) or list(services) not in (['gmail'],['gmail','drive']):
+            raise ValueError('Only the reviewed Gmail and Gmail+backup scope profiles are supported')
         now=int(time.time());state=secrets.token_urlsafe(32);verifier=secrets.token_urlsafe(64)
-        scopes=['openid','email',SCOPES['gmail']]
+        scopes=['openid','email']+[SCOPES[name] for name in services]
         encrypted=self.cipher.encrypt(__import__('json').dumps({'verifier':verifier,'binding':self.binding,'scopes':scopes}).encode())
         with self.ledger.transaction():
             enforce_durable_stop(self.ledger)
