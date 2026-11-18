@@ -189,16 +189,16 @@ export default function App() {
   // "chat" | "dashboard" - also reflected in the URL hash (#dashboard) so the dashboard has a
   // real, bookmarkable/shareable/directly-loadable address instead of being reachable only by
   // finding and clicking the toggle button after the page loads to "chat".
-  const [view, setView] = useState(() => (window.location.hash === "#dashboard" ? "dashboard" : "chat"));
+  const [view, setView] = useState(() => (window.location.hash === "#chat" ? "chat" : "dashboard"));
   const goToView = (next) => {
     setView(next);
-    const hash = next === "dashboard" ? "#dashboard" : "";
+    const hash = next === "chat" ? "#chat" : "";
     if (window.location.hash !== hash) {
       window.history.replaceState(null, "", window.location.pathname + window.location.search + hash);
     }
   };
   useEffect(() => {
-    const onHashChange = () => setView(window.location.hash === "#dashboard" ? "dashboard" : "chat");
+    const onHashChange = () => setView(window.location.hash === "#chat" ? "chat" : "dashboard");
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -333,16 +333,8 @@ export default function App() {
         <ExecutiveDashboard
           onOpenSwarmPanel={() => { goToView("chat"); setSwarmPanelOpen(true); }}
           lastAction={reply ? `${transcript ? transcript + " → " : ""}${reply}` : ""}
+          onOpenChat={() => goToView("chat")}
         />
-        <button
-          onClick={() => goToView("chat")}
-          style={{
-            position: "absolute", top: 20, right: 20, fontSize: 12, padding: "4px 10px", borderRadius: 6,
-            border: "1px solid #3a7a90", background: "transparent", color: "#fff", cursor: "pointer",
-          }}
-        >
-          Chat/Avatar
-        </button>
       </div>
     );
   }

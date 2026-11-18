@@ -298,7 +298,7 @@ class VoiceChatApp:
             if method != "GET":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])
                 return [b""]
-            return self._academic_latest(start_response)
+            return self._academic_latest(start_response, translate="translate=fa" in environ.get("QUERY_STRING", ""))
         if path == "/api/dating/draft":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
@@ -344,7 +344,7 @@ class VoiceChatApp:
             return self._respond(start_response, 502, {"error": "DASHBOARD_UNAVAILABLE"})
         return self._respond(start_response, 200, payload)
 
-    def _academic_latest(self, start_response):
+    def _academic_latest(self, start_response, translate=False):
         # Real, fresh live fetch (same allowlisted RSS hosts A-1 itself uses) for the dashboard's
         # Academic modal - free, no LLM, no budget touched. See
         # orchestrator.academic_latest_titles's own docstring: this is "fetched just now", never
@@ -353,7 +353,47 @@ class VoiceChatApp:
             titles = orchestrator.academic_latest_titles(self.root)
         except Exception:
             return self._respond(start_response, 502, {"error": "ACADEMIC_FETCH_UNAVAILABLE"})
+        if translate:
+            self._add_persian_titles(titles)
         return self._respond(start_response, 200, {"titles": titles, "fetched_at": time.time()})
+
+    def _add_persian_titles(self, titles):
+        """Adds "title_fa" where a translation exists. ONE budget-gated model call covers every
+        title not translated before; results are kept in memory only. The titles are untrusted
+        feed text: the model's output is used purely as display text, and on any failure the
+        English titles are returned unchanged."""
+        cache = self.__dict__.setdefault("_title_fa", {})
+        missing = [t["title"] for t in titles if isinstance(t.get("title"), str) and t["title"] not in cache][:8]
+        if missing:
+            key = identifier(f"titles.{int(time.time() * 1000)}"[:48])
+            try:
+                self.budget.reserve(key, "core", "anthropic", "voice-chat-call", 1)
+            except BudgetDenied:
+                missing = []
+            if missing:
+                numbered = "\n".join(f"{i + 1}. {title[:200]}" for i, title in enumerate(missing))
+                system = ("Translate each numbered English research-paper title into natural, accurate Persian. "
+                          "Keep technical terms and acronyms recognisable. Return ONE JSON object mapping each number "
+                          "(as a string) to its Persian title. JSON object only, nothing else.")
+                try:
+                    raw = call_anthropic(load_api_key(), [{"role": "user", "content": numbered}], system)
+                    self.budget.settle(key, 1)
+                    start, end = raw.find("{"), raw.rfind("}")
+                    parsed = json.loads(raw[start:end + 1]) if 0 <= start < end else {}
+                    for index, title in enumerate(missing):
+                        value = parsed.get(str(index + 1)) if isinstance(parsed, dict) else None
+                        if isinstance(value, str) and 2 <= len(value) <= 300 and re.search(r"[\u0600-\u06FF]", value):
+                            if len(cache) > 400:
+                                cache.clear()
+                            cache[title] = value.strip()
+                except Exception:
+                    try:
+                        self.budget.release(key)
+                    except Exception:
+                        pass
+        for item in titles:
+            if item.get("title") in cache:
+                item["title_fa"] = cache[item["title"]]
 
     def _dating_draft(self, environ, start_response):
         # Budget-gated, same SKU/pattern as the voice path (orchestrator.dating_draft_reply) -

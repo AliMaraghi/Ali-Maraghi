@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import FocusHome, { useRemembered } from "./FocusHome.jsx";
 
 // Reads GET /api/dashboard - a cheap re-shaping of the real agent_telemetry data (see
 // scripts/orchestrator.py's dashboard_payload()). No fabricated scores anywhere: "status" and
@@ -445,18 +446,40 @@ function AcademicModal({ lang, color, onClose }) {
       .catch(() => { if (!cancelled) setState("error"); });
     return () => { cancelled = true; };
   }, []);
+  // Persian titles: a second, slower request (one local-model call). English shows at once;
+  // the Persian replaces it when it arrives, with the original kept underneath.
+  const [fa, setFa] = useState({});
+  const [translating, setTranslating] = useState(false);
+  useEffect(() => {
+    if (lang !== "fa" || state !== "done" || titles.length === 0) return undefined;
+    let cancelled = false;
+    setTranslating(true);
+    fetch(ACADEMIC_ENDPOINT + "?translate=fa")
+      .then((res) => (res.ok ? res.json() : { titles: [] }))
+      .then((json) => {
+        if (cancelled) return;
+        const map = {};
+        (json.titles || []).forEach((item) => { if (item.title_fa) map[item.title] = item.title_fa; });
+        setFa(map); setTranslating(false);
+      })
+      .catch(() => { if (!cancelled) setTranslating(false); });
+    return () => { cancelled = true; };
+  }, [lang, state, titles.length]);
 
   return (
     <Modal title={COPY[lang].academic} color={color} lang={lang} onClose={onClose}>
       <div style={{ fontSize: 12, opacity: 0.6 }}>{t.academicNote}</div>
       {state === "loading" && <div style={{ fontSize: 14, opacity: 0.8 }}>{t.academicFetching}</div>}
+      {translating && <div style={{ fontSize: 13, opacity: 0.7 }}>در حال ترجمه به فارسی با مدل محلی (حدود یک دقیقه)…</div>}
+      {lang === "fa" && Object.keys(fa).length > 0 && <div style={{ fontSize: 12, opacity: 0.6 }}>ترجمهٔ ماشینی است؛ عنوان اصلی زیر هر مورد آمده.</div>}
       {state === "error" && <div style={{ color: "#ff8a8a", fontSize: 13 }}>{t.errorGeneric}</div>}
       {state === "done" && titles.length === 0 && <div style={{ fontSize: 14, opacity: 0.8 }}>{t.academicNone}</div>}
       {state === "done" && titles.length > 0 && (
         <ul style={{ margin: 0, padding: lang === "fa" ? "0 18px 0 0" : "0 0 0 18px", fontSize: 14, lineHeight: 1.7 }}>
           {titles.map((item, i) => (
             <li key={i}>
-              <a href={item.link} target="_blank" rel="noreferrer" style={{ color }}>{item.title}</a>
+              <a href={item.link} target="_blank" rel="noreferrer" style={{ color }}>{(lang === "fa" && fa[item.title]) || item.title}</a>
+              {lang === "fa" && fa[item.title] ? <div dir="ltr" style={{ opacity: 0.5, fontSize: 12 }}>{item.title}</div> : null}
               {" "}<span style={{ opacity: 0.5, fontSize: 12 }}>({item.feed})</span>
             </li>
           ))}
@@ -738,8 +761,8 @@ function DomainCard({ domain, data, lang, onAction }) {
   );
 }
 
-export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
-  const [lang, setLang] = useState("en");
+export default function ExecutiveDashboard({ onOpenSwarmPanel, onOpenChat, lastAction }) {
+  const [lang, setLang] = useRemembered("lang", "fa");
   const [data, setData] = useState(null);
   const [unreachable, setUnreachable] = useState(false);
   const [openModalDomain, setOpenModalDomain] = useState(null); // null | "finance" | "academic" | "dating" | "banking" | "google"
@@ -762,71 +785,15 @@ export default function ExecutiveDashboard({ onOpenSwarmPanel, lastAction }) {
   }, []);
 
   const t = COPY[lang];
-  const dir = lang === "fa" ? "rtl" : "ltr";
+  const statusOf = (d) => (data && data[d] ? (lang === "fa" ? data[d].metric_fa : data[d].metric_en) || data[d].status : "");
+  const areas = DOMAINS.map((d) => ({ id: d, icon: DOMAIN_ICON[d], label: t[d], status: statusOf(d), onOpen: () => setOpenModalDomain(d) }))
+    .concat([{ id: "google", icon: "\u{2709}\u{FE0F}", label: "Gmail", status: "", onOpen: () => setOpenModalDomain("google") }]);
 
   return (
-    <div dir={dir} style={{
-      position: "absolute", inset: 0, background: "#0a0e1a", color: "#ffffff",
-      fontFamily: "system-ui, sans-serif", padding: 24, overflowY: "auto", fontSize: 16,
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-        <h1 style={{ fontSize: 22, margin: 0 }}>{t.title}</h1>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onOpenSwarmPanel} style={{
-            fontSize: 14, padding: "8px 14px", borderRadius: 8, border: "1px solid #3a7a90",
-            background: "transparent", color: "#fff", cursor: "pointer",
-          }}>
-            {t.whereWasI}
-          </button>
-          <button onClick={() => setLang(lang === "en" ? "fa" : "en")} style={{
-            fontSize: 14, padding: "8px 14px", borderRadius: 8, border: "1px solid #3a7a90",
-            background: "transparent", color: "#fff", cursor: "pointer",
-          }}>
-            {lang === "en" ? "فارسی" : "English"}
-          </button>
-        </div>
-      </div>
-
-      {lastAction && (
-        <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 16 }}>
-          {t.lastThing} {lastAction}
-        </div>
-      )}
-      {!lastAction && (
-        <div style={{ fontSize: 13, opacity: 0.5, marginBottom: 16 }}>{t.nothingYet}</div>
-      )}
-
-      {unreachable && (
-        <div style={{ color: "#ff8a8a", marginBottom: 16 }}>
-          {lang === "fa" ? "داشبورد در دسترس نیست." : "Dashboard unreachable."}
-        </div>
-      )}
-
-      {data && data.briefing && (
-        <div dir="auto" style={{
-          border: "1px solid #3a7a90", borderRadius: 12, padding: 16, marginBottom: 16, background: "#0f1526",
-        }}>
-          <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 8 }}>
-            {lang === "fa" ? "گزارش روزانه عامل" : "Daily agent briefing"}
-            {" · "}{data.briefing.status}
-            {data.briefing.generated_at ? " · " + new Date(data.briefing.generated_at * 1000).toLocaleString() : ""}
-            {data.briefing.proposals && data.briefing.proposals.length > 0
-              ? " · " + data.briefing.proposals.length + (lang === "fa" ? " مورد در انتظار تأیید" : " awaiting approval")
-              : ""}
-          </div>
-          <div style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.5 }}>{data.briefing.report}</div>
-        </div>
-      )}
-
-      {data && data.budget && <BudgetTracker budget={data.budget} lang={lang} />}
-      {data && data.scout && <ScoutAlerts scout={data.scout} lang={lang} />}
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-        {data && DOMAINS.map((domain) => (
-          <DomainCard key={domain} domain={domain} data={data[domain]} lang={lang} onAction={setOpenModalDomain} />
-        ))}
-        <GoogleCard lang={lang} onClick={() => setOpenModalDomain("google")} />
-      </div>
+    <div dir={lang === "fa" ? "rtl" : "ltr"} style={{ position: "absolute", inset: 0, color: "#ffffff", fontSize: 16,
+                                                     fontFamily: 'Vazirmatn, "Segoe UI", Tahoma, system-ui, sans-serif' }}>
+      <FocusHome lang={lang} setLang={setLang} data={data} unreachable={unreachable} lastAction={lastAction} areas={areas}
+                 onOpenChat={onOpenChat} onOpenAgents={onOpenSwarmPanel} />
 
       {openModalDomain === "google" && (
         <GoogleModal lang={lang} onClose={() => setOpenModalDomain(null)} />
