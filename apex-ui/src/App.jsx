@@ -21,8 +21,10 @@ const LANGS = { en: "en-US", fa: "fa-IR" };
 const PRESENCE_KEY = "apex.presenceMode";
 function loadPresenceMode() {
   try {
-    const saved = localStorage.getItem(PRESENCE_KEY);
-    return saved === "avatar" ? "avatar" : "sphere";
+    // No owner avatar asset exists, so the wireframe placeholder is retired: a previously saved
+    // "avatar" choice no longer hides the core. Restore the toggle only with a real, reviewed asset.
+    localStorage.removeItem(PRESENCE_KEY);
+    return "sphere";
   } catch {
     return "sphere";
   }
@@ -419,17 +421,6 @@ export default function App() {
       </div>
 
       <div style={{ position: "absolute", top: window.innerWidth < 700 ? 64 : 20, right: 52, display: "flex", gap: 8 }}>
-        <button
-          onClick={() => setPresenceMode((m) => (m === "sphere" ? "avatar" : "sphere"))}
-          title="Presence mode: sphere (efficient fallback) or avatar (placeholder rig)"
-          style={{
-            display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6,
-            border: "1px solid #2a6f8a", background: "transparent", color: "#dff6ff", cursor: "pointer",
-          }}
-        >
-          {presenceMode === "avatar" ? <User size={14} /> : <Circle size={14} />}
-          {presenceMode === "avatar" ? "Avatar" : "Core"}
-        </button>
         {Object.keys(LANGS).map((code) => (
           <button
             key={code}
