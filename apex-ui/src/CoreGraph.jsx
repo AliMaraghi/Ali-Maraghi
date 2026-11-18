@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 const TELEMETRY_ENDPOINT = "/api/agent_telemetry";
 const POLL_MS = 5000;
 const STATUS_COLOR = { OK: "#7dffb0", ERROR: "#ff6a6a", NEVER_RUN: "#6a7a85" };
-const PHASE_COLOR = { idle: "#1f8fb0", listening: "#ff5f6d", thinking: "#b98fff", speaking: "#5fe3ff" };
+const PHASE_COLOR = { idle: "#0a8fa8", listening: "#ff5f6d", thinking: "#ffaa00", speaking: "#00f3ff" };
 const NAME_FA = {
   "A-1": "هوش راهبردی", "A-2": "پژوهش علمی", "A-3": "شواهد و راستی‌آزمایی", "A-5": "شغل و صنعت",
   "A-8": "هوش مالی", "A-10": "روابط اجتماعی", "A-15": "سلامت و طول عمر",
