@@ -295,6 +295,7 @@ export default function App() {
       setListening(false);
       // never fail silently: tell the person what happened
       const err = event && event.error;
+      if (lang === "fa" && err && err !== "no-speech" && err !== "aborted") window.__apexFaServer = true;
       if (err && err !== "no-speech" && err !== "aborted") {
         setReply(lang === "fa" ? `تشخیص گفتار مرورگر شکست خورد (${err}).` : `Browser speech recognition failed (${err}).`);
         setReplyIsError(true);
@@ -391,7 +392,10 @@ export default function App() {
   };
 
   const toggleListening = () => {
-    if (lang === "fa" || !supported) {
+    // Persian: the browser's own recogniser is instant where it exists (Chrome, Android); iPhone has none for Persian,
+    // and after any browser failure we switch to the server model for the rest of the visit.
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if ((lang === "fa" && (ios || window.__apexFaServer)) || !supported) {
       if (listening) { stopRecording(); return; }
       startServerRecording();
       return;
