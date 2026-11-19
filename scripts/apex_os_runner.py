@@ -274,11 +274,13 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
 
 
 def loop(root: Path = ROOT, interval: int = INTERVAL) -> None:
-    time.sleep(20)
+    """Each cycle runs in its own short-lived process (like the scout and briefing timers), never inside the web service."""
+    time.sleep(30)
     while True:
         try:
-            out = cycle(root)
-            print(f"[os] cycle ok {json.dumps(out['summary'])} actions={[a['task'] + ':' + a['result'] for a in out['actions']]}", flush=True)
+            out = subprocess.run([sys.executable, "-B", str(Path(__file__).resolve()), "--once"], cwd=root, timeout=1500,
+                                 capture_output=True, text=True, env=dict(os.environ))
+            print(f"[os] cycle exit={out.returncode} {(out.stderr or out.stdout).strip()[-200:]}", flush=True)
         except Exception as exc:                                   # noqa: BLE001 - logged, loop survives
             print(f"[os] cycle failed: {type(exc).__name__}: {str(exc)[:200]}", flush=True)
         time.sleep(interval)
@@ -288,4 +290,5 @@ if __name__ == "__main__":
     if "--loop" in sys.argv:
         loop()
     else:
-        print(json.dumps(cycle(), indent=1)[:4000])
+        result = cycle()
+        print(json.dumps(result["summary"]), [a["task"] + ":" + a["result"] for a in result["actions"]])

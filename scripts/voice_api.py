@@ -368,6 +368,16 @@ class VoiceChatApp:
             except OSError:
                 return self._respond(start_response, 502, {"error": "CANNOT_WRITE"})
             return self._respond(start_response, 200, {"saved": True})
+        if path in ("/api/system/db_salvage", "/api/system/db_swap"):
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            import db_recover
+            try:
+                report = db_recover.salvage(ROOT) if path.endswith("salvage") else db_recover.swap(ROOT)
+            except Exception as exc:                  # noqa: BLE001
+                report = {"status": "ERROR", "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
+            return self._respond(start_response, 200, report)
         if path == "/api/people/linkedin":
             from apex import people_graph
             if method == "GET":
