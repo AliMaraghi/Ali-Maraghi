@@ -337,6 +337,24 @@ class VoiceChatApp:
             except OSError:
                 return self._respond(start_response, 502, {"error": "CANNOT_WRITE_CONFIG"})
             return self._respond(start_response, 200, {"groups": count})
+        if path == "/api/settings/evolution":
+            flag = Path(self.root) / "runtime" / "settings" / "evolution_on"
+            if method == "GET":
+                return self._respond(start_response, 200, {"on": flag.is_file()})
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
+                return [b""]
+            try:
+                length = int(environ.get("CONTENT_LENGTH") or 0)
+                body = json.loads(environ["wsgi.input"].read(length)) if 0 < length <= 200 else {}
+                if body.get("on") is True:
+                    flag.parent.mkdir(parents=True, exist_ok=True)
+                    flag.write_text("on", encoding="utf-8")
+                elif body.get("on") is False and flag.is_file():
+                    flag.unlink()
+            except (ValueError, OSError):
+                return self._respond(start_response, 400, {"error": "BAD_REQUEST"})
+            return self._respond(start_response, 200, {"on": flag.is_file()})
         if path == "/api/banking/rules":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])

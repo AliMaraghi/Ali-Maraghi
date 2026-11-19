@@ -23,6 +23,22 @@ from apex.kernel.memory import Ledger                         # noqa: E402
 from apex.kernel.policy import enforce_durable_stop           # noqa: E402
 
 
+def _maybe_evolve(now: float) -> None:
+    """Once a day, and only while the owner has switched it on (runtime/settings/evolution_on), run ONE bounded evolution
+    generation. It can only raise a pending proposal for the owner; it never edits or deploys code."""
+    import os, subprocess
+    flag, stamp = ROOT / "runtime" / "settings" / "evolution_on", ROOT / "runtime" / "settings" / "evolution_last"
+    try:
+        if not flag.is_file() or (stamp.is_file() and now - float(stamp.read_text() or 0) < 20 * 3600):
+            return
+        stamp.write_text(str(now))
+        out = subprocess.run([sys.executable, "-B", str(ROOT / "scripts" / "run_evolution.py")], cwd=ROOT, timeout=120,
+                             env={**os.environ, "ENABLE_EVOLUTION_SANDBOX": "true"}, capture_output=True, text=True)
+        print(f"[scout] evolution: {(out.stdout or out.stderr).strip()[:200]}")
+    except Exception as exc:
+        print(f"[scout] evolution skipped: {type(exc).__name__}")
+
+
 def main() -> int:
     if "--set-price" in sys.argv:
         with Ledger(ROOT) as ledger:
@@ -76,6 +92,7 @@ def main() -> int:
         except Exception as exc:
             print(f"[scout] adult events skipped: {type(exc).__name__}")
 
+    _maybe_evolve(now)
     print(f"[scout] events={events['status']} picked={len(events['picked'])} failed_feeds={len(events['feeds_failed'])} "
           f"job={wealth.get('job_status')} alert={wealth.get('alert_status')}")
     return 0
