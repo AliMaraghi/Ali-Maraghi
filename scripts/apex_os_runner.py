@@ -145,6 +145,19 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
             status = "OK" if drafts else ("NO_MODEL" if llm is None else "NO_DATA")
             scout_common.record(ledger, "content_drafts", {"event": "content_drafts", "status": status, "drafts": drafts}, now)
             actions.append({"task": "content_drafts", "result": status, "detail": f"{len(drafts)} draft(s) stored for your review; nothing is published"})
+    if run_scouts:
+        try:                                                       # feed the job agent: Reed listings -> runtime/inbox/jobs.json
+            from apex import scout_wealth
+            jobs_file = root / "runtime" / "inbox" / "jobs.json"
+            key = scout_wealth.reed_key()
+            if key and (not jobs_file.is_file() or now - jobs_file.stat().st_mtime > 6 * 3600):
+                import run_scouts as rs
+                cfg = scout_common.load_config(root)
+                results = scout_wealth.reed_fetch(key, cfg["job_keywords"], cfg["job_location"])
+                rs._collect_jobs(results)
+                actions.append({"task": "jobs", "result": "OK" if results else "NO_DATA", "detail": f"{len(results)} Reed listing(s) for '{cfg['job_keywords']}' passed to the job agent"})
+        except Exception as exc:                                   # noqa: BLE001
+            actions.append({"task": "jobs", "result": "ERROR", "detail": f"{type(exc).__name__}: {str(exc)[:120]}"})
     if run_scouts and {"events", "wealth"} & due and all(g["surprise"] >= 0.5 for g in gaps if g["source"] in ("events", "wealth")):
         try:                                                       # the 4-hourly timer is late: run the scouts now
             out = subprocess.run([sys.executable, "-B", str(root / "scripts" / "run_scouts.py")], cwd=root, timeout=600,

@@ -52,6 +52,8 @@ ROUTES = {
     # Transport for London open data (core/apex/commute.py): line status only.
     'api.tfl.gov.uk': set(),
     # Wikipedia's official search API, four languages (core/apex/research.py).
+    # Google Trends public daily RSS (core/apex/trend_scout.py): that one feed path, country in the query.
+    'trends.google.com': {'/trending/rss'},
     'en.wikipedia.org': {'/w/api.php'}, 'fa.wikipedia.org': {'/w/api.php'},
     'fr.wikipedia.org': {'/w/api.php'}, 'de.wikipedia.org': {'/w/api.php'},
 }

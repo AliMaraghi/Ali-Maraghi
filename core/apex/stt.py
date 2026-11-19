@@ -106,6 +106,21 @@ def transcribe(root, audio: bytes, lang: str = "fa") -> dict:
     if not status(root).get("ready"):
         return {"error": "STT_NOT_READY"}
     model = _load(root)
+    if audio[:4] == b"RIFF" and audio[8:12] == b"WAVE":           # the page sends 16 kHz mono PCM: no media decoder needed
+        import io
+        import wave
+        import numpy as np
+        with wave.open(io.BytesIO(audio)) as w:
+            if w.getsampwidth() != 2 or w.getframerate() != 16000:
+                return {"error": "WAV_MUST_BE_16KHZ_16BIT"}
+            pcm = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+            if w.getnchannels() > 1:
+                pcm = pcm.reshape(-1, w.getnchannels()).mean(axis=1).astype(np.int16)
+        t0 = time.time()
+        segments, info = model.transcribe(pcm.astype(np.float32) / 32768.0, language=lang if lang in ("fa", "en") else None,
+                                          beam_size=1, vad_filter=False)
+        text = " ".join(s.text.strip() for s in segments).strip()
+        return {"text": text, "seconds": round(time.time() - t0, 1), "language": info.language}
     with tempfile.NamedTemporaryFile(suffix=".audio", dir=_dir(root)) as f:
         f.write(audio)
         f.flush()

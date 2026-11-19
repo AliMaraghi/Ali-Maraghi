@@ -350,7 +350,24 @@ export default function App() {
       if (blob.size < 300) { say("صدایی ضبط نشد.", "No audio was recorded."); return; }
       setThinking(true);
       try {
-        const res = await fetch(`/api/stt?lang=${lang}`, { method: "POST", body: blob });
+        let payload = blob;
+        try {                                              // decode in the browser and send plain 16 kHz mono WAV
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          const ctx = new Ctx();
+          const decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
+          ctx.close();
+          const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * 16000), 16000);
+          const src = off.createBufferSource(); src.buffer = decoded; src.connect(off.destination); src.start();
+          const pcm = (await off.startRendering()).getChannelData(0);
+          const buf = new ArrayBuffer(44 + pcm.length * 2), v = new DataView(buf);
+          const W = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+          W(0, "RIFF"); v.setUint32(4, 36 + pcm.length * 2, true); W(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+          v.setUint16(22, 1, true); v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+          W(36, "data"); v.setUint32(40, pcm.length * 2, true);
+          for (let i = 0; i < pcm.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 32767, true);
+          payload = new Blob([buf], { type: "audio/wav" });
+        } catch { /* fall back to the recorded format */ }
+        const res = await fetch(`/api/stt?lang=${lang}`, { method: "POST", body: payload });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.text) {
           setThinking(false);
