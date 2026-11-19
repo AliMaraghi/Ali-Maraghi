@@ -213,6 +213,23 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         with Ledger(root) as ledger:
             for name, body in to_record:
                 scout_common.record(ledger, name, body, now)
+    new_drafts = next((b["drafts"] for n, b in to_record if n == "content_drafts"), [])
+    if new_drafts:                                                 # queue each draft for the owner's decision
+        try:
+            import hashlib
+            import run_autonomous_agent
+            with Ledger(root) as ledger:
+                book = run_autonomous_agent.approval_book(ledger)
+                if book is None:
+                    actions.append({"task": "approval_queue", "result": "BLOCKED_MISSING_CREDENTIAL",
+                                    "detail": "This service cannot read the approvals secret, so drafts are shown here but not queued"})
+                else:
+                    for d in new_drafts:
+                        pid = "draft-" + hashlib.sha256((d["term"] + d["hook"]).encode()).hexdigest()[:16]
+                        book.propose(pid, "studio", "content-draft", "agent:A-11", d, [f"trend:{d['term']}"[:80]])
+                    actions.append({"task": "approval_queue", "result": "OK", "detail": f"{len(new_drafts)} draft(s) queued for your approval"})
+        except Exception as exc:                                   # noqa: BLE001
+            actions.append({"task": "approval_queue", "result": "ERROR", "detail": f"{type(exc).__name__}: {str(exc)[:120]}"})
     if run_scouts:
         try:                                                       # feed the job agent: Reed listings -> runtime/inbox/jobs.json
             from apex import scout_wealth

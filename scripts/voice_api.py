@@ -337,6 +337,37 @@ class VoiceChatApp:
             except OSError:
                 return self._respond(start_response, 502, {"error": "CANNOT_WRITE_CONFIG"})
             return self._respond(start_response, 200, {"groups": count})
+        if path == "/api/inbox/research_topic" or path == "/api/inbox/lab_results":
+            # Owner-typed inputs for the two agents that can only work from what he gives them.
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 5 <= int(length) <= 200_000:
+                return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+            try:
+                body = json.loads(environ["wsgi.input"].read(int(length)))
+                text = body.get("text") if isinstance(body, dict) else None
+                if not isinstance(text, str) or not text.strip() or any(ord(c) < 9 for c in text):
+                    raise ValueError
+                inbox = Path(self.root) / "runtime" / "inbox"
+                inbox.mkdir(parents=True, exist_ok=True)
+                if path.endswith("research_topic"):
+                    target = inbox / "research_topics.json"
+                    topics = json.loads(target.read_text(encoding="utf-8")) if target.is_file() else []
+                    topics = topics if isinstance(topics, list) else []
+                    topics.append({"topic": text.strip()[:300], "status": "pending"})
+                    data = json.dumps(topics[-50:])
+                else:
+                    target, data = inbox / "lab_results.txt", text[:190_000]
+                handle = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(handle, "w", encoding="utf-8") as out:
+                    out.write(data)
+            except (ValueError, AttributeError):
+                return self._respond(start_response, 400, {"error": "BAD_TEXT"})
+            except OSError:
+                return self._respond(start_response, 502, {"error": "CANNOT_WRITE"})
+            return self._respond(start_response, 200, {"saved": True})
         if path == "/api/people/linkedin":
             from apex import people_graph
             if method == "GET":

@@ -63,6 +63,24 @@ export function useRemembered(key, fallback) {
   return [value, (next) => { setValue(next); store(key, next); }];
 }
 
+function InboxBox({ path, label }) {
+  const [text, setText] = useState("");
+  const [msg, setMsg] = useState("");
+  const send = async () => {
+    try {
+      const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+      setMsg(r.ok ? "✓" : "✗ " + r.status);
+      if (r.ok) setText("");
+    } catch { setMsg("✗"); }
+  };
+  return (
+    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+      <input value={text} onChange={(e) => setText(e.target.value)} placeholder={label} style={{ flex: 1, background: "transparent", color: "inherit", border: "1px solid #334", borderRadius: 6, padding: "6px 8px" }} />
+      <button onClick={send} disabled={!text.trim()} style={{ padding: "6px 12px", borderRadius: 6 }}>OK</button>
+      <span>{msg}</span>
+    </div>
+  );
+}
 const CAT_FA = { "Other / uncategorised": "دسته‌بندی‌نشده", "Food delivery": "سفارش غذا", "Eating out & coffee": "رستوران و قهوه", "Housing & council": "مسکن و شهرداری", "Groceries": "خرید خوراکی", "Health & fitness": "سلامت و ورزش", "Subscriptions & software": "اشتراک‌ها و نرم‌افزار", "Transport": "حمل‌ونقل", "Utilities & telecoms": "قبض‌ها و تلفن", "Shopping": "خرید", "Cash": "نقد", "Interest & bank fees": "بهره و کارمزد بانک" };
 function num(n, lang) { return Number(n).toLocaleString(lang === "fa" ? "fa-IR" : "en-GB"); }
 function pounds(pence, lang) {
@@ -426,6 +444,8 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                       <span style={{ color: C.muted }}>{a.name}: {a.reason}</span>
                     </div>
                   ))}
+                  <InboxBox path="/api/inbox/research_topic" label={lang === "fa" ? "موضوع تحقیق برای A-2 (یک خط)" : "Research topic for A-2 (one line)"} />
+                  <InboxBox path="/api/inbox/lab_results" label={lang === "fa" ? "متن نتیجه آزمایش برای A-15 (فقط روی سرور خودت می‌ماند)" : "Lab results text for A-15 (stays on your server)"} />
                   {(osd.cycle.actions || []).map((a, i) => <div key={i} style={{ marginTop: 6 }}>▸ {a.task}: <b>{a.result}</b> <span style={{ color: C.muted }}>{a.detail}</span></div>)}
                   {osd.trends && osd.trends.top && osd.trends.top.length > 0 && (
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
