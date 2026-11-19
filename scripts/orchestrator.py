@@ -691,7 +691,7 @@ def dashboard_payload(root: Path) -> dict:
         scout["commute"] = scout_common.latest(root, "commute")
         # Spending totals from uploaded statements and the owner's weekly food limit. Totals only.
         try:
-            from apex import spending_rules
+            from apex import insight, spending_rules
             spend = scout_common.latest(root, "spend")
             cap = scout_common.load_config(root).get("food_weekly_cap_pence")
             scout["spend"] = None if not spend else {
@@ -699,7 +699,9 @@ def dashboard_payload(root: Path) -> dict:
                 "transaction_count": spend.get("transaction_count"), "sources": len(spend.get("sources") or {}),
                 "totals": spend.get("totals"), "food_alert": spending_rules.food_alert(spend, cap),
                 "spike": spending_rules.top_spike(spend), "spikes": spending_rules.category_spikes(spend)[:5],
-                "payday": spending_rules.payday_effect(spend), "checkin": scout_common.latest(root, "checkin")}
+                "payday": spending_rules.payday_effect(spend),
+                "insight": {"economics": insight.economics(spend), "behaviour": insight.behaviour(spend), "graph": insight.graph(spend)},
+                "checkin": scout_common.latest(root, "checkin")}
         except Exception:
             scout["spend"] = None
     except Exception:
