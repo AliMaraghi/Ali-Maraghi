@@ -183,6 +183,12 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
     from apex.kernel.policy import enforce_durable_stop
     now = time.time() if now is None else now
     actions = []
+    if (root / "runtime" / "kernel.sqlite3").is_file():            # never write to a database that cannot be read
+        db = _db(root)
+        try:
+            db.execute("SELECT COUNT(*) FROM events").fetchone()
+        finally:
+            db.close()
     approvals = approval_counts(root)
     gaps = source_gaps(root, now)
     due = {g["source"] for g in gaps if g["surprise"] > 0}

@@ -66,7 +66,13 @@ def status(root: Path, now: float | None = None, probe=ollama_ok) -> dict:
             db.close()
         checks["database"] = {"ok": True, "detail": f"{count} journal entries"}
     except Exception as exc:
-        checks["database"] = {"ok": False, "detail": type(exc).__name__}
+        sizes = {}
+        for suffix in ("", "-wal", "-shm"):
+            try:
+                sizes[suffix or "db"] = (path.parent / (path.name + suffix)).stat().st_size
+            except OSError:
+                sizes[suffix or "db"] = None
+        checks["database"] = {"ok": False, "detail": type(exc).__name__, "message": str(exc)[:200], "files": sizes}
     events, wealth = scout_common.latest(root, "events"), scout_common.latest(root, "wealth")
     checks["event_scout"] = _age_check((events or {}).get("generated_at"), SCOUT_MAX_AGE, now)
     checks["wealth_scout"] = _age_check((wealth or {}).get("generated_at"), SCOUT_MAX_AGE, now)
