@@ -378,6 +378,22 @@ class VoiceChatApp:
             except Exception as exc:                  # noqa: BLE001
                 report = {"status": "ERROR", "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
             return self._respond(start_response, 200, report)
+        if path == "/api/banking/forget":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            from apex import scout_common, spending_rules
+            try:
+                length = int(environ.get("CONTENT_LENGTH") or 0)
+                name = json.loads(environ["wsgi.input"].read(length)).get("source_name") if 0 < length <= 400 else None
+                previous = scout_common.latest(self.root, "spend")
+                if not isinstance(name, str) or not previous or name not in (previous.get("sources") or {}):
+                    return self._respond(start_response, 404, {"error": "NO_SUCH_SOURCE"})
+                record = spending_rules.merge(previous, name, None, time.time())
+                scout_common.record(self.ledger, "spend", record, time.time())
+            except (ValueError, AttributeError):
+                return self._respond(start_response, 400, {"error": "BAD_REQUEST"})
+            return self._respond(start_response, 200, {"sources": sorted(record["sources"])})
         if path == "/api/people/linkedin":
             from apex import people_graph
             if method == "GET":

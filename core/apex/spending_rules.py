@@ -18,10 +18,13 @@ MAX_SOURCES = 40
 def merge(previous: dict | None, source: str, summary: dict, now: float) -> dict:
     """Adds or replaces one source file's totals and returns the combined record to store."""
     sources = dict((previous or {}).get("sources") or {})
-    sources[str(source)[:80] or "statement"] = {k: summary[k] for k in ("totals", "transaction_count", "uncategorized_count", "first_date",
+    if summary is None:                                            # forget one source, then re-total the rest
+        sources.pop(str(source)[:80], None)
+    if summary is not None:
+      sources[str(source)[:80] or "statement"] = {k: summary[k] for k in ("totals", "transaction_count", "uncategorized_count", "first_date",
                                                                          "last_date", "weekly_food_pence", "reconciliation", "signs_flipped")}
-    sources[str(source)[:80] or "statement"]["weekly_category_pence"] = summary.get("weekly_category_pence") or {}
-    sources[str(source)[:80] or "statement"]["weekly_in_pence"] = summary.get("weekly_in_pence") or {}
+      sources[str(source)[:80] or "statement"]["weekly_category_pence"] = summary.get("weekly_category_pence") or {}
+      sources[str(source)[:80] or "statement"]["weekly_in_pence"] = summary.get("weekly_in_pence") or {}
     for name in sorted(sources, key=lambda n: sources[n].get("last_date") or "")[:-MAX_SOURCES]:
         del sources[name]
     totals, weekly, wcat, win = {}, {}, {}, {}

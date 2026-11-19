@@ -32,5 +32,14 @@ class CategorySpikes(unittest.TestCase):
         self.assertIsNone(sr.payday_effect({"weekly_in_pence": {}, "weekly_category_pence": {}}))
 
 
-if __name__ == "__main__":
-    unittest.main()
+
+
+class Forget(unittest.TestCase):
+    def test_forgetting_a_source_retotals(self):
+        tx = [{"description": "DELIVEROO", "pence": -5000, "date": date(2026, 11, 2)}]
+        s = dc.summarise(tx)
+        rec = sr.merge(sr.merge(None, "a", s, 1.0), "b", s, 2.0)
+        self.assertEqual(rec["totals"]["Food delivery"]["out_pence"], 10000)
+        rec = sr.merge(rec, "a", None, 3.0)
+        self.assertEqual(sorted(rec["sources"]), ["b"])
+        self.assertEqual(rec["totals"]["Food delivery"]["out_pence"], 5000)

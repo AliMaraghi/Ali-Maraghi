@@ -53,12 +53,20 @@ def _a6(root):
 
 def _a14(root):
     """Real self-check: private files must not be readable by other users on the server."""
-    bad = []
+    bad, fixed = [], []
+    for rel in ("runtime", "runtime/inbox"):                       # private folders: close them to other users, then re-check
+        p = root / rel
+        try:
+            if p.is_dir() and p.stat().st_mode & 0o077:
+                os.chmod(p, 0o700)
+                fixed.append(rel)
+        except OSError:
+            pass
     for rel in ("runtime", "runtime/inbox", "runtime/kernel.sqlite3", "runtime/inbox/reed-api-key", "runtime/inbox/people.json"):
         p = root / rel
         if p.exists() and p.stat().st_mode & 0o077:
             bad.append(rel)
-    return ("ERROR", "Readable by other server users: " + ", ".join(bad)) if bad else ("AUTONOMOUS_SCAN", "File-permission check passed on private runtime files")
+    return ("ERROR", "Readable by other server users: " + ", ".join(bad)) if bad else ("AUTONOMOUS_SCAN", "File-permission check passed on private runtime files" + (f"; closed to other users just now: {', '.join(fixed)}" if fixed else ""))
 
 
 def _a17(root):
