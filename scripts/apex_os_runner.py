@@ -26,7 +26,8 @@ from apex import priority, scout_common, trend_scout          # noqa: E402
 
 INTERVAL = 900
 EXPECTED = {"events": 4 * 3600, "wealth": 4 * 3600, "commute": 4 * 3600, "adult": 4 * 3600, "trends": 6 * 3600,
-            "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400}
+            "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400,
+            "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
 CREDENTIAL = {"A-5": "Reed job-search key", "A-6": "Gmail connection (sync is switched off)"}
 VALUE = {"trends": 3.0, "content_drafts": 4.0, "events": 5.0, "wealth": 6.0, "commute": 2.0, "adult": 3.0, "spend": 6.0}
 
@@ -89,8 +90,16 @@ def _a18(root):
     return ("AUTONOMOUS_SCAN", f"Evolution lab: last result {row[0]}") if row else ("NEVER_RUN", "Evolution lab is on; first daily run has not happened yet")
 
 
-SUBSYSTEM = {"A-4": _a4, "A-6": _a6, "A-7": lambda r: _fresh(r, "wealth", "Wealth and jobs scout"), "A-11": lambda r: _fresh(r, "content_drafts", "Trend scripts"),
-             "A-14": _a14, "A-16": lambda r: _fresh(r, "spend", "Spending and behaviour patterns"), "A-17": _a17, "A-18": _a18}
+def _a18b(root):
+    rec = scout_common.latest(root, "evolution")
+    lab = _a18(root)
+    if rec:
+        return "AUTONOMOUS_SCAN", f"Nightly review: {rec.get('reviewed', 0)} output(s) judged, {len(rec.get('changes', []))} lesson(s) added; lab: {lab[1]}"
+    return lab
+
+
+SUBSYSTEM = {"A-10": lambda r: _fresh(r, "social", "Openers for the top event"), "A-4": _a4, "A-6": _a6, "A-7": lambda r: _fresh(r, "wealth", "Wealth and jobs scout"), "A-11": lambda r: _fresh(r, "content_drafts", "Trend scripts"),
+             "A-14": _a14, "A-16": lambda r: _fresh(r, "spend", "Spending and behaviour patterns"), "A-17": lambda r: _fresh(r, "critic", "Devil's-advocate notes on pending proposals") if scout_common.latest(r, "critic") else _a17(r), "A-18": _a18b}
 
 
 def _db(root: Path):
@@ -142,7 +151,9 @@ def agent_states(root: Path, approvals: dict) -> list:
     for agent_id, name in roster:
         t = telemetry.get(agent_id)
         waiting = [pid for proposer, ids in pending_by.items() if agent_id in proposer for pid in ids]
-        if t is None and agent_id in SUBSYSTEM:
+        if agent_id == "A-10" and (t is None or t["blocked"]):
+            state, reason = SUBSYSTEM["A-10"](root)
+        elif t is None and agent_id in SUBSYSTEM:
             state, reason = SUBSYSTEM[agent_id](root)
         elif t is None:
             state, reason = "NOT_BUILT", "Specified in the manifesto; no running code yet"
@@ -207,6 +218,7 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
     with Ledger(root) as ledger:
         enforce_durable_stop(ledger)                               # the owner's kill switch stops this loop too
     # Network and model work happens with the database CLOSED; it is opened only for the instant of each write.
+    from apex import l5
     to_record, trends = [], None
     if "trends" in due:
         trends = trend_scout.scan(fetch)
@@ -214,10 +226,67 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         actions.append({"task": "trends", "result": trends["status"], "detail": f"{trends['count']} terms, failed feeds: {trends['feeds_failed'] or 'none'}"})
     if "content_drafts" in due:
         trends = trends or scout_common.latest(root, "trends") or {}
-        drafts = [d for d in (trend_scout.draft(llm, t) for t in (trends.get("top") or [])[:2]) if d]
+        drafts = [d for d in (trend_scout.draft(llm, t, l5.lessons(root, 'content')) for t in (trends.get("top") or [])[:2]) if d]
         status = "OK" if drafts else ("NO_MODEL" if llm is None else "NO_DATA")
         to_record.append(("content_drafts", {"event": "content_drafts", "status": status, "drafts": drafts}))
         actions.append({"task": "content_drafts", "result": status, "detail": f"{len(drafts)} draft(s) stored for your review; nothing is published"})
+    if "social" in due:
+        from apex import scout_events
+        soc = l5.social(root, llm, scout_common.latest(root, "events"), scout_events.mentions_event)
+        to_record.append(("social", soc))
+        actions.append({"task": "social", "result": soc["status"], "detail": f"{len(soc.get('openers', []))} opener(s) for: {soc.get('title') or soc.get('detail')}"})
+    if "critic" in due:
+        pend = []
+        try:
+            db = _db(root)
+            pend = [{"id": r[0], "kind": r[1], "payload": r[2]} for r in db.execute("SELECT id, kind, payload FROM proposals WHERE state = 'PENDING' AND domain != 'studio' LIMIT 5")]
+            db.close()
+        except sqlite3.Error:
+            pass
+        crit = l5.red_team(llm, pend) if pend else {"event": "critic", "status": "OK", "reviewed": 0, "notes": []}
+        to_record.append(("critic", crit))
+        actions.append({"task": "critic", "result": crit["status"], "detail": f"argued against {len(crit['notes'])} of {len(pend)} pending proposal(s)"})
+    if "evolution" in due and time.gmtime(now).tm_hour in (2, 3, 4):   # nightly, after 02:00 UTC
+        outs = {}
+        dr = scout_common.latest(root, "content_drafts") or {}
+        outs["content"] = [d["hook"] + " | " + " / ".join(d["beats"]) for d in dr.get("drafts", [])]
+        so = scout_common.latest(root, "social") or {}
+        outs["social"] = list(so.get("openers", []))
+        evo = l5.evolve(root, llm, {k: v for k, v in outs.items() if v})
+        to_record.append(("evolution", evo))
+        actions.append({"task": "evolution", "result": evo["status"], "detail": f"reviewed {evo['reviewed']}, lessons added: {len(evo['changes'])}"})
+    if "graph" in due:
+        try:
+            from apex import knowledge_graph, people_graph
+            try:
+                jobs = json.loads((root / "runtime" / "inbox" / "jobs.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                jobs = []
+            g = knowledge_graph.rebuild(root, people_graph.load(root), jobs if isinstance(jobs, list) else [],
+                                        (scout_common.latest(root, "events") or {}).get("picked") or [],
+                                        (scout_common.latest(root, "trends") or {}).get("top") or [],
+                                        (scout_common.latest(root, "property") or {}).get("rows") or [])
+            to_record.append(("graph", {"event": "graph", "status": "OK", **g}))
+            actions.append({"task": "graph", "result": "OK", "detail": f"{g['entities']} entities, {g['edges']} edges, {len(g['links'])} cross-link(s)"})
+        except Exception as exc:                                   # noqa: BLE001
+            actions.append({"task": "graph", "result": "ERROR", "detail": f"{type(exc).__name__}: {str(exc)[:100]}"})
+    try:                                                           # A-2: keep one research topic queued each day
+        topics_file = root / "runtime" / "inbox" / "research_topics.json"
+        topics = json.loads(topics_file.read_text(encoding="utf-8")) if topics_file.is_file() else []
+        topics = topics if isinstance(topics, list) else []
+        stamp = root / "runtime" / "settings" / "research_seed_last"
+        if not any(isinstance(t, dict) and t.get("status") == "pending" for t in topics) and \
+                (not stamp.is_file() or now - float(stamp.read_text() or 0) > 23 * 3600):
+            seeds = ["AI adoption in public sector procurement", "executive function strategies for adults with ADHD",
+                     "first-time home buyer financial stress", "remote work second job burnout"]
+            topics.append({"topic": seeds[int(now // 86400) % len(seeds)], "status": "pending"})
+            topics_file.parent.mkdir(parents=True, exist_ok=True)
+            topics_file.write_text(json.dumps(topics[-50:]), encoding="utf-8")
+            stamp.parent.mkdir(parents=True, exist_ok=True)
+            stamp.write_text(str(now))
+            actions.append({"task": "research_seed", "result": "OK", "detail": f"queued for A-2: {topics[-1]['topic']}"})
+    except (OSError, ValueError) as exc:
+        actions.append({"task": "research_seed", "result": "ERROR", "detail": type(exc).__name__})
     if "property" in due:
         from apex import property_scout
         prop = property_scout.run(fetch)

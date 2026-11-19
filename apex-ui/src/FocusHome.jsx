@@ -451,6 +451,22 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
                       {osd.trends.top.slice(0, 8).map((x) => `${x.term} [${x.geos.join(",")}]`).join(" · ")}</div>
                   )}
+                  {osd.social && (osd.social.openers || []).length > 0 && (
+                    <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>A-10 · openers for: <a href={osd.social.url} target="_blank" rel="noopener noreferrer" style={link}>{osd.social.title}</a></div>
+                      {osd.social.openers.map((x, i) => <div key={i}>“{x}”</div>)}</div>
+                  )}
+                  {osd.critic && (osd.critic.notes || []).map((n) => (
+                    <div key={n.proposal_id} style={{ marginTop: 8 }}><span style={{ color: C.need }}>A-17 against {n.kind}:</span> {n.against} <span style={{ color: C.muted }}>Check first: {n.what_to_check}</span></div>
+                  ))}
+                  {osd.evolution && (
+                    <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>A-18 nightly review ({ago(osd.evolution.generated_at, lang)}): </span>
+                      {osd.evolution.reviewed} judged, {osd.evolution.judged_useful} useful.
+                      {(osd.evolution.changes || []).map((c, i) => <div key={i}>＋ lesson for {c.task}: {c.lesson_added}</div>)}</div>
+                  )}
+                  {osd.graph && (
+                    <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Knowledge graph: </span>{osd.graph.entities} entities · {osd.graph.edges} links · {Object.entries(osd.graph.by_kind || {}).map(([k, v]) => `${k} ${v}`).join(" · ")}
+                      {(osd.graph.links || []).slice(0, 5).map((l, i) => <div key={i}>★ {l.job}: you know {l.you_know}</div>)}</div>
+                  )}
                   {osd.property && osd.property.rows && osd.property.rows.length > 0 && (
                     <div style={{ marginTop: 10 }}>
                       <div style={{ color: C.muted }}>Property (Land Registry averages, {osd.property.month}; budget {gbp(osd.property.budget * 100)}). Averages narrow where to look; they are not listings.</div>

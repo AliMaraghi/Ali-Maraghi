@@ -61,13 +61,14 @@ SYSTEM = ("You write one short-form video script idea. Reply ONLY with JSON: "
           "beyond the headline provided. No medical, financial or legal advice.")
 
 
-def draft(llm, trend: dict) -> dict | None:
+def draft(llm, trend: dict, lessons=None) -> dict | None:
     """One script draft for one trend from the local model. None if the model is absent or returns junk."""
     import json
     if llm is None:
         return None
     try:
-        raw = llm(SYSTEM, f"LANGUAGE: {trend['lang']}\nTREND: {trend['term']}\nHEADLINES: {'; '.join(trend.get('news') or [])}", 300)
+        system = SYSTEM + ("\nLessons from review (style only): " + "; ".join(lessons) if lessons else "")
+        raw = llm(system, f"LANGUAGE: {trend['lang']}\nTREND: {trend['term']}\nHEADLINES: {'; '.join(trend.get('news') or [])}", 300)
         obj = json.loads(raw[raw.find("{"): raw.rfind("}") + 1])
     except Exception:                                              # noqa: BLE001
         return None
