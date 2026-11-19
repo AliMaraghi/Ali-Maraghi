@@ -136,17 +136,22 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
     llm = _local_llm() if llm == "auto" else llm
     with Ledger(root) as ledger:
         enforce_durable_stop(ledger)                               # the owner's kill switch stops this loop too
-        trends = None
-        if "trends" in due:
-            trends = trend_scout.scan(fetch)
-            scout_common.record(ledger, "trends", trends, now)
-            actions.append({"task": "trends", "result": trends["status"], "detail": f"{trends['count']} terms, failed feeds: {trends['feeds_failed'] or 'none'}"})
-        if "content_drafts" in due:
-            trends = trends or scout_common.latest(root, "trends") or {}
-            drafts = [d for d in (trend_scout.draft(llm, t) for t in (trends.get("top") or [])[:3]) if d]
-            status = "OK" if drafts else ("NO_MODEL" if llm is None else "NO_DATA")
-            scout_common.record(ledger, "content_drafts", {"event": "content_drafts", "status": status, "drafts": drafts}, now)
-            actions.append({"task": "content_drafts", "result": status, "detail": f"{len(drafts)} draft(s) stored for your review; nothing is published"})
+    # Network and model work happens with the database CLOSED; it is opened only for the instant of each write.
+    to_record, trends = [], None
+    if "trends" in due:
+        trends = trend_scout.scan(fetch)
+        to_record.append(("trends", trends))
+        actions.append({"task": "trends", "result": trends["status"], "detail": f"{trends['count']} terms, failed feeds: {trends['feeds_failed'] or 'none'}"})
+    if "content_drafts" in due:
+        trends = trends or scout_common.latest(root, "trends") or {}
+        drafts = [d for d in (trend_scout.draft(llm, t) for t in (trends.get("top") or [])[:2]) if d]
+        status = "OK" if drafts else ("NO_MODEL" if llm is None else "NO_DATA")
+        to_record.append(("content_drafts", {"event": "content_drafts", "status": status, "drafts": drafts}))
+        actions.append({"task": "content_drafts", "result": status, "detail": f"{len(drafts)} draft(s) stored for your review; nothing is published"})
+    if to_record:
+        with Ledger(root) as ledger:
+            for name, body in to_record:
+                scout_common.record(ledger, name, body, now)
     if run_scouts:
         try:                                                       # feed the job agent: Reed listings -> runtime/inbox/jobs.json
             from apex import scout_wealth
