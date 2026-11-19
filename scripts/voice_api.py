@@ -378,6 +378,40 @@ class VoiceChatApp:
             except Exception as exc:                  # noqa: BLE001
                 report = {"status": "ERROR", "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
             return self._respond(start_response, 200, report)
+        if path == "/api/rate":
+            # The owner's 1-5 star rating of one output: the fitness signal for prompt evolution. Append-only file.
+            target = Path(self.root) / "runtime" / "settings" / "ratings.jsonl"
+            if method == "POST":
+                try:
+                    length = int(environ.get("CONTENT_LENGTH") or 0)
+                    body = json.loads(environ["wsgi.input"].read(length)) if 0 < length <= 2000 else {}
+                    stars, kind, text = int(body.get("stars")), str(body.get("kind"))[:30], str(body.get("text"))[:600]
+                    if not 1 <= stars <= 5 or not re.fullmatch(r"[a-z_]{2,30}", kind) or not text.strip():
+                        raise ValueError
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with open(target, "a", encoding="utf-8") as out:
+                        out.write(json.dumps({"at": time.time(), "kind": kind, "stars": stars, "text": text}, ensure_ascii=False) + "\n")
+                except (ValueError, TypeError, AttributeError, OSError):
+                    return self._respond(start_response, 400, {"error": "BAD_RATING"})
+            try:
+                count = sum(1 for _ in open(target, encoding="utf-8"))
+            except OSError:
+                count = 0
+            return self._respond(start_response, 200, {"ratings": count, "needed_for_evolution": 50})
+        if path == "/api/settings/energy":
+            target = Path(self.root) / "runtime" / "settings" / "energy.json"
+            if method == "POST":
+                try:
+                    length = int(environ.get("CONTENT_LENGTH") or 0)
+                    level = int(json.loads(environ["wsgi.input"].read(length)).get("level")) if 0 < length <= 100 else 0
+                    if not 1 <= level <= 5:
+                        raise ValueError
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(json.dumps({"level": level, "at": time.time()}), encoding="utf-8")
+                except (ValueError, TypeError, AttributeError, OSError):
+                    return self._respond(start_response, 400, {"error": "LEVEL_1_TO_5"})
+            from apex import l5
+            return self._respond(start_response, 200, {"level": l5.energy(self.root)})
         if path == "/api/banking/forget":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])

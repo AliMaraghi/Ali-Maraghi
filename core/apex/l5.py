@@ -62,15 +62,27 @@ OPENERS = ("You write three different opening lines a man could say to someone a
            'Reply ONLY with JSON: {"openers": ["...", "...", "..."]}')
 
 
+def energy(root, now: float | None = None) -> int | None:
+    """The owner's own 1-5 energy setting from the dashboard; ignored once it is more than 12 hours old."""
+    import time
+    try:
+        e = json.loads((Path(root) / "runtime" / "settings" / "energy.json").read_text(encoding="utf-8"))
+        return int(e["level"]) if (now or time.time()) - float(e["at"]) < 12 * 3600 and 1 <= int(e["level"]) <= 5 else None
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
 def social(root, llm, events: dict | None, mentions) -> dict:
     picked = (events or {}).get("picked") or []
     if not picked:
         return {"event": "social", "status": "NO_DATA", "detail": "The event scout has no picked event"}
     top = picked[0]
-    obj = _json(llm, with_lessons(root, "social", OPENERS), f"EVENT: {top.get('title')}\nWHEN: {top.get('start')}")
+    level = energy(root)
+    system = with_lessons(root, "social", OPENERS) + ("\nThe owner is low on energy today: each line under 10 words, easy to say." if level in (1, 2) else "")
+    obj = _json(llm, system, f"EVENT: {top.get('title')}\nWHEN: {top.get('start')}")
     lines = [str(x)[:200] for x in (obj or {}).get("openers", []) if isinstance(x, str) and mentions(x, top.get("title", ""))][:3]
     return {"event": "social", "status": "OK" if lines else ("NO_MODEL" if llm is None else "NO_DATA"),
-            "title": top.get("title"), "start": top.get("start"), "url": top.get("url"), "openers": lines}
+            "title": top.get("title"), "start": top.get("start"), "url": top.get("url"), "openers": lines, "energy_used": level}
 
 
 # ---- A-17: argue against each pending proposal -------------------------------------------------------------

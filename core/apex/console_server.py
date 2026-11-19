@@ -135,7 +135,7 @@ class ConsoleApp:
                     ('Exact origin','HOST_HEADER'),('Owner required','OWNER_MISMATCH'),('Connect Google first','CONNECT_FIRST'),
                     ('Access owner','ACCESS_OWNER_CHANGED')) if marker in text),'OTHER')
                 code=403;body=('{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED","reason":"'+reason+'"}').encode()
-            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except (ValueError,KeyError,TypeError) as _e:code=400;body=json.dumps({"error":"INVALID_REQUEST_OR_CONFIGURATION","kind":type(_e).__name__,"detail":str(_e)[:160]}).encode()
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif self.meta_routes and path_info in META_PATHS:
             form_action="'self' https://accounts.google.com https://www.facebook.com"
@@ -144,7 +144,7 @@ class ConsoleApp:
                     raise PermissionError('Access owner configuration changed')
                 code,body,extra,kind=self.meta_routes.handle(environ)
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
-            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except (ValueError,KeyError,TypeError) as _e:code=400;body=json.dumps({"error":"INVALID_REQUEST_OR_CONFIGURATION","kind":type(_e).__name__,"detail":str(_e)[:160]}).encode()
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif self.finance_routes and is_finance_path(path_info):
             form_action="'self' https://accounts.google.com https://www.facebook.com"
@@ -153,7 +153,7 @@ class ConsoleApp:
                     raise PermissionError('Access owner configuration changed')
                 code,body,extra,kind=self.finance_routes.handle(environ)
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
-            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except (ValueError,KeyError,TypeError) as _e:code=400;body=json.dumps({"error":"INVALID_REQUEST_OR_CONFIGURATION","kind":type(_e).__name__,"detail":str(_e)[:160]}).encode()
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif not self.finance_routes and path_info=='/connections/finance' and environ.get('REQUEST_METHOD')=='GET':
             body=json.dumps({'status':'BLOCKED_EXTERNAL_AUTH','required':'Protected finance configuration',
@@ -167,7 +167,7 @@ class ConsoleApp:
                     raise PermissionError('Access owner configuration changed')
                 code,body,extra,kind=self.banking_routes.handle(environ)
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
-            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except (ValueError,KeyError,TypeError) as _e:code=400;body=json.dumps({"error":"INVALID_REQUEST_OR_CONFIGURATION","kind":type(_e).__name__,"detail":str(_e)[:160]}).encode()
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif not self.banking_routes and path_info=='/connections/banking' and environ.get('REQUEST_METHOD')=='GET':
             body=b'{"status":"BLOCKED_EXTERNAL_AUTH","required":"Protected, reviewed Open Banking aggregator configuration"}'
@@ -178,7 +178,7 @@ class ConsoleApp:
             try:
                 code,body,extra,kind=self.approval_routes.handle(environ)
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
-            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except (ValueError,KeyError,TypeError) as _e:code=400;body=json.dumps({"error":"INVALID_REQUEST_OR_CONFIGURATION","kind":type(_e).__name__,"detail":str(_e)[:160]}).encode()
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif not self.bridge_routes and is_bridge_path(path_info):
             code=503;body=b'{"error":"BRIDGE_NOT_CONFIGURED"}'
@@ -187,7 +187,7 @@ class ConsoleApp:
             try:
                 code,body,extra,kind=self.bridge_routes.handle(environ)
             except PermissionError:code=403;body=b'{"error":"AUTHORIZATION_REQUIRED_OR_REJECTED"}'
-            except (ValueError,KeyError,TypeError):code=400;body=b'{"error":"INVALID_REQUEST_OR_CONFIGURATION"}'
+            except (ValueError,KeyError,TypeError) as _e:code=400;body=json.dumps({"error":"INVALID_REQUEST_OR_CONFIGURATION","kind":type(_e).__name__,"detail":str(_e)[:160]}).encode()
             except Exception:code=503;body=b'{"error":"CONNECTION_UNAVAILABLE"}'
         elif environ.get('REQUEST_METHOD') not in {'GET','HEAD'}:
             code=405;body=b'{"error":"READ_ONLY; use authenticated operator CLI for STOP"}'

@@ -63,6 +63,25 @@ export function useRemembered(key, fallback) {
   return [value, (next) => { setValue(next); store(key, next); }];
 }
 
+function Stars({ kind, text }) {
+  const [given, setGiven] = useState(0);
+  const rate = (n) => fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, text, stars: n }) })
+    .then((r) => { if (r.ok) setGiven(n); }).catch(() => {});
+  return <span style={{ marginInlineStart: 8, whiteSpace: "nowrap" }}>{[1, 2, 3, 4, 5].map((n) => (
+    <span key={n} onClick={() => rate(n)} style={{ cursor: "pointer", color: n <= given ? "#fc5" : "#556", fontSize: 16 }}>★</span>))}</span>;
+}
+function EnergyRow({ lang }) {
+  const [level, setLevel] = useState(null);
+  useEffect(() => { fetch("/api/settings/energy").then((r) => r.json()).then((d) => setLevel(d.level)).catch(() => {}); }, []);
+  const set = (n) => fetch("/api/settings/energy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ level: n }) })
+    .then((r) => r.json()).then((d) => setLevel(d.level)).catch(() => {});
+  return (
+    <div style={{ marginTop: 10, display: "flex", gap: 6, alignItems: "center" }}>
+      <span>{lang === "fa" ? "انرژی امروز (۱ خسته، ۵ پرانرژی):" : "Energy today (1 exhausted, 5 hyperfocus):"}</span>
+      {[1, 2, 3, 4, 5].map((n) => <button key={n} onClick={() => set(n)} style={{ padding: "4px 10px", borderRadius: 6, fontWeight: level === n ? 700 : 400, outline: level === n ? "2px solid #7aa" : "none" }}>{n}</button>)}
+    </div>
+  );
+}
 function InboxBox({ path, label }) {
   const [text, setText] = useState("");
   const [msg, setMsg] = useState("");
@@ -457,12 +476,17 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
                       {osd.trends.top.slice(0, 8).map((x) => `${x.term} [${x.geos.join(",")}]`).join(" · ")}</div>
                   )}
+                  <EnergyRow lang={lang} />
+                  {osd.listings && (osd.listings.links || []).length > 0 && (
+                    <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Listings to open (search links, not verified prices):</div>
+                      {osd.listings.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.borough} · {l.site}</span></div>)}</div>
+                  )}
                   {osd.social && (osd.social.openers || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>A-10 · openers for: <a href={osd.social.url} target="_blank" rel="noopener noreferrer" style={link}>{osd.social.title}</a></div>
-                      {osd.social.openers.map((x, i) => <div key={i}>“{x}”</div>)}</div>
+                      {osd.social.openers.map((x, i) => <div key={i}>“{x}”<Stars kind="social" text={x} /></div>)}</div>
                   )}
                   {osd.critic && (osd.critic.notes || []).map((n) => (
-                    <div key={n.proposal_id} style={{ marginTop: 8 }}><span style={{ color: C.need }}>A-17 against {n.kind}:</span> {n.against} <span style={{ color: C.muted }}>Check first: {n.what_to_check}</span></div>
+                    <div key={n.proposal_id} style={{ marginTop: 8 }}><span style={{ color: C.need }}>A-17 against {n.kind}:</span> {n.against} <span style={{ color: C.muted }}>Check first: {n.what_to_check}</span><Stars kind="critic" text={n.against} /></div>
                   ))}
                   {osd.evolution && (
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>A-18 nightly review ({ago(osd.evolution.generated_at, lang)}): </span>
@@ -494,7 +518,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   {osd.drafts && (osd.drafts.drafts || []).map((d, i) => (
                     <div key={i} style={{ marginTop: 8, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                       <div style={{ color: C.muted }}>{d.state} · {d.platform} · {d.lang} · {d.angle} · {d.term}</div>
-                      <div>{d.hook}</div>
+                      <div>{d.hook}<Stars kind="content" text={d.hook} /></div>
                       <div style={{ color: C.muted }}>{d.beats.join(" / ")}</div>
                     </div>
                   ))}

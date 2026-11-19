@@ -37,6 +37,8 @@ REGIONS = {
     "zh": ("zh-hans", "site:gov.cn OR site:edu.cn"),
     "ja": ("jp", "site:go.jp OR site:ac.jp"),
     "ko": ("ko", "site:go.kr OR site:ac.kr"),
+    # Property portals: search-engine links only (the portals themselves are never fetched or scraped).
+    "property": ("en", "site:rightmove.co.uk OR site:zoopla.co.uk OR site:onthemarket.com"),
 }
 PHRASE_LANG = {"en-gb": "en", "en-us": "en", "global": "en"}
 

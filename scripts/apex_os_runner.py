@@ -27,7 +27,7 @@ from apex import priority, scout_common, trend_scout          # noqa: E402
 INTERVAL = 900
 EXPECTED = {"events": 4 * 3600, "wealth": 4 * 3600, "commute": 4 * 3600, "adult": 4 * 3600, "trends": 6 * 3600,
             "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400,
-            "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
+            "listings": 24 * 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
 CREDENTIAL = {"A-5": "Reed job-search key", "A-6": "Gmail connection (sync is switched off)"}
 VALUE = {"trends": 3.0, "content_drafts": 4.0, "events": 5.0, "wealth": 6.0, "commute": 2.0, "adult": 3.0, "spend": 6.0}
 
@@ -255,6 +255,25 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         evo = l5.evolve(root, llm, {k: v for k, v in outs.items() if v})
         to_record.append(("evolution", evo))
         actions.append({"task": "evolution", "result": evo["status"], "detail": f"reviewed {evo['reviewed']}, lessons added: {len(evo['changes'])}"})
+    if "listings" in due:
+        from apex import brave_search
+        bkey = brave_search.load_key(root)
+        within = (scout_common.latest(root, "property") or {}).get("within_budget") or []
+        if not bkey:
+            lst = {"event": "listings", "status": "BLOCKED_MISSING_CREDENTIAL", "detail": "Brave search key not set (Research box on the dashboard)", "links": []}
+        else:
+            links, errs = [], []
+            for borough in within[:3]:
+                try:
+                    for r in brave_search.search(root, bkey, "property", f"3 bedroom house with garden for sale {borough} under 450000"):
+                        links.append({"borough": borough, "title": r["title"], "url": r["url"], "site": r["domain"], "extract": r["extract"][:200]})
+                    time.sleep(1.2)
+                except Exception as exc:                           # noqa: BLE001
+                    errs.append(f"{borough}:{type(exc).__name__}")
+            lst = {"event": "listings", "status": "OK" if links else "NO_DATA", "links": links[:9], "errors": errs,
+                   "note": "Search-engine links to portal pages; prices and availability are whatever the page shows when you open it."}
+        to_record.append(("listings", lst))
+        actions.append({"task": "listings", "result": lst["status"], "detail": lst.get("detail") or f"{len(lst['links'])} link(s)"})
     if "graph" in due:
         try:
             from apex import knowledge_graph, people_graph
