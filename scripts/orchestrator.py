@@ -698,7 +698,8 @@ def dashboard_payload(root: Path) -> dict:
                 "first_date": spend.get("first_date"), "last_date": spend.get("last_date"),
                 "transaction_count": spend.get("transaction_count"), "sources": len(spend.get("sources") or {}),
                 "totals": spend.get("totals"), "food_alert": spending_rules.food_alert(spend, cap),
-                "spike": spending_rules.food_spike(spend), "checkin": scout_common.latest(root, "checkin")}
+                "spike": spending_rules.top_spike(spend), "spikes": spending_rules.category_spikes(spend)[:5],
+                "payday": spending_rules.payday_effect(spend), "checkin": scout_common.latest(root, "checkin")}
         except Exception:
             scout["spend"] = None
     except Exception:

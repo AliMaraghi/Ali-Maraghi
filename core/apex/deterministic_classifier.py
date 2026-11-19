@@ -95,6 +95,8 @@ def summarise(transactions: list, extra: tuple = ()) -> dict:
     flipped = card_signs_flipped(transactions, extra)
     totals = {c: {"in_pence": 0, "out_pence": 0, "count": 0} for c in CATEGORIES}
     weekly_food: dict = {}
+    weekly_cat: dict = {}
+    weekly_in: dict = {}
     days, uncategorised = [], 0
     for t in transactions:
         pence = -t["pence"] if flipped else t["pence"]
@@ -105,13 +107,20 @@ def summarise(transactions: list, extra: tuple = ()) -> dict:
         bucket["in_pence" if pence > 0 else "out_pence"] += abs(pence)
         if isinstance(t.get("date"), date):
             days.append(t["date"])
+            key = week_start(t["date"]).isoformat()
             if category in FOOD and pence < 0:
-                key = week_start(t["date"]).isoformat()
                 weekly_food[key] = weekly_food.get(key, 0) - pence
+            if pence < 0:
+                bucket_w = weekly_cat.setdefault(category, {})
+                bucket_w[key] = bucket_w.get(key, 0) - pence
+            elif pence > 0 and not category.startswith("Card payment"):
+                weekly_in[key] = weekly_in.get(key, 0) + pence
     out = {"totals": {c: v for c, v in totals.items() if v["count"]}, "transaction_count": len(transactions),
            "uncategorized_count": uncategorised, "signs_flipped": flipped,
            "first_date": min(days).isoformat() if days else None, "last_date": max(days).isoformat() if days else None,
-           "weekly_food_pence": dict(sorted(weekly_food.items())), "reconciliation": reconcile(transactions, flipped)}
+           "weekly_food_pence": dict(sorted(weekly_food.items())),
+           "weekly_category_pence": {c: dict(sorted(w.items())) for c, w in weekly_cat.items()},
+           "weekly_in_pence": dict(sorted(weekly_in.items())), "reconciliation": reconcile(transactions, flipped)}
     return out
 
 
