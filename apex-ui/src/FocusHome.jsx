@@ -431,6 +431,18 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
                       {osd.trends.top.slice(0, 8).map((x) => `${x.term} [${x.geos.join(",")}]`).join(" · ")}</div>
                   )}
+                  {osd.property && osd.property.rows && osd.property.rows.length > 0 && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ color: C.muted }}>Property (Land Registry averages, {osd.property.month}; budget {gbp(osd.property.budget * 100)}). Averages narrow where to look; they are not listings.</div>
+                      {osd.property.rows.slice(0, 8).map((r) => (
+                        <div key={r.borough} style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${C.line}`, padding: "3px 0" }}>
+                          <span style={{ color: r.terraced_within_budget ? C.ok : undefined }}>{r.borough}</span>
+                          <span>terraced {gbp(r.terraced * 100)} · flat {gbp((r.flat || 0) * 100)} · {r.annual_change_pct}%/yr</span>
+                        </div>
+                      ))}
+                      <div style={{ color: C.muted }}>Stamp duty at budget: {gbp(osd.property.costs_at_budget.sdlt_first_time_buyer * 100)} first-time buyer, {gbp(osd.property.costs_at_budget.sdlt_standard * 100)} otherwise · 10% deposit {gbp(osd.property.costs_at_budget.deposit_10pct * 100)} · monthly at 5% (illustration): {gbp(osd.property.costs_at_budget.monthly_illustration["5%"] * 100)}</div>
+                    </div>
+                  )}
                   {osd.people && (
                     <div style={{ marginTop: 10 }}>
                       <div><span style={{ color: C.muted }}>People graph (LinkedIn): </span>{osd.people.people} people · {osd.people.companies} companies · {osd.people.top_companies.map((c) => `${c[0]} (${c[1]})`).join(" · ")}</div>

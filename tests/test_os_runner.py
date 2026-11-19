@@ -49,12 +49,33 @@ class Cycle(unittest.TestCase):
             states = {a["agent_id"]: a["state"] for a in out["agents"]}
             self.assertGreaterEqual(len(states), 16)
             self.assertEqual(states["A-15"], "BLOCKED_MISSING_INPUT")
-            self.assertEqual(states["A-18"], "NOT_BUILT")
+            self.assertEqual(states["A-18"], "BLOCKED_MISSING_INPUT"); self.assertEqual(states["A-9"], "NOT_BUILT")
             self.assertIn("trends:OK", [a["task"] + ":" + a["result"] for a in out["actions"]])
             self.assertIn("content_drafts:NO_MODEL", [a["task"] + ":" + a["result"] for a in out["actions"]])
             from apex import scout_common
             self.assertEqual(scout_common.latest(root, "os")["event"], "os_cycle")
 
 
-if __name__ == "__main__":
-    unittest.main()
+
+
+class Property(unittest.TestCase):
+    def test_sdlt_and_payment(self):
+        from apex import property_scout as ps
+        self.assertEqual(ps.sdlt(450_000), 12_500)
+        self.assertEqual(ps.sdlt(450_000, True), 7_500)
+        self.assertEqual(ps.sdlt(300_000, True), 0)
+        self.assertEqual(ps.sdlt(600_000, True), ps.sdlt(600_000))
+        self.assertEqual(ps.sdlt(125_000), 0)
+        self.assertTrue(2300 < ps.monthly_payment(405_000, 5) < 2400)
+
+    def test_run_ranks_boroughs(self):
+        import json
+        from apex import property_scout as ps
+        def fetch(url):
+            if url.endswith("_sort=-refMonth"):
+                return json.dumps({"result": {"items": ["http://x/region/barnet/month/2026-09"]}}).encode()
+            price = 400000 if "bexley" in url else 600000
+            return json.dumps({"result": {"primaryTopic": {"averagePriceTerraced": price, "averagePriceFlatMaisonette": 300000}}}).encode()
+        out = ps.run(fetch, 450_000, ["barnet", "bexley"])
+        self.assertEqual(out["month"], "2026-09")
+        self.assertEqual(out["within_budget"], ["Bexley"])

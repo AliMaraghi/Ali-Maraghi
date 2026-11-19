@@ -54,11 +54,14 @@ ROUTES = {
     # Wikipedia's official search API, four languages (core/apex/research.py).
     # Google Trends public daily RSS (core/apex/trend_scout.py): that one feed path, country in the query.
     'trends.google.com': {'/trending/rss'},
+    # HM Land Registry UK House Price Index, open data (core/apex/property_scout.py): region pages only.
+    'landregistry.data.gov.uk': set(),
     'en.wikipedia.org': {'/w/api.php'}, 'fa.wikipedia.org': {'/w/api.php'},
     'fr.wikipedia.org': {'/w/api.php'}, 'de.wikipedia.org': {'/w/api.php'},
 }
 MEETUP_ICAL = re.compile(r'/[A-Za-z0-9][A-Za-z0-9-]{0,79}/events/ical/')
 HUMANITIX_HOST = re.compile(r'/host/[A-Za-z0-9][A-Za-z0-9-]{0,79}')
+HPI_PATH = re.compile(r'/data/ukhpi/region/[a-z-]{3,40}(?:\.json|/month/[0-9]{4}-[0-9]{2}\.json)')
 TFL_STATUS = re.compile(r'/Line/[a-z][a-z0-9-]{1,30}(?:,[a-z][a-z0-9-]{1,30}){0,7}/Status')
 
 
@@ -71,8 +74,9 @@ def validate(url, method='GET', body=None):
     meetup_path = p.netloc == 'www.meetup.com' and not p.query and MEETUP_ICAL.fullmatch(p.path)
     host_path = p.netloc == 'events.humanitix.com' and not p.query and HUMANITIX_HOST.fullmatch(p.path)
     tfl_path = p.netloc == 'api.tfl.gov.uk' and not p.query and TFL_STATUS.fullmatch(p.path)
+    hpi_path = p.netloc == 'landregistry.data.gov.uk' and HPI_PATH.fullmatch(p.path)
     if (p.scheme != 'https' or p.netloc not in ROUTES or p.fragment
-            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path and not host_path and not tfl_path)):
+            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path and not host_path and not tfl_path and not hpi_path)):
         raise SourceError('Destination outside reviewed endpoint scope')
     if method == 'POST':
         if (p.netloc, p.path, p.query) != ('api.ted.europa.eu', '/v3/notices/search', ''):

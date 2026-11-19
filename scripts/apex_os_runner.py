@@ -26,9 +26,63 @@ from apex import priority, scout_common, trend_scout          # noqa: E402
 
 INTERVAL = 900
 EXPECTED = {"events": 4 * 3600, "wealth": 4 * 3600, "commute": 4 * 3600, "adult": 4 * 3600, "trends": 6 * 3600,
-            "spend": 14 * 86400, "content_drafts": 24 * 3600}
+            "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400}
 CREDENTIAL = {"A-5": "Reed job-search key", "A-6": "Gmail connection (sync is switched off)"}
 VALUE = {"trends": 3.0, "content_drafts": 4.0, "events": 5.0, "wealth": 6.0, "commute": 2.0, "adult": 3.0, "spend": 6.0}
+
+
+def _fresh(root, name, label):
+    rec = scout_common.latest(root, name)
+    if not rec:
+        return "NEVER_RUN", f"{label}: no run recorded yet"
+    if rec.get("status") not in (None, "OK"):
+        return "ERROR", f"{label}: last run {rec.get('status')}"
+    return "AUTONOMOUS_SCAN", f"{label}: last run {time.strftime('%d %b %H:%M', time.gmtime(rec['generated_at']))} UTC"
+
+
+def _a4(root):
+    from apex import people_graph
+    s = people_graph.summary(root)
+    return ("AUTONOMOUS_SCAN", f"People graph: {s['people']} people, {s['companies']} companies (LinkedIn export)") if s else \
+        ("BLOCKED_MISSING_INPUT", "No people data: upload a LinkedIn connections export")
+
+
+def _a6(root):
+    return "BLOCKED_MISSING_CREDENTIAL", "Gmail sync on the server is switched off (3 failed attempts); needs your Google sign-in again"
+
+
+def _a14(root):
+    """Real self-check: private files must not be readable by other users on the server."""
+    bad = []
+    for rel in ("runtime", "runtime/inbox", "runtime/kernel.sqlite3", "runtime/inbox/reed-api-key", "runtime/inbox/people.json"):
+        p = root / rel
+        if p.exists() and p.stat().st_mode & 0o077:
+            bad.append(rel)
+    return ("ERROR", "Readable by other server users: " + ", ".join(bad)) if bad else ("AUTONOMOUS_SCAN", "File-permission check passed on private runtime files")
+
+
+def _a17(root):
+    try:
+        st = json.loads((root / "runtime" / "e2e_last.json").read_text())
+        return ("AUTONOMOUS_SCAN" if st.get("state") == "passed" else "ERROR"), f"End-to-end system test: {st.get('state')}"
+    except Exception:                                              # noqa: BLE001
+        return "NEVER_RUN", "End-to-end test result not found"
+
+
+def _a18(root):
+    if not (root / "runtime" / "settings" / "evolution_on").is_file():
+        return "BLOCKED_MISSING_INPUT", "Evolution lab is switched off"
+    try:
+        db = _db(root)
+        row = db.execute("SELECT decision, recorded_at FROM evolution_log ORDER BY id DESC LIMIT 1").fetchone()
+        db.close()
+    except sqlite3.Error:
+        row = None
+    return ("AUTONOMOUS_SCAN", f"Evolution lab: last result {row[0]}") if row else ("NEVER_RUN", "Evolution lab is on; first daily run has not happened yet")
+
+
+SUBSYSTEM = {"A-4": _a4, "A-6": _a6, "A-7": lambda r: _fresh(r, "wealth", "Wealth and jobs scout"), "A-11": lambda r: _fresh(r, "content_drafts", "Trend scripts"),
+             "A-14": _a14, "A-16": lambda r: _fresh(r, "spend", "Spending and behaviour patterns"), "A-17": _a17, "A-18": _a18}
 
 
 def _db(root: Path):
@@ -80,7 +134,9 @@ def agent_states(root: Path, approvals: dict) -> list:
     for agent_id, name in roster:
         t = telemetry.get(agent_id)
         waiting = [pid for proposer, ids in pending_by.items() if agent_id in proposer for pid in ids]
-        if t is None:
+        if t is None and agent_id in SUBSYSTEM:
+            state, reason = SUBSYSTEM[agent_id](root)
+        elif t is None:
             state, reason = "NOT_BUILT", "Specified in the manifesto; no running code yet"
         elif agent_id == "A-5" and scout_wealth.reed_key() is None:
             state, reason = "BLOCKED_MISSING_CREDENTIAL", CREDENTIAL["A-5"]
@@ -148,6 +204,11 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         status = "OK" if drafts else ("NO_MODEL" if llm is None else "NO_DATA")
         to_record.append(("content_drafts", {"event": "content_drafts", "status": status, "drafts": drafts}))
         actions.append({"task": "content_drafts", "result": status, "detail": f"{len(drafts)} draft(s) stored for your review; nothing is published"})
+    if "property" in due:
+        from apex import property_scout
+        prop = property_scout.run(fetch)
+        to_record.append(("property", prop))
+        actions.append({"task": "property", "result": prop["status"], "detail": f"{len(prop.get('rows', []))} borough(s), month {prop.get('month')}, failed: {prop.get('feeds_failed') or 'none'}"})
     if to_record:
         with Ledger(root) as ledger:
             for name, body in to_record:

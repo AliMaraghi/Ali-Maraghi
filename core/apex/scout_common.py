@@ -142,7 +142,7 @@ def ask_json(llm, budget, key: str, system: str, user_text: str, max_tokens: int
 
 
 def record(ledger, name: str, payload: dict, now: float) -> str:
-    key = f"scout.{name}." + time.strftime("%Y%m%d.%H%M%S", time.gmtime(now))
+    key = f"scout.{name}." + time.strftime("%Y%m%d.%H%M%S", time.gmtime(now)) + f".{int(now * 1000) % 1000:03d}"
     ledger.append(key, "decision", "personal", {**payload, "generated_at": round(now, 3)})
     return key
 

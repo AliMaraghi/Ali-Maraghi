@@ -696,7 +696,7 @@ def dashboard_payload(root: Path) -> dict:
             cap = scout_common.load_config(root).get("food_weekly_cap_pence")
             scout["spend"] = None if not spend else {
                 "first_date": spend.get("first_date"), "last_date": spend.get("last_date"),
-                "transaction_count": spend.get("transaction_count"), "sources": len(spend.get("sources") or {}),
+                "transaction_count": spend.get("transaction_count"), "sources": len(spend.get("sources") or {}), "source_names": sorted(spend.get("sources") or {}),
                 "totals": spend.get("totals"), "food_alert": spending_rules.food_alert(spend, cap),
                 "spike": spending_rules.top_spike(spend), "spikes": spending_rules.category_spikes(spend)[:5],
                 "payday": spending_rules.payday_effect(spend),
@@ -715,7 +715,7 @@ def _os_latest(root):
     try:
         from apex import scout_common
         return {"cycle": scout_common.latest(root, "os"), "trends": scout_common.latest(root, "trends"),
-                "drafts": scout_common.latest(root, "content_drafts"), "people": __import__("apex.people_graph", fromlist=["x"]).summary(root)}
+                "drafts": scout_common.latest(root, "content_drafts"), "property": scout_common.latest(root, "property"), "people": __import__("apex.people_graph", fromlist=["x"]).summary(root)}
     except Exception:
         return None
 
