@@ -27,14 +27,14 @@ URLISH = re.compile(r"https?://\S+|www\.\S+", re.I)
 DEFAULT_CONFIG = {
     # Who the events are being ranked for. Edit runtime/inbox/scout_config.json to change it;
     # that folder is never committed, so personal details stay out of the repository.
-    "profile": "A London-based professional looking for good tech networking and well-run social events.",
+    "profile": "A London man in his 40s looking for a serious partner. Wants open-minded social clubs, galas and high-society evenings, underground and lifestyle nights. NOT business, finance, property or tech networking. Budget 50-150 pounds, free Friday evenings and weekends.",
     # Public London groups whose calendars answered on 2026-11-18 (tech/startup networking, then
     # social nights). Watching a group needs no membership; attending is the owner's own step.
-    "meetup_groups": ["london-technology-community", "london-entrepreneur-startup-network-tech-business-ecommerce",
-                      "london-new-tech", "TechSocialLondon", "disruptive-tech-lon", "speed-network-now",
-                      "londonpartypeople", "london-night-out", "tastour", "bored-in-london", "singlesclublondon"],
-    "event_keywords": ["singles", "mixer", "speed dating", "wine tasting", "gallery", "networking", "tech",
-                       "social", "founders"],
+    "meetup_groups": ["londonpartypeople", "london-night-out", "tastour", "bored-in-london"],
+    # Owner said business/finance/property networking and generic singles parties are NOT what he wants.
+    "event_exclude": ["networking", "business owners", "landlord", "investment", "finance", "banking", "founders",
+                      "startup", "career", "webinar", "online", "singles"],
+    "event_keywords": ["gala", "social club", "wine tasting", "gallery", "party", "open-minded", "lifestyle"],
     "commute_lines": [],                                 # TfL line ids; set privately on the server, not here
     "food_weekly_cap_pence": 10_000,                     # the owner's weekly limit for food ordered in or eaten out
     "job_keywords": "procurement manager",

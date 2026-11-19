@@ -105,6 +105,8 @@ def run(config: dict, fetch, llm=None, budget=None, now: float | None = None) ->
                     events.append(event)
         except Exception as exc:                       # a dead or renamed group is not a crash
             failed.append(f"{group}:{type(exc).__name__}")
+    banned = [w.lower() for w in config.get("event_exclude", []) if isinstance(w, str)]
+    events = [e for e in events if not any(w in (e["title"] + " " + e.get("location", "")).lower() for w in banned)]
     seen, unique = set(), []
     for event in sorted(events, key=lambda e: e["start"]):
         if (event["title"], event["start"]) not in seen:

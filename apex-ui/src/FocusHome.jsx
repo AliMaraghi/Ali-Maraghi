@@ -63,6 +63,7 @@ export function useRemembered(key, fallback) {
   return [value, (next) => { setValue(next); store(key, next); }];
 }
 
+const CAT_FA = { "Other / uncategorised": "دسته‌بندی‌نشده", "Food delivery": "سفارش غذا", "Eating out & coffee": "رستوران و قهوه", "Housing & council": "مسکن و شهرداری", "Groceries": "خرید خوراکی", "Health & fitness": "سلامت و ورزش", "Subscriptions & software": "اشتراک‌ها و نرم‌افزار", "Transport": "حمل‌ونقل", "Utilities & telecoms": "قبض‌ها و تلفن", "Shopping": "خرید", "Cash": "نقد", "Interest & bank fees": "بهره و کارمزد بانک" };
 function num(n, lang) { return Number(n).toLocaleString(lang === "fa" ? "fa-IR" : "en-GB"); }
 function pounds(pence, lang) {
   return (pence / 100).toLocaleString(lang === "fa" ? "fa-IR" : "en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (lang === "fa" ? " پوند" : " GBP");
@@ -391,7 +392,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                 <div key={i} dir="auto" style={{ marginBottom: 14 }}>
                   {e.url && /^https:\/\//.test(e.url) ? <a href={e.url} target="_blank" rel="noopener noreferrer" style={link}>{e.title}</a> : e.title}
                   <div style={{ color: C.muted, fontSize: 14 }}>{[e.start, e.location, e.why].filter(Boolean).join(" · ")}</div>
-                  {e.opener ? <div style={{ fontSize: 14, marginTop: 4 }}>“{e.opener}”</div> : null}
+                  {e.opener ? <div style={{ fontSize: 14, marginTop: 4 }}><span style={{ color: C.muted, fontSize: 12 }}>{lang === "fa" ? "جمله شروع (انگلیسی؛ همان که در محل می‌گویی): " : "Opener: "}</span>“{e.opener}”</div> : null}
                 </div>
               ))}
               {wealth && (
@@ -430,7 +431,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                 .filter(([name, v]) => v.out_pence > 0 && !/^(Card payment|Failed card)/.test(name))
                 .sort((a, b) => b[1].out_pence - a[1].out_pence).slice(0, 8).map(([name, v]) => (
                   <div key={name} dir="ltr" style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${C.line}` }}>
-                    <span>{name}</span><span>{gbp(v.out_pence)}</span>
+                    <span>{lang === "fa" && CAT_FA[name] ? CAT_FA[name] : name}</span><span>{gbp(v.out_pence)}</span>
                   </div>
                 ))}
             </Section>
