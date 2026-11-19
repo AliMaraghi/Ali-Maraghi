@@ -337,6 +337,24 @@ class VoiceChatApp:
             except OSError:
                 return self._respond(start_response, 502, {"error": "CANNOT_WRITE_CONFIG"})
             return self._respond(start_response, 200, {"groups": count})
+        if path == "/api/people/linkedin":
+            from apex import people_graph
+            if method == "GET":
+                return self._respond(start_response, 200, {"summary": people_graph.summary(self.root)})
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
+                return [b""]
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 50 <= int(length) <= 1_500_000:
+                return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+            try:
+                body = json.loads(environ["wsgi.input"].read(int(length)))
+                count = people_graph.save(self.root, people_graph.parse(body.get("csv_text") or ""))
+            except (ValueError, AttributeError):
+                return self._respond(start_response, 400, {"error": "NOT_A_CONNECTIONS_EXPORT"})
+            except OSError:
+                return self._respond(start_response, 502, {"error": "CANNOT_WRITE"})
+            return self._respond(start_response, 200, {"saved": count, "summary": people_graph.summary(self.root)})
         if path == "/api/settings/evolution":
             flag = Path(self.root) / "runtime" / "settings" / "evolution_on"
             if method == "GET":

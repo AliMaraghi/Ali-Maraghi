@@ -431,6 +431,12 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
                       {osd.trends.top.slice(0, 8).map((x) => `${x.term} [${x.geos.join(",")}]`).join(" · ")}</div>
                   )}
+                  {osd.people && (
+                    <div style={{ marginTop: 10 }}>
+                      <div><span style={{ color: C.muted }}>People graph (LinkedIn): </span>{osd.people.people} people · {osd.people.companies} companies · {osd.people.top_companies.map((c) => `${c[0]} (${c[1]})`).join(" · ")}</div>
+                      {osd.people.warm_jobs.map((j, i) => <div key={i}>★ <a href={j.url} target="_blank" rel="noopener noreferrer" style={link}>{j.title}</a> — {j.company}: {j.you_know.join(", ")}</div>)}
+                    </div>
+                  )}
                   {osd.drafts && (osd.drafts.drafts || []).map((d, i) => (
                     <div key={i} style={{ marginTop: 8, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                       <div style={{ color: C.muted }}>{d.state} · {d.platform} · {d.lang} · {d.angle} · {d.term}</div>
