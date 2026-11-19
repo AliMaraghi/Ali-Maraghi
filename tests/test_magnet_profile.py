@@ -37,7 +37,16 @@ class MagnetProfile(unittest.TestCase):
         out = scout_events.run({"meetup_groups": ["g"], "profile": "p"}, lambda url: ical,
                                lambda s, u, m: json.dumps(reply), self.budget, now)
         self.assertEqual(out["selection"], "model")
-        self.assertEqual(out["picked"][0]["opener"], "Which one have you liked most so far?")
+        self.assertNotIn("opener", out["picked"][0])               # generic line, names nothing from the event: dropped
+
+    def test_scout_keeps_an_opener_that_names_the_event(self):
+        ical = (b"BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nSUMMARY:Wine tasting social\r\nDTSTART:20261120T190000\r\n"
+                b"URL:https://www.meetup.com/g/events/1/\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n")
+        reply = {"picks": [1], "why": ["Relaxed"], "opener": ["Red or white at a tasting - are you a loyalist or a wanderer?"]}
+        now = 1795132800.0
+        out = scout_events.run({"meetup_groups": ["g"], "profile": "p"}, lambda url: ical,
+                               lambda s, u, m: json.dumps(reply), self.budget, now)
+        self.assertEqual(out["picked"][0]["opener"], "Red or white at a tasting - are you a loyalist or a wanderer?")
 
 
 if __name__ == "__main__":
