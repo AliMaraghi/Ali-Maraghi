@@ -6,6 +6,7 @@ The package and the model are installed once, on request, into runtime/stt (neve
 """
 from __future__ import annotations
 
+import importlib
 import json
 import subprocess
 import sys
@@ -51,6 +52,7 @@ def status(root) -> dict:
     except (OSError, ValueError):
         st = {}
     _use_path(root)
+    importlib.invalidate_caches()
     try:
         import faster_whisper  # noqa: F401
         st["package"] = True
@@ -81,6 +83,7 @@ def _install(root) -> None:
             _write(root, state="failed", error=("pip: " + (out.stderr or out.stdout))[-600:])
             return
         _use_path(root)
+        importlib.invalidate_caches()                  # pkgs did not exist when the path was first cached
         _write(root, state="downloading_model")
         _load(root)                                    # downloads the model on first use
         _write(root, state="ready", model_ok=True, error="")
