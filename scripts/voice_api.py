@@ -405,8 +405,9 @@ class VoiceChatApp:
             try:
                 result = stt.transcribe(ROOT, environ["wsgi.input"].read(int(length)), lang)
             except Exception as exc:                  # noqa: BLE001
-                return self._respond(start_response, 502, {"error": f"STT_FAILED:{str(exc)[:200]}"})
-            return self._respond(start_response, 200 if "text" in result else 502, result)
+                # 200 on purpose: the proxy in front replaces any 502 body, which hid the real reason.
+                return self._respond(start_response, 200, {"error": f"STT_FAILED:{type(exc).__name__}:{str(exc)[:300]}"})
+            return self._respond(start_response, 200, result)
         if path == "/api/system_health":
             if method != "GET":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])
