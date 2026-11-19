@@ -708,7 +708,16 @@ def dashboard_payload(root: Path) -> dict:
         scout = None
     return {"finance": finance, "academic": academic, "dating": dating, "banking": banking,
             "briefing": briefing, "budget": budget_status, "scout": scout,
-            "automation": automation_status(root, briefing, scout), "generated_at": time.time()}
+            "automation": automation_status(root, briefing, scout), "os": _os_latest(root), "generated_at": time.time()}
+
+
+def _os_latest(root):
+    try:
+        from apex import scout_common
+        return {"cycle": scout_common.latest(root, "os"), "trends": scout_common.latest(root, "trends"),
+                "drafts": scout_common.latest(root, "content_drafts")}
+    except Exception:
+        return None
 
 
 def automation_status(root: Path, briefing, scout) -> dict:

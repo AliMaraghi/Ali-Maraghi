@@ -941,6 +941,10 @@ def main():
         return
 
     from waitress import serve
+    if os.environ.get("APEX_OS_RUNNER", "on") != "off":         # the background OS loop lives in this service
+        import threading
+        import apex_os_runner
+        threading.Thread(target=apex_os_runner.loop, args=(ROOT,), daemon=True, name="apex-os").start()
     serve(VoiceChatApp(ROOT), listen=f"{args.host}:{args.port}", threads=4, connection_limit=32)
 
 

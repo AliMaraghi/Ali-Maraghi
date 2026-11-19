@@ -304,7 +304,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
   const today = lang === "fa"
     ? new Date().toLocaleDateString("fa-IR", { weekday: "long", day: "numeric", month: "long" }) + " (" + gregorian + ")"
     : gregorian;
-  const budget = data && data.budget, scout = data && data.scout, briefing = data && data.briefing;
+  const budget = data && data.budget, scout = data && data.scout, briefing = data && data.briefing, osd = data && data.os;
   const pending = briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0;
   const events = scout && scout.events, wealth = scout && scout.wealth;
   const eventCount = events && events.picked ? events.picked.length : 0;
@@ -416,6 +416,31 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
               )}
             </Section>
 
+            {osd && osd.cycle && (
+              <Section id="os" title={lang === "fa" ? "وضعیت واقعی سیستم‌عامل" : "OS: real state"} hint={ago(osd.cycle.generated_at, lang)}>
+                <div dir="ltr" style={{ fontSize: 13, lineHeight: 1.7 }}>
+                  {osd.cycle.agents.map((a) => (
+                    <div key={a.agent_id} style={{ display: "flex", gap: 8, padding: "4px 0", borderBottom: `1px solid ${C.line}` }}>
+                      <span style={{ minWidth: 44, color: C.muted }}>{a.agent_id}</span>
+                      <span style={{ minWidth: 190, color: a.state === "AUTONOMOUS_SCAN" ? C.ok : a.state === "PENDING_APPROVAL" ? C.accent || C.ok : C.need }}>{a.state}</span>
+                      <span style={{ color: C.muted }}>{a.name}: {a.reason}</span>
+                    </div>
+                  ))}
+                  {(osd.cycle.actions || []).map((a, i) => <div key={i} style={{ marginTop: 6 }}>▸ {a.task}: <b>{a.result}</b> <span style={{ color: C.muted }}>{a.detail}</span></div>)}
+                  {osd.trends && osd.trends.top && osd.trends.top.length > 0 && (
+                    <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
+                      {osd.trends.top.slice(0, 8).map((x) => `${x.term} [${x.geos.join(",")}]`).join(" · ")}</div>
+                  )}
+                  {osd.drafts && (osd.drafts.drafts || []).map((d, i) => (
+                    <div key={i} style={{ marginTop: 8, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
+                      <div style={{ color: C.muted }}>{d.state} · {d.platform} · {d.lang} · {d.angle} · {d.term}</div>
+                      <div>{d.hook}</div>
+                      <div style={{ color: C.muted }}>{d.beats.join(" / ")}</div>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
             <Section id="spend" title={t.secSpend} hint={scout && scout.spend ? scout.spend.last_date : null}>
               {(!scout || !scout.spend) && <div style={{ color: C.muted }}>{t.spendNone}</div>}
               {scout && scout.spend && scout.spend.food_alert && (() => {
