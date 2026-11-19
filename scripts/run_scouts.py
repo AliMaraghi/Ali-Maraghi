@@ -23,6 +23,29 @@ from apex.kernel.memory import Ledger                         # noqa: E402
 from apex.kernel.policy import enforce_durable_stop           # noqa: E402
 
 
+def _collect_jobs(results: list) -> None:
+    """Appends Reed listings (title, employer, place, link) to the inbox file the job agent reads. Deduplicated, newest 200."""
+    import json
+    path = ROOT / "runtime" / "inbox" / "jobs.json"
+    try:
+        old = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else []
+        old = old if isinstance(old, list) else []
+        seen = {j.get("url") for j in old if isinstance(j, dict)}
+        for r in results:
+            if not isinstance(r, dict):
+                continue
+            url = str(r.get("jobUrl") or "")
+            job = {"title": str(r.get("jobTitle") or "")[:200], "company": str(r.get("employerName") or "")[:100],
+                   "location": str(r.get("locationName") or "")[:100], "source": "reed", "url": url[:500]}
+            if job["title"] and job["company"] and url.startswith("https://") and url not in seen:
+                seen.add(url)
+                old.append(job)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(old[-200:]), encoding="utf-8")
+    except (OSError, ValueError):
+        pass
+
+
 def _maybe_evolve(now: float) -> None:
     """Once a day, and only while the owner has switched it on (runtime/settings/evolution_on), run ONE bounded evolution
     generation. It can only raise a pending proposal for the owner; it never edits or deploys code."""
@@ -61,7 +84,11 @@ def main() -> int:
         except Exception:
             llm = None                                        # no model: scouts still run, keyword-ranked
         reed = scout_wealth.reed_key()
-        jobs_fetch = (lambda keywords, location: scout_wealth.reed_fetch(reed, keywords, location)) if reed else None
+        def _reed(keywords, location):
+            results = scout_wealth.reed_fetch(reed, keywords, location)
+            _collect_jobs(results)                            # A-5 (job agent) reads these from runtime/inbox/jobs.json
+            return results
+        jobs_fetch = _reed if reed else None
 
         events = scout_events.run(config, agents_runner.fetch_public, llm, budget, now)
         scout_common.record(ledger, "events", events, now)
