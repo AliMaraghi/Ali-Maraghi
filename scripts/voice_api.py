@@ -365,6 +365,30 @@ class VoiceChatApp:
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, POST, OPTIONS")])
                 return [b""]
             return self._settings_reed(environ, start_response, method)
+        if path == "/api/stt/status":
+            from apex import stt
+            return self._respond(start_response, 200, stt.status(ROOT))
+        if path == "/api/stt/install":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            from apex import stt
+            return self._respond(start_response, 200, stt.install(ROOT))
+        if path == "/api/stt":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 200 <= int(length) <= 6_000_000:
+                return self._respond(start_response, 400, {"error": "BAD_AUDIO_LENGTH"})
+            from urllib.parse import parse_qs
+            lang = (parse_qs(environ.get("QUERY_STRING", "")).get("lang") or ["fa"])[0]
+            from apex import stt
+            try:
+                result = stt.transcribe(ROOT, environ["wsgi.input"].read(int(length)), lang)
+            except Exception as exc:                  # noqa: BLE001
+                return self._respond(start_response, 502, {"error": f"STT_FAILED:{str(exc)[:200]}"})
+            return self._respond(start_response, 200 if "text" in result else 502, result)
         if path == "/api/system_health":
             if method != "GET":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "GET, OPTIONS")])

@@ -175,6 +175,8 @@ export default function App() {
   const [steps, setSteps] = useState([]); // real steps the LAST response actually ran; see getReply()
   const [replyIsError, setReplyIsError] = useState(false);
   const [supported, setSupported] = useState(true);
+  const handleTextRef = useRef(null);
+  const mediaRecRef = useRef(null);
   const recognizerRef = useRef(null);
 
   // Presence-mode toggle: sphere (default, unchanged) or avatar. "avatar" tries the owner's real
@@ -269,8 +271,7 @@ export default function App() {
     recognizer.interimResults = false;
     recognizer.lang = LANGS[lang];
 
-    recognizer.onresult = async (event) => {
-      const text = event.results[0][0].transcript;
+    const handleText = async (text) => {
       setTranscript(text);
       // "thinking" reflects the REAL wait on getReply()'s network round trip - it clears the
       // instant a real response arrives or fails, never held open artificially (companion
@@ -288,7 +289,17 @@ export default function App() {
       setReplyIsError(!!result.isError);
       speak(result.reply, lang);
     };
-    recognizer.onerror = () => setListening(false);
+    handleTextRef.current = handleText;
+    recognizer.onresult = (event) => handleText(event.results[0][0].transcript);
+    recognizer.onerror = (event) => {
+      setListening(false);
+      // never fail silently: tell the person what happened
+      const err = event && event.error;
+      if (err && err !== "no-speech" && err !== "aborted") {
+        setReply(lang === "fa" ? `تشخیص گفتار مرورگر شکست خورد (${err}).` : `Browser speech recognition failed (${err}).`);
+        setReplyIsError(true);
+      }
+    };
     recognizer.onend = () => setListening(false);
 
     recognizerRef.current = recognizer;
@@ -317,7 +328,57 @@ export default function App() {
     window.speechSynthesis.speak(utterance);
   }, []);
 
+  const stopRecording = () => {
+    const rec = mediaRecRef.current;
+    if (rec && rec.state !== "inactive") rec.stop();
+  };
+
+  const startServerRecording = async () => {
+    const say = (fa, en) => { setReply(lang === "fa" ? fa : en); setReplyIsError(true); };
+    if (!navigator.mediaDevices || !window.MediaRecorder) { say("این مرورگر ضبط صدا را پشتیبانی نمی‌کند.", "This browser cannot record audio."); return; }
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch { say("دسترسی به میکروفون داده نشد. در تنظیمات Safari برای این سایت اجازه بده.", "Microphone permission was denied."); return; }
+    const chunks = [];
+    const rec = new MediaRecorder(stream);
+    mediaRecRef.current = rec;
+    rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      setListening(false);
+      const blob = new Blob(chunks, { type: rec.mimeType || "audio/mp4" });
+      if (blob.size < 300) { say("صدایی ضبط نشد.", "No audio was recorded."); return; }
+      setThinking(true);
+      try {
+        const res = await fetch(`/api/stt?lang=${lang}`, { method: "POST", body: blob });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.text) {
+          setThinking(false);
+          if (data.error === "STT_NOT_READY") fetch("/api/stt/install", { method: "POST" }).catch(() => {});
+          say(data.error === "STT_NOT_READY"
+            ? "تبدیل گفتار فارسی روی سرور نصب نشده بود؛ نصبش را شروع کردم (چند دقیقه). بعد از آن دوباره بگو."
+            : `تبدیل گفتار شکست خورد: ${data.error || res.status}`,
+          data.error === "STT_NOT_READY" ? "Server speech-to-text was not installed; installation started (a few minutes). Try again after." : `Speech-to-text failed: ${data.error || res.status}`);
+          return;
+        }
+        await handleTextRef.current(data.text);
+      } catch {
+        setThinking(false);
+        say("اتصال به سرور برقرار نشد.", "Could not reach the server.");
+      }
+    };
+    setTranscript(""); setReply(""); setReplyIsError(false);
+    rec.start();
+    setListening(true);
+    setTimeout(stopRecording, 30000);
+  };
+
   const toggleListening = () => {
+    if (lang === "fa" || !supported) {
+      if (listening) { stopRecording(); return; }
+      startServerRecording();
+      return;
+    }
     if (!supported || !recognizerRef.current) return;
     if (listening) {
       recognizerRef.current.stop();
@@ -501,7 +562,7 @@ export default function App() {
 
         <button
           onClick={toggleListening}
-          disabled={!supported}
+          disabled={false}
           style={{
             width: 64,
             height: 64,
@@ -511,7 +572,7 @@ export default function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            cursor: supported ? "pointer" : "not-allowed",
+            cursor: "pointer",
             boxShadow: listening ? "0 0 24px #ff5f6d" : "0 0 24px #5fe3ff",
           }}
           aria-label={listening ? "Stop listening" : "Start listening"}
