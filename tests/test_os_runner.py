@@ -113,3 +113,16 @@ class L5(unittest.TestCase):
                            [{"title": "Gala"}], [{"term": "budget", "geos": ["GB"]}], [{"borough": "Bexley", "terraced": 1}])
             self.assertEqual(g["links"][0]["you_know"], "Sam Roe")
             self.assertEqual(g["by_kind"]["person"], 1)
+
+
+class Meta(unittest.TestCase):
+    def test_confidence_drops_with_failures_and_lists_reasons(self):
+        from apex import metacognition as m
+        agents = [{"agent_id": "A-1", "name": "x", "state": "AUTONOMOUS_SCAN", "reason": ""}, {"agent_id": "A-2", "name": "y", "state": "BLOCKED_MISSING_INPUT", "reason": "no topic"}]
+        good = m.confidence([{"source": "events", "surprise": 0}], agents[:1], [])
+        bad = m.confidence([{"source": "events", "surprise": 3}], agents, [{"task": "trends", "result": "ERROR", "detail": "x"}])
+        self.assertEqual(good["score"], 100)
+        self.assertLess(bad["score"], good["score"])
+        self.assertEqual(len(bad["reasons"]), 3)
+        tasks = m.curriculum([{"source": "events", "surprise": 3}], agents, [{"task": "trends", "result": "ERROR", "detail": "x"}], {"within_budget": ["Bexley"]}, 1)
+        self.assertEqual({t["who"] for t in tasks}, {"system", "owner"})

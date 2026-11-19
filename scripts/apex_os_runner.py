@@ -342,7 +342,12 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
     except sqlite3.Error:
         pass
     agents = agent_states(root, approvals)
-    payload = {"event": "os_cycle", "status": "OK", "agents": agents, "gaps": source_gaps(root, now), "plan": plan(gaps, approvals, pulls),
+    from apex import metacognition
+    final_gaps = source_gaps(root, now)
+    evo = scout_common.latest(root, "evolution") or {}
+    meta = {"confidence": metacognition.confidence(final_gaps, agents, actions),
+            "curriculum": metacognition.curriculum(final_gaps, agents, actions, scout_common.latest(root, "property"), len(evo.get("changes", [])))}
+    payload = {"event": "os_cycle", "status": "OK", "meta": meta, "agents": agents, "gaps": source_gaps(root, now), "plan": plan(gaps, approvals, pulls),
                "actions": actions, "pending_approvals": approvals["pending"][:20],
                "summary": {s: sum(1 for a in agents if a["state"] == s) for s in sorted({a["state"] for a in agents})}}
     with Ledger(root) as ledger:

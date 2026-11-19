@@ -437,6 +437,12 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
             {osd && osd.cycle && (
               <Section id="os" title={lang === "fa" ? "وضعیت واقعی سیستم‌عامل" : "OS: real state"} hint={ago(osd.cycle.generated_at, lang)}>
                 <div dir="ltr" style={{ fontSize: 13, lineHeight: 1.7 }}>
+                  {osd.cycle.meta && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div><b style={{ color: osd.cycle.meta.confidence.unsure ? C.need : C.ok }}>Confidence {osd.cycle.meta.confidence.score}/100{osd.cycle.meta.confidence.unsure ? " — unsure" : ""}</b> <span style={{ color: C.muted }}>{osd.cycle.meta.confidence.reasons.join(" · ")}</span></div>
+                      {osd.cycle.meta.curriculum.map((c, i) => <div key={i}><span style={{ color: c.who === "owner" ? C.need : C.muted }}>[{c.who}]</span> {c.task}</div>)}
+                    </div>
+                  )}
                   {osd.cycle.agents.map((a) => (
                     <div key={a.agent_id} style={{ display: "flex", gap: 8, padding: "4px 0", borderBottom: `1px solid ${C.line}` }}>
                       <span style={{ minWidth: 44, color: C.muted }}>{a.agent_id}</span>
