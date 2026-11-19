@@ -59,6 +59,8 @@ def source_gaps(root: Path, now: float) -> list:
     for name, expected in EXPECTED.items():
         rec = scout_common.latest(root, name)
         age = now - rec["generated_at"] if rec and rec.get("generated_at") else None
+        if rec and rec.get("status") in ("NO_DATA", "NO_MODEL", "ERROR") and age is not None:
+            age = max(age, expected + age * 4)                     # a failed run does not count as fresh: retry about hourly
         gaps.append({"source": name, "age_seconds": round(age) if age is not None else None, "expected_seconds": expected,
                      "surprise": priority.surprise(age, expected)})
     return sorted(gaps, key=lambda g: -g["surprise"])
