@@ -711,11 +711,21 @@ def dashboard_payload(root: Path) -> dict:
             "automation": automation_status(root, briefing, scout), "os": _os_latest(root), "generated_at": time.time()}
 
 
+def _providers(root):
+    try:
+        from apex import brave_search, data_providers, scout_common, scout_wealth
+        return data_providers.status(lambda n: scout_common.latest(root, n),
+                                     {"reed": scout_wealth.reed_key() is not None, "brave": brave_search.load_key(root) is not None, "google": False},
+                                     time.time())
+    except Exception:
+        return None
+
+
 def _os_latest(root):
     try:
         from apex import scout_common
         return {"cycle": scout_common.latest(root, "os"), "trends": scout_common.latest(root, "trends"),
-                "drafts": scout_common.latest(root, "content_drafts"), "property": scout_common.latest(root, "property"), "social": scout_common.latest(root, "social"), "listings": scout_common.latest(root, "listings"),
+                "drafts": scout_common.latest(root, "content_drafts"), "property": scout_common.latest(root, "property"), "social": scout_common.latest(root, "social"), "providers": _providers(root), "listings": scout_common.latest(root, "listings"),
                 "critic": scout_common.latest(root, "critic"), "evolution": scout_common.latest(root, "evolution"), "graph": scout_common.latest(root, "graph"), "people": __import__("apex.people_graph", fromlist=["x"]).summary(root)}
     except Exception:
         return None

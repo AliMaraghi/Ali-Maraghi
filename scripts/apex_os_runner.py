@@ -49,7 +49,7 @@ def _a4(root):
 
 
 def _a6(root):
-    return "BLOCKED_MISSING_CREDENTIAL", "Gmail sync on the server is switched off (3 failed attempts); needs your Google sign-in again"
+    return "BLOCKED_MISSING_CREDENTIAL", "Google is authorised again, but the Gmail sync still fails; needs the server diagnose report to fix"
 
 
 def _a14(root):

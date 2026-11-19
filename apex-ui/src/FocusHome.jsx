@@ -476,6 +476,10 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Trends ({ago(osd.trends.generated_at, lang)}): </span>
                       {osd.trends.top.slice(0, 8).map((x) => `${x.term} [${x.geos.join(",")}]`).join(" · ")}</div>
                   )}
+                  {osd.providers && (
+                    <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Data providers: </span><b>{osd.providers.LIVE} live</b> · {osd.providers.WIRED} wired, not proven fresh · {osd.providers.BLOCKED} blocked on a key or sign-in · manifesto target {osd.providers.target}
+                      <div style={{ color: C.muted }}>{osd.providers.rows.filter((r) => r.state !== "LIVE").map((r) => `${r.label} (${r.state})`).join(" · ")}</div></div>
+                  )}
                   <EnergyRow lang={lang} />
                   {osd.listings && (osd.listings.links || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Listings to open (search links, not verified prices):</div>

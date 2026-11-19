@@ -126,3 +126,17 @@ class Meta(unittest.TestCase):
         self.assertEqual(len(bad["reasons"]), 3)
         tasks = m.curriculum([{"source": "events", "surprise": 3}], agents, [{"task": "trends", "result": "ERROR", "detail": "x"}], {"within_budget": ["Bexley"]}, 1)
         self.assertEqual({t["who"] for t in tasks}, {"system", "owner"})
+
+
+class Providers(unittest.TestCase):
+    def test_states_are_evidence_based(self):
+        from apex import data_providers as dp
+        recs = {"trends": {"status": "OK", "generated_at": 100.0, "feeds_failed": ["DE:SourceError"]}, "events": {"generated_at": 100.0}}
+        out = dp.status(lambda n: recs.get(n), {"reed": False}, 200.0)
+        by = {r["id"]: r["state"] for r in out["rows"]}
+        self.assertEqual(by["google_trends_gb"], "LIVE")
+        self.assertEqual(by["google_trends_de"], "WIRED")
+        self.assertEqual(by["reed_jobs"], "BLOCKED")
+        self.assertEqual(by["meetup_ical"], "LIVE")
+        self.assertEqual(out["LIVE"] + out["WIRED"] + out["BLOCKED"], out["connected"])
+        self.assertLess(out["connected"], out["target"])
