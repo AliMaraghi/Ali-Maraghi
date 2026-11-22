@@ -129,17 +129,37 @@ class Meta(unittest.TestCase):
 
 
 class Providers(unittest.TestCase):
-    def test_states_are_evidence_based(self):
+    def test_live_needs_explicit_fresh_success_per_provider(self):
         from apex import data_providers as dp
-        recs = {"trends": {"status": "OK", "generated_at": 100.0, "feeds_failed": ["DE:SourceError"]}, "events": {"generated_at": 100.0}}
-        out = dp.status(lambda n: recs.get(n), {"reed": False}, 200.0)
+        H = 3600
+        recs = {"trends": {"status": "OK", "generated_at": 100.0, "feeds_failed": ["DE:SourceError"]},
+                "events": {"generated_at": 100.0},                                 # recent but NO status: must not count as live
+                "commute": {"status": "OK", "generated_at": 100.0},
+                "wealth": {"generated_at": 100.0, "alert": {"headline": "x"}, "job": None},
+                "property": {"status": "OK", "generated_at": 100.0 - 30 * 24 * H}}
+        out = dp.status(lambda n: recs.get(n), {"reed": True}, 200.0, {"backup": {"state": "UPLOADED", "last_success": 150.0}, "gmail": {"failures": 1}})
         by = {r["id"]: r["state"] for r in out["rows"]}
-        self.assertEqual(by["google_trends_gb"], "LIVE")
-        self.assertEqual(by["google_trends_de"], "WIRED")
-        self.assertEqual(by["reed_jobs"], "BLOCKED")
-        self.assertEqual(by["meetup_ical"], "LIVE")
-        self.assertEqual(out["LIVE"] + out["WIRED"] + out["BLOCKED"], out["connected"])
-        self.assertLess(out["connected"], out["target"])
+        self.assertEqual(by["google_trends_gb"], "LIVE_VERIFIED")
+        self.assertEqual(by["google_trends_de"], "FAILING")
+        self.assertEqual(by["meetup_ical"], "FAILING")
+        self.assertEqual(by["tfl_status"], "LIVE_VERIFIED")
+        self.assertEqual(by["bbc_business_rss"], "LIVE_VERIFIED")
+        self.assertEqual(by["reed_jobs"], "FAILING")                               # shared record, separate proof
+        self.assertEqual(by["land_registry_hpi"], "IMPLEMENTED")                   # outside its own window
+        self.assertEqual(by["google_drive_backup"], "LIVE_VERIFIED")
+        self.assertEqual(by["gmail_metadata"], "FAILING")
+        self.assertEqual(by["brave_property"], "AUTH_REQUIRED")
+        self.assertEqual(by["bank_statements"], "IMPLEMENTED")
+        self.assertNotIn("connected", out)
+
+
+class Inventory(unittest.TestCase):
+    def test_inventory_counts_are_honest(self):
+        from apex import data_providers as dp
+        out = dp.status(lambda n: None, {}, 1.0)["inventory"]
+        self.assertEqual(out["total"], 133)
+        self.assertEqual(out["LIVE_VERIFIED"], 0)
+        self.assertGreater(out["NOT_CONNECTED"], 110)
 
 
 class Venture(unittest.TestCase):
@@ -166,13 +186,3 @@ class Venture(unittest.TestCase):
         from apex import l5, venture as vt
         self.assertIn("I don't have that information", vt.identity())
         self.assertIn("never invent numbers", l5.with_lessons("/nonexistent", "social", "BASE").lower())
-
-
-class Inventory(unittest.TestCase):
-    def test_inventory_counts_are_honest(self):
-        from apex import data_providers as dp
-        out = dp.status(lambda n: None, {}, 1.0)["inventory"]
-        self.assertEqual(out["total"], 133)
-        self.assertEqual(out["LIVE"], 0)
-        self.assertEqual(out["LIVE"] + out["WIRED"] + out["BLOCKED"] + out["NOT_CONNECTED"], 133)
-        self.assertGreater(out["NOT_CONNECTED"], 110)

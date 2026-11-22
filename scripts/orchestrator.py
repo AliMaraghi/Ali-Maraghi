@@ -715,8 +715,8 @@ def _providers(root):
     try:
         from apex import brave_search, data_providers, scout_common, scout_wealth
         return data_providers.status(lambda n: scout_common.latest(root, n),
-                                     {"reed": scout_wealth.reed_key() is not None, "brave": brave_search.load_key(root) is not None, "google": False},
-                                     time.time())
+                                     {"reed": scout_wealth.reed_key() is not None, "brave": brave_search.load_key(root) is not None},
+                                     time.time(), automation_status(root, None, {}))
     except Exception:
         return None
 

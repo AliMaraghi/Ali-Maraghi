@@ -1,38 +1,64 @@
-"""Registry of the data providers that are actually wired into this system, with the evidence that each one works.
-The manifesto's target is 130. This file lists only real, connected sources; it never pads the count. A provider is
-LIVE when the record it feeds was refreshed successfully, WIRED when the code exists but there is no fresh success,
-and BLOCKED when it needs a key or sign-in from the owner."""
+"""Registry of the data providers that have code in this system, with the evidence each one must show.
+
+States (never inferred from a registry entry or a bare timestamp):
+  LIVE_VERIFIED  the provider's own proof is present, says success, and is inside that provider's freshness window
+  IMPLEMENTED    code exists but there is no current proof of a successful retrieval
+  FAILING        the latest evidence is a failure
+  AUTH_REQUIRED  a key or sign-in from the owner is missing
+"catalogued" is only the number of entries here; it is not a count of working connections."""
 from __future__ import annotations
 
 TARGET = 130
-# (id, domain, what it is, ledger record that proves it, credential needed or None)
+H = 3600
+# (id, domain, label, proof, max age in seconds, credential)
+# proof: ("status", record) -> record.status must be "OK"; ("field", record, key) -> that key must be non-empty;
+#        ("trend", GEO) -> trends OK and GEO not in feeds_failed; ("backup",) / ("gmail",) -> automation evidence; None -> no proof wired
 PROVIDERS = [
-    ("meetup_ical", "Social", "Meetup public group calendars", "events", None),
-    ("bbc_business_rss", "Finance", "BBC News business headlines", "wealth", None),
-    ("reed_jobs", "Career", "Reed job search API", "wealth", "reed"),
-    ("tfl_status", "Operations", "TfL line status", "commute", None),
-    ("land_registry_hpi", "Property", "HM Land Registry UK House Price Index", "property", None),
-    ("brave_property", "Property", "Portal listing links via Brave search", "listings", "brave"),
-    ("google_trends_gb", "Content", "Google Trends daily, United Kingdom", "trends", None),
-    ("google_trends_us", "Content", "Google Trends daily, United States", "trends", None),
-    ("google_trends_de", "Content", "Google Trends daily, Germany", "trends", None),
-    ("google_trends_fr", "Content", "Google Trends daily, France", "trends", None),
-    ("google_trends_es", "Content", "Google Trends daily, Spain", "trends", None),
-    ("google_trends_tr", "Content", "Google Trends daily, Turkey", "trends", None),
-    ("google_trends_ir", "Content", "Google Trends daily, Iran", "trends", None),
-    ("google_trends_ae", "Content", "Google Trends daily, UAE", "trends", None),
-    ("bank_statements", "Finance", "Owner-uploaded bank statements (9 accounts)", "spend", None),
-    ("linkedin_export", "Context", "Owner's LinkedIn connections export", "graph", None),
-    ("arxiv", "Strategy", "arXiv public feeds (agent A-1)", None, None),
-    ("pubmed", "Research", "PubMed search (agent A-2)", None, None),
-    ("crossref", "Research", "Crossref metadata", None, None),
-    ("uk_contracts_finder", "Opportunity", "UK Contracts Finder notices", None, None),
-    ("ted_europa", "Opportunity", "EU TED procurement notices", None, None),
-    ("wikipedia", "Research", "Wikipedia API (English, Persian)", None, None),
-    ("brave_institutional", "Research", "Brave search limited to institutional sites, 9 regions", None, "brave"),
-    ("gmail_metadata", "Operations", "Gmail read-only metadata sync", None, "google"),
-    ("google_drive_backup", "Operations", "Encrypted off-site backup to Google Drive", None, "google"),
+    ("meetup_ical", "Social", "Meetup public group calendars", ("status", "events"), 9 * H, None),
+    ("bbc_business_rss", "Finance", "BBC News business headlines", ("field", "wealth", "alert"), 9 * H, None),
+    ("reed_jobs", "Career", "Reed job search API", ("field", "wealth", "job"), 9 * H, "reed"),
+    ("tfl_status", "Operations", "TfL line status", ("status", "commute"), 9 * H, None),
+    ("land_registry_hpi", "Property", "HM Land Registry UK House Price Index", ("status", "property"), 8 * 24 * H, None),
+    ("brave_property", "Property", "Portal listing links via Brave search", ("status", "listings"), 49 * H, "brave"),
+] + [(f"google_trends_{g.lower()}", "Content", f"Google Trends daily, {g}", ("trend", g), 13 * H, None) for g in ("GB", "US", "DE", "FR", "ES", "TR", "IR", "AE")] + [
+    ("bank_statements", "Finance", "Owner-uploaded bank statements (manual upload, not a bank connection)", None, 0, None),
+    ("linkedin_export", "Context", "Owner's LinkedIn connections export (manual upload)", None, 0, None),
+    ("arxiv", "Strategy", "arXiv public feeds (agent A-1)", None, 0, None),
+    ("pubmed", "Research", "PubMed search (agent A-2)", None, 0, None),
+    ("crossref", "Research", "Crossref metadata", None, 0, None),
+    ("uk_contracts_finder", "Opportunity", "UK Contracts Finder notices", None, 0, None),
+    ("ted_europa", "Opportunity", "EU TED procurement notices", None, 0, None),
+    ("wikipedia", "Research", "Wikipedia API (English, Persian)", None, 0, None),
+    ("brave_institutional", "Research", "Brave search limited to institutional sites, 9 regions", None, 0, "brave"),
+    ("gmail_metadata", "Operations", "Gmail read-only metadata sync", ("gmail",), 0, None),
+    ("google_drive_backup", "Operations", "Encrypted off-site backup to Google Drive", ("backup",), 49 * H, None),
 ]
+
+
+def _judge(proof, max_age, latest, automation, now):
+    """-> (state, evidence text). Only explicit success inside the window counts as LIVE_VERIFIED."""
+    if proof is None:
+        return "IMPLEMENTED", "no current proof of retrieval is recorded"
+    kind = proof[0]
+    if kind == "backup":
+        b = (automation or {}).get("backup") or {}
+        ok = b.get("state") == "UPLOADED" and b.get("last_success") and now - b["last_success"] <= max_age
+        return ("LIVE_VERIFIED", f"uploaded {int((now - b['last_success']) // H)}h ago") if ok else ("IMPLEMENTED", "no upload inside 49h")
+    if kind == "gmail":
+        g = (automation or {}).get("gmail") or {}
+        return ("FAILING", f"{g.get('failures')} consecutive failed sync(s)") if g.get("failures") else ("IMPLEMENTED", "no successful sync is recorded")
+    rec = latest("trends" if kind == "trend" else proof[1])
+    if not rec or not rec.get("generated_at"):
+        return "IMPLEMENTED", "never ran"
+    age = now - rec["generated_at"]
+    if age > max_age:
+        return "IMPLEMENTED", f"last result is {int(age // H)}h old, outside its {int(max_age // H)}h window"
+    if kind == "status":
+        return ("LIVE_VERIFIED", f"status OK {int(age // H)}h ago") if rec.get("status") == "OK" else ("FAILING", f"last status {rec.get('status')}")
+    if kind == "field":
+        return ("LIVE_VERIFIED", f"returned data {int(age // H)}h ago") if rec.get(proof[2]) else ("FAILING", "last run returned nothing from this provider")
+    failed = any(str(f).startswith(proof[1] + ":") for f in rec.get("feeds_failed", []))
+    return ("LIVE_VERIFIED", f"feed read {int(age // H)}h ago") if rec.get("status") == "OK" and not failed else ("FAILING", "feed failed on the last scan")
 
 
 # The owner's target inventory (22 Nov 2026): 130 sources plus later additions. A target, not a claim of connection.
@@ -63,9 +89,9 @@ SERVED_BY = {"PubMed": ["pubmed"], "Crossref": ["crossref"], "arXiv": ["arxiv"],
 
 
 def inventory(rows: list) -> dict:
-    """Every inventory target with its honest state: LIVE, WIRED, BLOCKED or NOT_CONNECTED."""
-    by_id, rank = {r["id"]: r["state"] for r in rows}, {"LIVE": 3, "WIRED": 2, "BLOCKED": 1}
-    out, totals = {}, {"LIVE": 0, "WIRED": 0, "BLOCKED": 0, "NOT_CONNECTED": 0}
+    """Every inventory target with its evidence-based state, or NOT_CONNECTED."""
+    by_id, rank = {r["id"]: r["state"] for r in rows}, {"LIVE_VERIFIED": 4, "FAILING": 3, "IMPLEMENTED": 2, "AUTH_REQUIRED": 1}
+    out, totals = {}, {"LIVE_VERIFIED": 0, "IMPLEMENTED": 0, "FAILING": 0, "AUTH_REQUIRED": 0, "NOT_CONNECTED": 0}
     for category, names in INVENTORY.items():
         items = []
         for name in names:
@@ -77,21 +103,14 @@ def inventory(rows: list) -> dict:
     return {"total": sum(totals.values()), **totals, "categories": out}
 
 
-def status(latest, have: dict, now: float) -> dict:
-    """latest(name) -> newest record or None; have = {"reed": bool, "brave": bool, "google": bool}."""
+def status(latest, have: dict, now: float, automation: dict | None = None) -> dict:
+    """latest(name) -> newest record or None; have = {"reed": bool, "brave": bool}; automation = backup/gmail evidence."""
     rows = []
-    for pid, domain, label, record, cred in PROVIDERS:
+    for pid, domain, label, proof, max_age, cred in PROVIDERS:
         if cred and not have.get(cred):
-            state = "BLOCKED"
-        elif record is None:
-            state = "WIRED"
+            state, why = "AUTH_REQUIRED", f"{cred} key not set"
         else:
-            rec = latest(record)
-            fresh = rec and rec.get("status") in (None, "OK") and now - rec.get("generated_at", 0) < 8 * 86400
-            failed = pid.rsplit("_", 1)[-1].upper() if pid.startswith("google_trends_") else None
-            if fresh and failed and any(str(f).startswith(failed + ":") for f in rec.get("feeds_failed", [])):
-                fresh = False
-            state = "LIVE" if fresh else "WIRED"
-        rows.append({"id": pid, "domain": domain, "label": label, "state": state})
-    count = {s: sum(1 for r in rows if r["state"] == s) for s in ("LIVE", "WIRED", "BLOCKED")}
-    return {"target": TARGET, "connected": len(rows), **count, "rows": rows, "inventory": inventory(rows)}
+            state, why = _judge(proof, max_age, latest, automation, now)
+        rows.append({"id": pid, "domain": domain, "label": label, "state": state, "evidence": why})
+    count = {k: sum(1 for r in rows if r["state"] == k) for k in ("LIVE_VERIFIED", "IMPLEMENTED", "FAILING", "AUTH_REQUIRED")}
+    return {"target": TARGET, "catalogued": len(rows), **count, "rows": rows, "inventory": inventory(rows)}
