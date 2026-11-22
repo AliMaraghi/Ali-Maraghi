@@ -492,7 +492,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                 <div dir="ltr" style={{ fontSize: 13, lineHeight: 1.7 }}>
                   {osd.cycle.meta && (
                     <div style={{ marginBottom: 10 }}>
-                      <div><b style={{ color: osd.cycle.meta.confidence.unsure ? C.need : C.ok }}>Confidence {osd.cycle.meta.confidence.score}/100{osd.cycle.meta.confidence.unsure ? " — unsure" : ""}</b> <span style={{ color: C.muted }}>{osd.cycle.meta.confidence.reasons.join(" · ")}</span></div>
+                      <div><b style={{ color: osd.cycle.meta.confidence.unsure ? C.need : C.ok }}>Health index {osd.cycle.meta.confidence.score}/100 (uncalibrated: counts stale data, failed tasks and idle agents){osd.cycle.meta.confidence.unsure ? " — low" : ""}</b> <span style={{ color: C.muted }}>{osd.cycle.meta.confidence.reasons.join(" · ")}</span></div>
                       {osd.cycle.meta.curriculum.map((c, i) => <div key={i}><span style={{ color: c.who === "owner" ? C.need : C.muted }}>[{c.who}]</span> {c.task}</div>)}
                     </div>
                   )}

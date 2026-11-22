@@ -29,4 +29,32 @@ try:
 except Exception as e:
     print("DATABASE ERROR:", type(e).__name__, e)
 PY
+echo; echo "-- which code each service loaded (process start vs latest commit)"
+echo "latest commit: $(git log -1 --format='%cI %h' 2>&1)"
+for u in apex-voice apex-ui apex-console apex-worker apex-agents; do
+  pid=$(systemctl show -p MainPID --value "$u" 2>/dev/null)
+  printf '%-14s pid=%s started=%s\n' "$u" "$pid" "$( [ -n "$pid" ] && [ "$pid" != 0 ] && ps -o lstart= -p "$pid" 2>/dev/null )"
+done
+echo; echo "-- Gmail connector audit trail (ledger: arm / disarm / run events; no mail content)"
+python3 - <<'PY'
+import sqlite3, json, time
+try:
+    db = sqlite3.connect("file:runtime/kernel.sqlite3?mode=ro", uri=True, timeout=5)
+    rows = db.execute("SELECT seq, event_key, payload FROM events WHERE event_key LIKE 'connector-%' ORDER BY seq DESC LIMIT 14").fetchall()
+    for seq, key, payload in reversed(rows):
+        p = json.loads(payload)
+        stamp = next((int(x) for x in key.split('-') if x.isdigit() and len(x) >= 10), None)
+        when = time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(stamp)) if stamp else '?'
+        print(f"  seq {seq} | {key.rsplit('-', 1)[0] if 'run' in key else key} | {when} | "
+              + ", ".join(f"{k}={p[k]}" for k in ('phase', 'state', 'error_type', 'consecutive_failures', 'disabled', 'reason') if k in p))
+    print("schedule now:", db.execute("SELECT enabled, remaining, issued, failures, pending, next_due FROM connector_schedules WHERE connector='gmail'").fetchone())
+    print("-- mission schedules (worker)")
+    for sid, enabled, remaining, issued in db.execute("SELECT id, enabled, remaining, issued FROM mission_schedules"):
+        print(f"  {sid}: enabled={enabled} remaining={remaining} issued={issued}")
+    print("-- pending approvals by proposer (same table the console queue shows)")
+    for proposer, n in db.execute("SELECT proposer, COUNT(*) FROM proposals WHERE state='PENDING' GROUP BY proposer"):
+        print(f"  {proposer}: {n}")
+except Exception as e:
+    print("AUDIT QUERY ERROR:", type(e).__name__, e)
+PY
 echo; echo "-- recovery folder"; ls -la runtime/recovery 2>&1 | head; echo "== end =="

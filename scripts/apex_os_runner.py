@@ -150,7 +150,7 @@ def agent_states(root: Path, approvals: dict) -> list:
     out = []
     for agent_id, name in roster:
         t = telemetry.get(agent_id)
-        waiting = [pid for proposer, ids in pending_by.items() if agent_id in proposer for pid in ids]
+        waiting = [pid for proposer, ids in pending_by.items() if proposer == f"agent:{agent_id}" for pid in ids]
         if agent_id == "A-10" and (t is None or t["blocked"]):
             state, reason = SUBSYSTEM["A-10"](root)
         elif t is None and agent_id in SUBSYSTEM:
@@ -393,7 +393,7 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
                                                     "waiting_for_owner": [c["task"] for c in meta["curriculum"] if c["who"] == "owner"],
                                                     "tomorrow": [c["task"] for c in meta["curriculum"] if c["who"] == "system"]}, now)
     payload = {"event": "os_cycle", "status": "OK", "meta": meta, "agents": agents, "gaps": source_gaps(root, now), "plan": plan(gaps, approvals, pulls),
-               "actions": actions, "pending_approvals": approvals["pending"][:20],
+               "actions": actions, "pending_approvals": approvals["pending"][:50], "pending_total": len(approvals["pending"]),
                "summary": {s: sum(1 for a in agents if a["state"] == s) for s in sorted({a["state"] for a in agents})}}
     with Ledger(root) as ledger:
         scout_common.record(ledger, "os", payload, now)
