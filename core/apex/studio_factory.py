@@ -60,6 +60,8 @@ def write_script(llm, job: dict) -> list:
     lines = [l for l in lines if l]
     if len(lines) != 5:
         raise Hold("SCRIPT_NOT_FIVE_LINES")
+    if len(lines[0].split()) > 14:
+        raise Hold("HOOK_TOO_LONG")                                # the first line must be readable in the opening three seconds
     for l in lines:
         if not 12 <= len(l) <= 170 or re.search(r"[{}\\<>]", l):
             raise Hold("SCRIPT_LINE_OUT_OF_BOUNDS")

@@ -27,7 +27,7 @@ from apex import priority, scout_common, trend_scout          # noqa: E402
 INTERVAL = 900
 EXPECTED = {"events": 4 * 3600, "wealth": 4 * 3600, "commute": 4 * 3600, "adult": 4 * 3600, "trends": 6 * 3600,
             "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400,
-            "listings": 24 * 3600, "event_links": 12 * 3600, "mission_events": 24 * 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
+            "listings": 24 * 3600, "event_links": 12 * 3600, "mission_events": 24 * 3600, "global_trends": 6 * 3600, "comment_replies": 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
 CREDENTIAL = {"A-5": "Reed job-search key", "A-6": "Gmail connection (sync is switched off)"}
 VALUE = {"trends": 3.0, "content_drafts": 4.0, "events": 5.0, "wealth": 6.0, "commute": 2.0, "adult": 3.0, "spend": 6.0}
 
@@ -224,6 +224,16 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         trends = trend_scout.scan(fetch)
         to_record.append(("trends", trends))
         actions.append({"task": "trends", "result": trends["status"], "detail": f"{trends['count']} terms, failed feeds: {trends['feeds_failed'] or 'none'}"})
+    if "global_trends" in due:
+        from apex import global_trend_swarm
+        gt = global_trend_swarm.scan(fetch, scout_common.latest(root, "global_trends"), now)
+        to_record.append(("global_trends", gt))
+        actions.append({"task": "global_trends", "result": gt["status"], "detail": f"{gt['markets_ok']}/{gt['markets']} markets, {gt['count']} terms, {gt['cross_language']} in more than one language, failed: {gt['feeds_failed'] or 'none'}"})
+    if "comment_replies" in due:
+        from apex import comment_responder
+        cr = comment_responder.run(root / "runtime" / "kernel.sqlite3", None, llm, None, now)   # no platform adapter exists yet: records BLOCKED
+        to_record.append(("comment_replies", cr))
+        actions.append({"task": "comment_replies", "result": cr["status"], "detail": cr.get("detail", "")})
     if "content_drafts" in due:
         trends = trends or scout_common.latest(root, "trends") or {}
         drafts = [d for d in (trend_scout.draft(llm, t, l5.lessons(root, 'content')) for t in (trends.get("top") or [])[:2]) if d]

@@ -530,6 +530,13 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                       {osd.listings.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.borough} · {l.site}</span></div>)}</div>
                   )}
                   <Studio lang={lang} film={osd.studio} />
+                  {osd.global_trends && (
+                    <div style={{ marginTop: 10, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
+                      <div><b>{lang === "fa" ? "ترندهای جهانی" : "Global trends"}</b> <span style={{ color: C.muted }}>{osd.global_trends.markets_ok}/{osd.global_trends.markets} {lang === "fa" ? "بازار" : "markets"} · {osd.global_trends.count} {lang === "fa" ? "عبارت" : "terms"} · {osd.global_trends.cross_language} {lang === "fa" ? "در بیش از یک زبان" : "in more than one language"} · {ago(osd.global_trends.generated_at, lang)}</span></div>
+                      {(osd.global_trends.top || []).slice(0, 8).map((t, i) => <div key={i} dir="auto">{t.term} <span style={{ color: C.muted, fontSize: 12 }}>{t.markets.join(" ")} · {t.volume.toLocaleString()}+ · {lang === "fa" ? "امتیاز" : "score"} {t.score}{t.fit_tags.length ? " · " + t.fit_tags.join(", ") : ""}{t.sensitive ? (lang === "fa" ? " · حساس" : " · sensitive") : ""}</span></div>)}
+                      <div style={{ color: C.muted, fontSize: 12 }}>{lang === "fa" ? "امتیاز فقط برای مرتب‌کردن است و با نتیجهٔ واقعی سنجیده نشده." : "The score only orders the list; it is not measured against real outcomes."}</div>
+                      {osd.comment_replies && <div style={{ color: C.need, fontSize: 12 }}>{lang === "fa" ? "پاسخ به کامنت‌ها: " : "Comment replies: "}{osd.comment_replies.status}{osd.comment_replies.status === "BLOCKED" ? (lang === "fa" ? " (هیچ حسابی وصل نیست)" : " (no account connected)") : ""}</div>}
+                    </div>)}
                   <div style={{ marginTop: 10, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                     <div><b>{lang === "fa" ? "مأموریت خودکار: رویدادهای آخر هفتهٔ لندن" : "Self-started mission: London weekend events"}</b>{" "}
                       <MissionNow lang={lang} /></div>
