@@ -134,6 +134,7 @@ function InboxBox({ path, label }) {
     </div>
   );
 }
+const STATE_FA = { AUTONOMOUS_SCAN: "در حال کار خودکار", PENDING_APPROVAL: "منتظر تأیید تو", BLOCKED_MISSING_INPUT: "متوقف: ورودی ندارد", BLOCKED_MISSING_CREDENTIAL: "متوقف: کلید یا ورود لازم است", ERROR: "خطا", NEVER_RUN: "هنوز اجرا نشده", NOT_BUILT: "ساخته نشده" };
 const CAT_FA = { "Other / uncategorised": "دسته‌بندی‌نشده", "Food delivery": "سفارش غذا", "Eating out & coffee": "رستوران و قهوه", "Housing & council": "مسکن و شهرداری", "Groceries": "خرید خوراکی", "Health & fitness": "سلامت و ورزش", "Subscriptions & software": "اشتراک‌ها و نرم‌افزار", "Transport": "حمل‌ونقل", "Utilities & telecoms": "قبض‌ها و تلفن", "Shopping": "خرید", "Cash": "نقد", "Interest & bank fees": "بهره و کارمزد بانک" };
 function num(n, lang) { return Number(n).toLocaleString(lang === "fa" ? "fa-IR" : "en-GB"); }
 function pounds(pence, lang) {
@@ -453,40 +454,6 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     sub={events ? ago(events.generated_at, lang) : t.never} />
             </div>
 
-            <Section id="auto" title={t.secAuto}>
-              <AutoRows auto={data && data.automation} t={t} lang={lang} />
-            </Section>
-
-            <Section id="scout" title={t.secScout} hint={events ? ago(events.generated_at, lang) : null}>
-              {eventCount === 0 && <div style={{ color: C.muted }}>{t.noEvents}</div>}
-              {events && events.picked && events.picked.map((e, i) => (
-                <div key={i} dir="auto" style={{ marginBottom: 14 }}>
-                  {e.url && /^https:\/\//.test(e.url) ? <a href={e.url} target="_blank" rel="noopener noreferrer" style={link}>{e.title}</a> : e.title}
-                  <div style={{ color: C.muted, fontSize: 14 }}>{[e.start, e.location, e.why].filter(Boolean).join(" · ")}</div>
-                  {e.opener ? <div style={{ fontSize: 14, marginTop: 4 }}><span style={{ color: C.muted, fontSize: 12 }}>{lang === "fa" ? "جمله شروع (انگلیسی؛ همان که در محل می‌گویی): " : "Opener: "}</span>“{e.opener}”</div> : null}
-                </div>
-              ))}
-              {wealth && (
-                <div dir="auto" style={{ marginTop: 6 }}>
-                  <div style={{ color: C.muted, fontSize: 14 }}>{t.job}</div>
-                  {wealth.job ? (
-                    <div style={{ marginBottom: 12 }}>
-                      {wealth.job.url && /^https:\/\//.test(wealth.job.url) ? <a href={wealth.job.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.job.title}</a> : wealth.job.title}
-                      <div style={{ color: C.muted, fontSize: 14 }}>{[wealth.job.employer, wealth.job.location].filter(Boolean).join(" · ")}</div>
-                    </div>
-                  ) : <div style={{ color: C.muted, marginBottom: 12 }}>{wealth.job_status === "NEEDS_REED_KEY" ? t.needsReed : "—"}
-                      {wealth.job_status === "NEEDS_REED_KEY" && <ReedKey t={t} />}</div>}
-                  {wealth.alert && (
-                    <>
-                      <div style={{ color: C.muted, fontSize: 14 }}>{t.market}</div>
-                      {/^https:\/\//.test(wealth.alert.url || "") ? <a href={wealth.alert.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.alert.headline}</a> : wealth.alert.headline}
-                      <div style={{ color: C.muted, fontSize: 14 }}>{[wealth.alert.note, wealth.alert.source, t.info].filter(Boolean).join(" · ")}</div>
-                    </>
-                  )}
-                </div>
-              )}
-            </Section>
-
             {osd && osd.cycle && (
               <Section id="os" title={lang === "fa" ? "وضعیت واقعی سیستم‌عامل" : "OS: real state"} hint={ago(osd.cycle.generated_at, lang)}>
                 <div dir="ltr" style={{ fontSize: 13, lineHeight: 1.7 }}>
@@ -499,7 +466,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   {osd.cycle.agents.map((a) => (
                     <div key={a.agent_id} style={{ display: "flex", gap: 8, padding: "4px 0", borderBottom: `1px solid ${C.line}` }}>
                       <span style={{ minWidth: 44, color: C.muted }}>{a.agent_id}</span>
-                      <span style={{ minWidth: 190, color: a.state === "AUTONOMOUS_SCAN" ? C.ok : a.state === "PENDING_APPROVAL" ? C.accent || C.ok : C.need }}>{a.state}</span>
+                      <span style={{ minWidth: 190, color: a.state === "AUTONOMOUS_SCAN" ? C.ok : a.state === "PENDING_APPROVAL" ? C.accent || C.ok : C.need }}>{lang === "fa" ? (STATE_FA[a.state] || a.state) : a.state}</span>
                       <span style={{ color: C.muted }}>{a.name}: {a.reason}</span>
                     </div>
                   ))}
@@ -571,6 +538,40 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                 </div>
               </Section>
             )}
+            <Section id="auto" title={t.secAuto}>
+              <AutoRows auto={data && data.automation} t={t} lang={lang} />
+            </Section>
+
+            <Section id="scout" title={t.secScout} hint={events ? ago(events.generated_at, lang) : null}>
+              {eventCount === 0 && <div style={{ color: C.muted }}>{t.noEvents}</div>}
+              {events && events.picked && events.picked.map((e, i) => (
+                <div key={i} dir="auto" style={{ marginBottom: 14 }}>
+                  {e.url && /^https:\/\//.test(e.url) ? <a href={e.url} target="_blank" rel="noopener noreferrer" style={link}>{e.title}</a> : e.title}
+                  <div style={{ color: C.muted, fontSize: 14 }}>{[e.start, e.location, e.why].filter(Boolean).join(" · ")}</div>
+                  {e.opener ? <div style={{ fontSize: 14, marginTop: 4 }}><span style={{ color: C.muted, fontSize: 12 }}>{lang === "fa" ? "جمله شروع (انگلیسی؛ همان که در محل می‌گویی): " : "Opener: "}</span>“{e.opener}”</div> : null}
+                </div>
+              ))}
+              {wealth && (
+                <div dir="auto" style={{ marginTop: 6 }}>
+                  <div style={{ color: C.muted, fontSize: 14 }}>{t.job}</div>
+                  {wealth.job ? (
+                    <div style={{ marginBottom: 12 }}>
+                      {wealth.job.url && /^https:\/\//.test(wealth.job.url) ? <a href={wealth.job.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.job.title}</a> : wealth.job.title}
+                      <div style={{ color: C.muted, fontSize: 14 }}>{[wealth.job.employer, wealth.job.location].filter(Boolean).join(" · ")}</div>
+                    </div>
+                  ) : <div style={{ color: C.muted, marginBottom: 12 }}>{wealth.job_status === "NEEDS_REED_KEY" ? t.needsReed : "—"}
+                      {wealth.job_status === "NEEDS_REED_KEY" && <ReedKey t={t} />}</div>}
+                  {wealth.alert && (
+                    <>
+                      <div style={{ color: C.muted, fontSize: 14 }}>{t.market}</div>
+                      {/^https:\/\//.test(wealth.alert.url || "") ? <a href={wealth.alert.url} target="_blank" rel="noopener noreferrer" style={link}>{wealth.alert.headline}</a> : wealth.alert.headline}
+                      <div style={{ color: C.muted, fontSize: 14 }}>{[wealth.alert.note, wealth.alert.source, t.info].filter(Boolean).join(" · ")}</div>
+                    </>
+                  )}
+                </div>
+              )}
+            </Section>
+
             <Section id="spend" title={t.secSpend} hint={scout && scout.spend ? scout.spend.last_date : null}>
               {(!scout || !scout.spend) && <div style={{ color: C.muted }}>{t.spendNone}</div>}
               {scout && scout.spend && scout.spend.food_alert && (() => {
