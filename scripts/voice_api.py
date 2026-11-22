@@ -421,6 +421,29 @@ class VoiceChatApp:
                 tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
                 os.replace(tmp, ideas_file)
             return self._respond(start_response, 200, {"job_id": job["job_id"], "queued": len(ideas), "starts_within_seconds": 900})
+        if path == "/api/studio/install_tools":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            from apex import studio_factory
+            status = Path(self.root) / "runtime" / "studio_tools.json"
+            def _go():
+                try:
+                    result = studio_factory.install_tools(self.root)
+                except Exception as exc:                           # noqa: BLE001
+                    result = {"ok": False, "error": f"{type(exc).__name__}: {str(exc)[:200]}"}
+                status.write_text(json.dumps({**result, "at": time.time()}), encoding="utf-8")
+            if studio_factory.ffmpeg_bin(self.root):
+                return self._respond(start_response, 200, {"installed": True, "ffmpeg": studio_factory.ffmpeg_bin(self.root)})
+            threading.Thread(target=_go, daemon=True).start()
+            return self._respond(start_response, 200, {"started": True})
+        if path == "/api/studio/tools":
+            from apex import studio_factory
+            try:
+                last = json.loads((Path(self.root) / "runtime" / "studio_tools.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                last = None
+            return self._respond(start_response, 200, {"ffmpeg": studio_factory.ffmpeg_bin(self.root), "last_install": last})
         if path == "/api/studio/film":
             import re as _re
             from urllib.parse import parse_qs

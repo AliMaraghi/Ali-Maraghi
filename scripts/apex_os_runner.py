@@ -380,7 +380,7 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
         os.replace(tmp, ideas_file)                                # claimed before work: a crash cannot render the same idea twice
         try:
-            film = studio_factory.render(job, studio_factory.write_script(llm, job), root / "runtime" / "studio")
+            film = studio_factory.render(job, studio_factory.write_script(llm, job), root / "runtime" / "studio", ffmpeg=studio_factory.ffmpeg_bin(root))
         except studio_factory.Hold as hold:
             film = {"event": "studio_film", "job_id": job["job_id"], "status": "QUALITY_HOLD", "hold_code": str(hold)[:200], "brief": job["brief"],
                     "language": job["language"], "idea_received_at": job["idea_received_at"], "queued": len(ideas)}

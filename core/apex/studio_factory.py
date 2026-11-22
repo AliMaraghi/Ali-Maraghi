@@ -141,24 +141,47 @@ def srt_text(man: dict) -> str:
     return "\n".join(f"{i + 1}\n{st(s['start'])} --> {st(s['end'])}\n{s['caption']}\n" for i, s in enumerate(man["shots"]))
 
 
-def ffmpeg_args(man: dict, ass_name: str, out_name: str, threads: int = 2) -> list:
+def ffmpeg_args(man: dict, ass_name: str, out_name: str, threads: int = 2, ffmpeg: str = "ffmpeg") -> list:
     c0, c1 = PALETTES[int(hashlib.sha256(man["job_id"].encode()).hexdigest(), 16) % len(PALETTES)]
     d = f"{man['duration']:.2f}"
-    return ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-threads", str(threads),
+    return [ffmpeg, "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-threads", str(threads),
             "-f", "lavfi", "-i", f"gradients=s={W}x{H}:c0={c0}:c1={c1}:x0=0:y0=0:x1={W}:y1={H}:duration={d}:speed=0.008:rate={FPS}",
             "-f", "lavfi", "-i", f"anullsrc=r=48000:cl=stereo:d={d}",
             "-vf", f"ass={ass_name}:fontsdir=fonts,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-r", str(FPS),
             "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", "-t", d, out_name]
 
 
-def probe(path: Path) -> dict:
-    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate",
-                          "-of", "json", path.name], cwd=path.parent, capture_output=True, text=True, timeout=30)
-    info = json.loads(out.stdout or "{}")
-    v = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
-    a = next((s for s in info.get("streams", []) if s.get("codec_type") == "audio"), {})
-    return {"duration": round(float(info.get("format", {}).get("duration", 0)), 2), "bytes": int(info.get("format", {}).get("size", 0)),
-            "width": v.get("width"), "height": v.get("height"), "fps": v.get("r_frame_rate"), "video_codec": v.get("codec_name"), "audio_codec": a.get("codec_name")}
+def ffmpeg_bin(root=None):
+    """The system FFmpeg, else the copy the owner had installed under runtime/studio_tools. None when neither exists."""
+    import shutil
+    found = shutil.which("ffmpeg")
+    if found or root is None:
+        return found
+    hits = sorted((Path(root) / "runtime" / "studio_tools" / "imageio_ffmpeg" / "binaries").glob("ffmpeg-*"))
+    return str(hits[-1]) if hits else None
+
+
+def install_tools(root) -> dict:
+    """One-time, owner-requested: the imageio-ffmpeg wheel from PyPI (a static FFmpeg build) into runtime/studio_tools."""
+    import sys
+    target = Path(root) / "runtime" / "studio_tools"
+    target.mkdir(parents=True, exist_ok=True)
+    out = subprocess.run([sys.executable, "-m", "pip", "install", "--target", str(target), "--upgrade", "--no-deps", "imageio-ffmpeg"],
+                         capture_output=True, text=True, timeout=900)
+    binary = ffmpeg_bin(root)
+    version = subprocess.run([binary, "-version"], capture_output=True, text=True, timeout=20).stdout.splitlines()[0] if binary else None
+    return {"ok": out.returncode == 0 and bool(binary), "ffmpeg": version, "error": None if out.returncode == 0 else (out.stderr or out.stdout)[-300:]}
+
+
+def probe(path: Path, ffmpeg: str = "ffmpeg") -> dict:
+    """What the finished file actually is, read back with FFmpeg itself."""
+    err = subprocess.run([ffmpeg, "-hide_banner", "-i", path.name], cwd=path.parent, capture_output=True, text=True, timeout=30).stderr
+    dur = re.search(r"Duration: (\d+):(\d+):(\d+\.\d+)", err)
+    v = re.search(r"Video: (\w+).*?, (\d{3,5})x(\d{3,5}).*?([\d.]+) fps", err)
+    a = re.search(r"Audio: (\w+)", err)
+    return {"duration": round(int(dur[1]) * 3600 + int(dur[2]) * 60 + float(dur[3]), 2) if dur else 0, "bytes": path.stat().st_size if path.exists() else 0,
+            "width": int(v[2]) if v else None, "height": int(v[3]) if v else None, "fps": v[4] if v else None,
+            "video_codec": v[1] if v else None, "audio_codec": a[1] if a else None}
 
 
 def release_gate(receipt: dict, grant: dict | None, destinations: list) -> dict:
@@ -175,9 +198,12 @@ def release_gate(receipt: dict, grant: dict | None, destinations: list) -> dict:
     return {"decision": "POLICY_HOLD" if reasons else "ELIGIBLE", "reasons": reasons, "artifact_sha256": receipt.get("sha256"), "policy_version": "studio-release-v1"}
 
 
-def render(job: dict, lines: list, artifacts: Path, clock=time.time, threads: int = 2, timeout: int = 200) -> dict:
+def render(job: dict, lines: list, artifacts: Path, clock=time.time, threads: int = 2, timeout: int = 200, ffmpeg=None) -> dict:
     """Renders into artifacts/<job_id>/. Returns the receipt; raises Hold with a code when it cannot honestly finish."""
     stages = []
+    ffmpeg = ffmpeg or ffmpeg_bin()
+    if not ffmpeg:
+        raise Hold("FFMPEG_NOT_INSTALLED")
 
     def stage(name, fn):
         t0 = clock()
@@ -199,7 +225,7 @@ def render(job: dict, lines: list, artifacts: Path, clock=time.time, threads: in
 
     def encode():
         try:
-            run = subprocess.run(ffmpeg_args(man, "film.ass", "film.mp4", threads), cwd=work, capture_output=True, text=True, timeout=timeout,
+            run = subprocess.run(ffmpeg_args(man, "film.ass", "film.mp4", threads, ffmpeg), cwd=work, capture_output=True, text=True, timeout=timeout,
                                  preexec_fn=lambda: os.nice(10))
         except FileNotFoundError:
             raise Hold("FFMPEG_NOT_INSTALLED")
@@ -208,7 +234,7 @@ def render(job: dict, lines: list, artifacts: Path, clock=time.time, threads: in
         if run.returncode != 0:
             raise Hold("FFMPEG_FAILED: " + run.stderr.strip()[-160:])
     stage("RENDER", encode)
-    info = stage("VALIDATE", lambda: probe(work / "film.mp4"))
+    info = stage("VALIDATE", lambda: probe(work / "film.mp4", ffmpeg))
     problems = [p for p, bad in (("wrong size", (info["width"], info["height"]) != (W, H)), ("duration outside 30-60 s", not 29.5 <= info["duration"] <= 60.5),
                                  ("no audio track", not info["audio_codec"]), ("empty file", info["bytes"] < 50_000)) if bad]
     if problems:
