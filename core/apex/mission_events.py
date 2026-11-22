@@ -2,8 +2,8 @@
 
 One trace id runs through six recorded stages - observe, investigate, judge, critique, act, verify - each with its
 elapsed time, what it used and what it could not establish. The only action is to place a shortlist in the owner's
-approval queue; nothing is booked, bought or sent. The local model is used once, to word a reason in Persian, and its
-line is dropped if it mentions a number or date that is not in the evidence."""
+approval queue; nothing is booked, bought or sent. Date, time, venue and price come only from the event page's own
+schema.org data; the Persian reason is assembled from those facts and the matched interest, not written by a model."""
 from __future__ import annotations
 
 import re
@@ -12,7 +12,27 @@ import time
 SINGLE = re.compile(r"eventbrite\.co\.uk/e/|ra\.co/events/\d|dice\.fm/event/|designmynight\.com/london/.+/.+|feverup\.com/m/\d")
 BANNED = re.compile(r"teen|kids|child|family|toddler|school|online|virtual|webinar|course|workshop", re.I)
 WHEN = re.compile(r"\b(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*,?\s+\d{1,2}\s+[A-Z][a-z]{2,8}|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*(?:\s+20\d\d)?", re.I)
-WANT = {"gala": 3, "members": 2, "club": 2, "supper": 2, "wine": 2, "tasting": 1, "party": 2, "warehouse": 2, "ball": 2, "soiree": 2, "cocktail": 1}
+WANT = {"gala": (3, "گالا"), "members club": (3, "باشگاه اعضا"), "social club": (3, "باشگاه اجتماعی"), "supper club": (3, "شام گروهی"),
+        "wine tasting": (2, "چشیدن شراب"), "house party": (3, "مهمانی خانگی"), "warehouse": (2, "مهمانی انباری"), "rave": (2, "ریو"),
+        "ball": (2, "مجلس رقص رسمی"), "soiree": (2, "شب‌نشینی"), "soirée": (2, "شب‌نشینی"), "cocktail": (1, "کوکتل"), "party": (1, "مهمانی")}
+DAYS_FA = ["دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه", "یکشنبه"]
+
+
+def _matched(text: str) -> list:
+    return [k for k in WANT if re.search(r"(?<![a-z])" + re.escape(k) + r"(?![a-z])", text.lower())]
+
+
+def reason_fa(matched: list, page: dict) -> str:
+    """A Persian reason built only from the matched interest and facts read from the page."""
+    import datetime as dt
+    day = DAYS_FA[dt.date.fromisoformat(page["start"][:10]).weekday()]
+    parts = ["با علاقهٔ ثبت‌شدهٔ تو می‌خواند چون خودِ رویداد «" + "، ".join(WANT[k][1] for k in matched) + "» معرفی شده"]
+    parts.append(f"{day}‌شب است" if page["start"][11:13] >= "18" else f"روز {day} است")
+    if "london" in (page.get("address") or "").lower():
+        parts.append("و در لندن برگزار می‌شود")
+    return "؛ ".join(parts[:2]) + (" " + parts[2] if len(parts) > 2 else "") + "."
+
+
 REASON = ("You write ONE short sentence in Persian saying why this event could suit a man in London looking for sociable, "
           "open-minded evenings. Use only the title and description given. No dates, prices or numbers. Reply with the sentence only.")
 
@@ -110,9 +130,11 @@ def judge(items: list) -> list:
     for it in items:
         text = (it["title"] + " " + it["extract"]).lower()
         when = WHEN.search(it["title"] + " " + it["extract"])
-        score = sum(w for k, w in WANT.items() if k in text) + (3 if when else 0)
-        out.append({**it, "date_text": when.group(0) if when else None, "score": score,
-                    "matched": [k for k in WANT if k in text]})
+        matched = _matched(text)
+        if not matched:
+            continue                                               # nothing in it matches a stated interest: not a candidate
+        out.append({**it, "url": it["url"].split("?")[0], "date_text": when.group(0) if when else None,
+                    "score": sum(WANT[k][0] for k in matched), "matched": matched})
     return sorted(out, key=lambda x: -x["score"])
 
 
@@ -146,6 +168,8 @@ def run(now: float, search, llm, propose, fetch_text=None, stamp=None, revision=
     obs = stage("OBSERVE", lambda: (lambda o: (o, f"{o['search_calls']} searches, {len(o['found'])} single-event pages kept, {o['dropped_not_single_events']} dropped, errors: {o['errors'] or 'none'}"))(observe(search, now)))
     if not obs or not obs["found"]:
         return receipt("ZERO_RESULT", [], error="NO_SINGLE_EVENT_PAGES_FOUND")
+    if obs["errors"] and len(obs["errors"]) == obs["search_calls"]:
+        return receipt("FAILED", [], error="SEARCH_UNAVAILABLE")
     ranked = stage("JUDGE", lambda: (lambda s: (s, f"{len(s)} candidates ranked by stated interests"))(judge(obs["found"]))) or []
 
     def investigate():
@@ -165,15 +189,9 @@ def run(now: float, search, llm, propose, fetch_text=None, stamp=None, revision=
         for it in short:
             p = it["page"]
             it["not_established"] = [x for x, missing in (("price", not p.get("price")), ("still on sale", True), ("address", not p.get("address"))) if missing]
-            line = None
-            if llm is not None:
-                try:
-                    line = " ".join(str(llm(REASON, f"TITLE: {p['name'] or it['title']}\nDESCRIPTION: {it['extract']}", 120)).split())[:220]
-                except Exception:                                  # noqa: BLE001
-                    line = None
-            it["reason_fa"] = line if line and not re.search(r"[0-9۰-۹]", line) and re.search(r"[\u0600-\u06FF]", line) else None
+            it["reason_fa"] = reason_fa(it["matched"], p)
             it["fit"] = it["matched"]
-        return short, "each item lists what the page did not establish; a Persian reason is kept only if it contains no numbers"
+        return short, "each item lists what the page did not establish; the Persian reason is assembled from page facts, no model wording"
     stage("CRITIQUE", critique)
 
     payload = {"trace": trace, "kind": "event-shortlist", "target_dates": [sat, sun],

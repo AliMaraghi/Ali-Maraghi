@@ -320,7 +320,19 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         except OSError:
             pass
         bkey = brave_search.load_key(root)
-        if not bkey:
+        mtrace = "mission-events-" + mission_events.weekend(now)[0].replace("-", "")
+        prev = scout_common.latest(root, "mission_events") or {}
+        mdb = _db(root)
+        try:
+            already = mdb.execute("SELECT state FROM proposals WHERE id = ?", (mtrace,)).fetchone()
+        except sqlite3.OperationalError:                           # no approvals table yet
+            already = None
+        finally:
+            mdb.close()
+        if already and prev.get("trace") == mtrace and prev.get("status") == "OK":
+            mis = None                                             # this weekend's shortlist is already with the owner: keep one record, one approval
+            actions.append({"task": "mission_events", "result": "ALREADY_PROPOSED", "detail": f"{mtrace} is in the approval queue ({already[0]}); not repeated"})
+        elif not bkey:
             mis = {"event": "mission_events", "status": "BLOCKED", "detail": "Brave search key not set", "stages": [], "shortlist": []}
         else:
             def _search(q):
@@ -353,8 +365,9 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
             except Exception:                                      # noqa: BLE001
                 rev = None
             mis = mission_events.run(now, _search, llm, _propose, _page, revision=rev)
-        to_record.append(("mission_events", mis))
-        actions.append({"task": "mission_events", "result": mis["status"], "detail": mis.get("detail") or f"{mis.get('trace')}: " + " > ".join(f"{x['stage']}{'' if x['ok'] else '(failed)'}" for x in mis["stages"])})
+        if mis is not None:
+            to_record.append(("mission_events", mis))
+            actions.append({"task": "mission_events", "result": mis["status"], "detail": mis.get("detail") or f"{mis.get('trace')}: " + " > ".join(f"{x['stage']}{'' if x['ok'] else '(failed)'}" for x in mis["stages"])})
     if "graph" in due:
         try:
             from apex import knowledge_graph, people_graph

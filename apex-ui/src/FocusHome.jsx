@@ -514,7 +514,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                           <a href={it.url} target="_blank" rel="noopener noreferrer" style={link}>{(it.page || {}).name || it.title}</a>
                           <div style={{ color: C.muted }}>{(it.page || {}).start} · {(it.page || {}).venue}{(it.page || {}).address ? " · " + it.page.address : ""}{(it.page || {}).price ? " · " + it.page.price : ""} · {it.site}</div>
                           <div style={{ color: C.muted, fontSize: 12 }}>{lang === "fa" ? "از صفحهٔ خود رویداد خوانده شد در " : "read from the event's own page at "}{(it.page || {}).checked_at} · {lang === "fa" ? "تطبیق با علاقه‌ها: " : "matched interests: "}{(it.fit || []).join(", ")}</div>
-                          {it.reason_fa && <div dir="rtl">{it.reason_fa}</div>}
+                          {it.reason_fa && !/[A-Za-z]/.test(it.reason_fa) && <div dir="rtl">{it.reason_fa}</div>}
                           <div style={{ color: C.need, fontSize: 12 }}>{lang === "fa" ? "مشخص نشده: " : "Not established: "}{(it.not_established || []).join(", ")}</div>
                           <Stars kind="mission_event" text={it.title} refInfo={{ agent: "A-10", trace: osd.mission_run.trace, prompt_version: "mission-events-v2", model: "gemma3:4b" }} />
                         </div>))}

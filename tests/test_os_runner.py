@@ -218,8 +218,9 @@ class MissionEvents(unittest.TestCase):
         self.assertIn("London", item["address"])
         self.assertEqual(out["receipt"]["approval_id"], out["trace"])
         self.assertEqual(out["receipt"]["code_revision"], "abc1234")
-        bad = me.run(self.NOW, lambda q: self.HITS, lambda s, u, m: "فقط 20 پوند!", propose, self.pages(self.PAGE))
-        self.assertIsNone(bad["shortlist"][0]["reason_fa"])            # a reason with a number is dropped
+        self.assertIn("گالا", item["reason_fa"]); self.assertIn("شنبه‌شب", item["reason_fa"]); self.assertIn("لندن", item["reason_fa"])
+        self.assertNotRegex(item["reason_fa"], r"[A-Za-z0-9]")         # assembled from facts, no model wording
+        self.assertEqual(me._matched("football club night"), [])       # whole words only; a bare "club" is not an interest
 
     def test_honest_zero_result(self):
         from apex import mission_events as me
