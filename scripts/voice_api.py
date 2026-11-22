@@ -394,6 +394,14 @@ class VoiceChatApp:
                 except (ValueError, TypeError, AttributeError) as exc:
                     return self._respond(start_response, 400, {"error": str(exc)[:160] or "BAD_REQUEST"})
             return self._respond(start_response, 200, {"gates": venture.GATES, "ventures": venture.load(self.root)})
+        if path == "/api/mission/run_now":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            flag = Path(self.root) / "runtime" / "settings" / "mission_now"
+            flag.parent.mkdir(parents=True, exist_ok=True)
+            flag.write_text(str(time.time()), encoding="utf-8")   # the existing background loop picks this up on its next cycle
+            return self._respond(start_response, 200, {"queued": True, "runs_within_seconds": 900})
         if path == "/api/system/restore_drill":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])

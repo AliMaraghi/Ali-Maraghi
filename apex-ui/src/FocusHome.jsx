@@ -97,6 +97,12 @@ function Ventures({ list, lang }) {
     </div>
   );
 }
+function MissionNow({ lang }) {
+  const [state, setState] = useState("");
+  const go = () => { setState("…"); fetch("/api/mission/run_now", { method: "POST" }).then((r) => setState(r.ok ? (lang === "fa" ? "در صف؛ در چرخهٔ بعدی اجرا می‌شود (حداکثر ۱۵ دقیقه)" : "queued; runs in the next cycle (15 min at most)") : (lang === "fa" ? "خطا" : "failed"))).catch(() => setState(lang === "fa" ? "خطا" : "failed")); };
+  return <span><button onClick={go} style={{ fontSize: 12 }}>{lang === "fa" ? "همین حالا اجرا کن" : "Run now"}</button> <span style={{ fontSize: 12 }}>{state}</span></span>;
+}
+
 function Stars({ kind, text, refInfo }) {
   const [given, setGiven] = useState(0);
   const rate = (n) => fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, text, stars: n, ref: refInfo || {} }) })
@@ -496,19 +502,25 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Listings to open (search links, not verified prices):</div>
                       {osd.listings.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.borough} · {l.site}</span></div>)}</div>
                   )}
-                  {osd.mission_run && osd.mission_run.stages && osd.mission_run.stages.length > 0 && (
-                    <div style={{ marginTop: 10, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
-                      <div><b>{lang === "fa" ? "مأموریت خودکار: رویدادهای لندن" : "Self-started mission: London events"}</b> <span style={{ color: C.muted }}>{osd.mission_run.trace} · {osd.mission_run.status} · {ago(osd.mission_run.generated_at, lang)} · {osd.mission_run.total_ms} ms · £0</span></div>
+                  <div style={{ marginTop: 10, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
+                    <div><b>{lang === "fa" ? "مأموریت خودکار: رویدادهای آخر هفتهٔ لندن" : "Self-started mission: London weekend events"}</b>{" "}
+                      <MissionNow lang={lang} /></div>
+                    {osd.mission_run && osd.mission_run.stages ? (<>
+                      <div style={{ color: C.muted }}>{osd.mission_run.trace} · {(osd.mission_run.target_dates || []).join(" / ")} · {osd.mission_run.status} · {ago(osd.mission_run.generated_at, lang)} · {osd.mission_run.total_ms} ms · £0 · {lang === "fa" ? "کد" : "code"} {(osd.mission_run.receipt || {}).code_revision || "?"}</div>
                       {osd.mission_run.stages.map((st, i) => <div key={i} style={{ color: st.ok ? C.muted : C.need }}>{st.ok ? "✓" : "✗"} {st.stage} ({st.ms} ms): {st.note}</div>)}
+                      {osd.mission_run.status === "ZERO_RESULT" && <div style={{ color: C.need }}>{lang === "fa" ? "هیچ رویدادی برای این آخر هفته از روی صفحهٔ خودش تأیید نشد؛ چیزی پیشنهاد نشده است." : "No event for this weekend could be confirmed from its own page; nothing was proposed."} ({(osd.mission_run.receipt || {}).error_code})</div>}
                       {(osd.mission_run.shortlist || []).map((it, i) => (
                         <div key={i} style={{ marginTop: 6 }}>
-                          <a href={it.url} target="_blank" rel="noopener noreferrer" style={link}>{it.title}</a> <span style={{ color: C.muted }}>{it.date_text || (lang === "fa" ? "بدون تاریخ" : "no date")} · {it.site}</span>
-                          <Stars kind="mission_event" text={it.title} refInfo={{ agent: "A-10", trace: osd.mission_run.trace, prompt_version: "mission-events-v1", model: "gemma3:4b" }} />
+                          <a href={it.url} target="_blank" rel="noopener noreferrer" style={link}>{(it.page || {}).name || it.title}</a>
+                          <div style={{ color: C.muted }}>{(it.page || {}).start} · {(it.page || {}).venue}{(it.page || {}).address ? " · " + it.page.address : ""}{(it.page || {}).price ? " · " + it.page.price : ""} · {it.site}</div>
+                          <div style={{ color: C.muted, fontSize: 12 }}>{lang === "fa" ? "از صفحهٔ خود رویداد خوانده شد در " : "read from the event's own page at "}{(it.page || {}).checked_at} · {lang === "fa" ? "تطبیق با علاقه‌ها: " : "matched interests: "}{(it.fit || []).join(", ")}</div>
                           {it.reason_fa && <div dir="rtl">{it.reason_fa}</div>}
-                          <div style={{ color: C.need, fontSize: 12 }}>{lang === "fa" ? "تأییدنشده: " : "Not verified: "}{(it.unverified || []).join(", ")}</div>
+                          <div style={{ color: C.need, fontSize: 12 }}>{lang === "fa" ? "مشخص نشده: " : "Not established: "}{(it.not_established || []).join(", ")}</div>
+                          <Stars kind="mission_event" text={it.title} refInfo={{ agent: "A-10", trace: osd.mission_run.trace, prompt_version: "mission-events-v2", model: "gemma3:4b" }} />
                         </div>))}
-                    </div>
-                  )}
+                      {osd.mission_run.approval_state && <div>{lang === "fa" ? "وضعیت تأیید: " : "Approval: "}<b>{osd.mission_run.approval_state}</b> ({osd.mission_run.trace})</div>}
+                    </>) : <div style={{ color: C.muted }}>{lang === "fa" ? "هنوز اجرا نشده." : "Not run yet."}</div>}
+                  </div>
                   {osd.event_links && (osd.event_links.links || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>{lang === "fa" ? "رویدادهای لندن از سایت‌های رویداد (لینک جستجو؛ تاریخ و قیمت را در خود صفحه ببین):" : "London events from listing sites (search links; check date and price on the page):"}</div>
                       {osd.event_links.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.date_text ? l.date_text + " · " : (lang === "fa" ? "تاریخ در نتیجه نبود · " : "no date in result · ")}{l.site}</span><Stars kind="event_link" text={l.title} refInfo={{ agent: "A-10", trace: String(osd.event_links.generated_at), prompt_version: l.query, model: "search" }} /></div>)}</div>

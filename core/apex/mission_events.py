@@ -17,10 +17,74 @@ REASON = ("You write ONE short sentence in Persian saying why this event could s
           "open-minded evenings. Use only the title and description given. No dates, prices or numbers. Reply with the sentence only.")
 
 
+def weekend(now: float) -> tuple:
+    """The next Saturday and Sunday strictly after today, as ISO dates."""
+    import datetime as dt
+    today = dt.datetime.fromtimestamp(now, dt.timezone.utc).date()
+    sat = today + dt.timedelta(days=(5 - today.weekday()) % 7 or 7)
+    return sat.isoformat(), (sat + dt.timedelta(days=1)).isoformat()
+
+
 def queries(now: float) -> list:
-    month = time.strftime("%B %Y", time.gmtime(now))
-    return [f"London gala tickets {month}", f"London members club party tickets {month}", f"London warehouse party tickets {month}",
-            f"London wine tasting evening tickets {month}", f"London supper club tickets {month}"]
+    import datetime as dt
+    sat = dt.date.fromisoformat(weekend(now)[0])
+    day = f"{sat.day} {sat.strftime('%B %Y')}"
+    return [f"London gala {day} tickets", f"London members club party Saturday {day}", f"London warehouse party {day} tickets",
+            f"London wine tasting {day}", f"London supper club {day}", f"London ball soiree Saturday {day}"]
+
+
+def _events_in(node):
+    if isinstance(node, list):
+        for n in node:
+            yield from _events_in(n)
+    elif isinstance(node, dict):
+        kind = node.get("@type")
+        if kind == "Event" or (isinstance(kind, list) and "Event" in kind) or (isinstance(kind, str) and kind.endswith("Event")):
+            yield node
+        for key in ("@graph", "mainEntity"):
+            if key in node:
+                yield from _events_in(node[key])
+
+
+def verify_page(fetch_text, url: str, now: float) -> dict:
+    """Confirm an event from its own page's schema.org data. fetch_text(url) -> str. Honors the site's robots.txt."""
+    import json
+    import urllib.robotparser
+    from urllib.parse import urlsplit
+    checked = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))
+    parts = urlsplit(url)
+    try:
+        rp = urllib.robotparser.RobotFileParser()
+        rp.parse(fetch_text(f"https://{parts.netloc}/robots.txt").splitlines())
+        if not rp.can_fetch("*", url):
+            return {"verified": False, "why": "the site's robots.txt does not allow automated reading of this page", "checked_at": checked}
+        page = fetch_text(f"https://{parts.netloc}{parts.path}")
+    except Exception as exc:                                       # noqa: BLE001
+        return {"verified": False, "why": f"page could not be read ({str(exc)[:60] or type(exc).__name__})", "checked_at": checked}
+    for block in re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', page, re.S | re.I):
+        try:
+            data = json.loads(block)
+        except ValueError:
+            continue
+        for ev in _events_in(data):
+            start = str(ev.get("startDate") or "")
+            if not re.match(r"\d{4}-\d{2}-\d{2}", start):
+                continue
+            loc = ev.get("location") or {}
+            loc = loc[0] if isinstance(loc, list) and loc else loc
+            addr = loc.get("address") if isinstance(loc, dict) else None
+            if isinstance(addr, dict):
+                addr = ", ".join(str(addr[k]) for k in ("streetAddress", "addressLocality", "postalCode") if addr.get(k))
+            offers = ev.get("offers") or {}
+            offers = offers[0] if isinstance(offers, list) and offers else offers
+            price = None
+            if isinstance(offers, dict):
+                price = offers.get("price") or offers.get("lowPrice")
+                price = f"{price} {offers.get('priceCurrency', '')}".strip() if price not in (None, "") else None
+            return {"verified": True, "checked_at": checked, "name": str(ev.get("name") or "")[:160], "start": start[:25], "end": str(ev.get("endDate") or "")[:25] or None,
+                    "venue": str(loc.get("name") or "")[:120] if isinstance(loc, dict) else None, "address": str(addr)[:200] if addr else None,
+                    "price": price, "status": str(ev.get("eventStatus") or "").rsplit("/", 1)[-1] or None}
+    return {"verified": False, "why": "the page has no machine-readable event data", "checked_at": checked}
 
 
 def observe(search, now: float) -> dict:
@@ -49,14 +113,17 @@ def judge(items: list) -> list:
         score = sum(w for k, w in WANT.items() if k in text) + (3 if when else 0)
         out.append({**it, "date_text": when.group(0) if when else None, "score": score,
                     "matched": [k for k in WANT if k in text]})
-    return sorted(out, key=lambda x: -x["score"])[:3]
+    return sorted(out, key=lambda x: -x["score"])
 
 
-def run(now: float, search, llm, propose, stamp=None) -> dict:
-    """propose(proposal_id, payload, evidence_ids) -> state string or raises. Returns the full mission record."""
+def run(now: float, search, llm, propose, fetch_text=None, stamp=None, revision=None) -> dict:
+    """propose(proposal_id, payload, evidence_ids) -> state string or raises. One mission per target weekend: running it
+    again (after a restart, say) reuses the same id, so the approval record is never duplicated."""
     stamp = stamp or (lambda: time.time())
-    trace = "mission-events-" + time.strftime("%Y%m%d-%H%M", time.gmtime(now))
+    sat, sun = weekend(now)
+    trace = "mission-events-" + sat.replace("-", "")
     stages = []
+    started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))
 
     def stage(name, fn):
         t0 = stamp()
@@ -68,38 +135,51 @@ def run(now: float, search, llm, propose, stamp=None) -> dict:
             stages.append({"stage": name, "ok": False, "ms": round((stamp() - t0) * 1000), "note": f"{type(exc).__name__}: {str(exc)[:120]}"})
             return None
 
+    def receipt(status, shortlist, approval=None, error=None):
+        return {"event": "mission_events", "status": status, "trace": trace, "target_dates": [sat, sun], "stages": stages, "shortlist": shortlist,
+                "approval_state": approval, "total_ms": sum(s["ms"] for s in stages),
+                "receipt": {"capability_id": "london-events-mission", "run_id": trace, "code_revision": revision, "status": status, "started_at": started,
+                            "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now + sum(s["ms"] for s in stages) / 1000)),
+                            "source_ids": [x["url"] for x in shortlist], "artifact_refs": [trace] if approval else [], "cost": 0,
+                            "approval_id": trace if approval else None, "error_code": error}}
+
     obs = stage("OBSERVE", lambda: (lambda o: (o, f"{o['search_calls']} searches, {len(o['found'])} single-event pages kept, {o['dropped_not_single_events']} dropped, errors: {o['errors'] or 'none'}"))(observe(search, now)))
     if not obs or not obs["found"]:
-        return {"event": "mission_run", "status": "NO_DATA", "trace": trace, "stages": stages, "shortlist": []}
-    short = stage("JUDGE", lambda: (lambda s: (s, "ranked by stated interests and whether a date appears: " + ", ".join(f"{x['score']}" for x in s)))(judge(obs["found"])))
+        return receipt("ZERO_RESULT", [], error="NO_SINGLE_EVENT_PAGES_FOUND")
+    ranked = stage("JUDGE", lambda: (lambda s: (s, f"{len(s)} candidates ranked by stated interests"))(judge(obs["found"]))) or []
 
-    def reasons():
-        made = 0
-        for it in short:
-            line = None
-            if llm is not None:
-                try:
-                    line = " ".join(str(llm(REASON, f"TITLE: {it['title']}\nDESCRIPTION: {it['extract']}", 120)).split())[:220]
-                except Exception:                                  # noqa: BLE001
-                    line = None
-            if line and not re.search(r"[0-9۰-۹]", line) and re.search(r"[؀-ۿ]", line):
-                it["reason_fa"], made = line, made + 1
-            else:
-                it["reason_fa"] = None
-        return short, f"{made} of {len(short)} Persian reasons kept (a line with any number, or not in Persian, is dropped)"
-    stage("INVESTIGATE", reasons)
+    def investigate():
+        good, reasons = [], {}
+        for it in ranked[:8]:
+            v = verify_page(fetch_text, it["url"], now) if fetch_text else {"verified": False, "why": "page reader not available"}
+            it["page"] = v
+            reasons[v.get("why") or ("on target dates" if v.get("start", "")[:10] in (sat, sun) else "verified but on another date")] = reasons.get(v.get("why") or ("on target dates" if v.get("start", "")[:10] in (sat, sun) else "verified but on another date"), 0) + 1
+            if v.get("verified") and v.get("start", "")[:10] in (sat, sun) and v.get("venue") and "cancel" not in (v.get("status") or "").lower():
+                good.append(it)
+        return good[:3], "pages read: " + "; ".join(f"{n} {why}" for why, n in reasons.items())
+    short = stage("INVESTIGATE", investigate) or []
+    if not short:
+        return receipt("ZERO_RESULT", [], error="NO_EVENT_VERIFIED_FOR_TARGET_DATES")
 
     def critique():
         for it in short:
-            it["unverified"] = [x for x, missing in (("date", it["date_text"] is None), ("venue", True), ("price", True), ("still on sale", True)) if missing]
-            if it["date_text"]:
-                it["unverified"].insert(0, "date is text from a search result, not checked on the page")
-        return short, "each item lists what was NOT established: venue, price and availability are never known from search results"
+            p = it["page"]
+            it["not_established"] = [x for x, missing in (("price", not p.get("price")), ("still on sale", True), ("address", not p.get("address"))) if missing]
+            line = None
+            if llm is not None:
+                try:
+                    line = " ".join(str(llm(REASON, f"TITLE: {p['name'] or it['title']}\nDESCRIPTION: {it['extract']}", 120)).split())[:220]
+                except Exception:                                  # noqa: BLE001
+                    line = None
+            it["reason_fa"] = line if line and not re.search(r"[0-9۰-۹]", line) and re.search(r"[\u0600-\u06FF]", line) else None
+            it["fit"] = it["matched"]
+        return short, "each item lists what the page did not establish; a Persian reason is kept only if it contains no numbers"
     stage("CRITIQUE", critique)
 
-    payload = {"trace": trace, "kind": "event-shortlist", "items": [{k: it.get(k) for k in ("title", "url", "site", "date_text", "reason_fa", "unverified", "score")} for it in short]}
-    state = stage("ACT", lambda: (lambda st: (st, f"shortlist placed in the approval queue as {trace}: {st}"))(propose(trace, payload, [it["url"][:80] for it in short])))
-    stage("VERIFY", lambda: (state, "approval record read back" if state else "no approval record: the queue was not reachable from this service"))
-    ok = all(s["ok"] for s in stages) and bool(state)
-    return {"event": "mission_run", "status": "OK" if ok else "PARTIAL", "trace": trace, "stages": stages, "shortlist": short,
-            "approval_state": state, "cost_pence": 0, "search_calls": obs["search_calls"], "total_ms": sum(s["ms"] for s in stages)}
+    payload = {"trace": trace, "kind": "event-shortlist", "target_dates": [sat, sun],
+               "items": [{"title": it["page"]["name"] or it["title"], "url": it["url"], "start": it["page"]["start"], "venue": it["page"]["venue"],
+                          "address": it["page"]["address"], "price": it["page"]["price"], "checked_at": it["page"]["checked_at"],
+                          "fit": it["fit"], "reason_fa": it["reason_fa"], "not_established": it["not_established"]} for it in short]}
+    state = stage("ACT", lambda: (lambda st: (st, f"shortlist in the approval queue as {trace}: {st}"))(propose(trace, payload, [it["url"][:80] for it in short])))
+    stage("VERIFY", lambda: (state, "approval record read back from the ledger" if state else "no approval record: the queue was not reachable"))
+    return receipt("OK" if state and all(s["ok"] for s in stages) else "PARTIAL", short, state, None if state else "APPROVAL_QUEUE_UNREACHABLE")

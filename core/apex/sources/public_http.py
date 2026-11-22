@@ -56,12 +56,16 @@ ROUTES = {
     'trends.google.com': {'/trending/rss'},
     # HM Land Registry UK House Price Index, open data (core/apex/property_scout.py): region pages only.
     'landregistry.data.gov.uk': set(),
+    # Single public event pages, read only to confirm date and venue from the page's own schema.org data, and only
+    # when that site's robots.txt allows it (core/apex/mission_events.py). Never listings or search pages.
+    'www.eventbrite.co.uk': {'/robots.txt'}, 'ra.co': {'/robots.txt'}, 'dice.fm': {'/robots.txt'},
     'en.wikipedia.org': {'/w/api.php'}, 'fa.wikipedia.org': {'/w/api.php'},
     'fr.wikipedia.org': {'/w/api.php'}, 'de.wikipedia.org': {'/w/api.php'},
 }
 MEETUP_ICAL = re.compile(r'/[A-Za-z0-9][A-Za-z0-9-]{0,79}/events/ical/')
 HUMANITIX_HOST = re.compile(r'/host/[A-Za-z0-9][A-Za-z0-9-]{0,79}')
 HPI_PATH = re.compile(r'/data/ukhpi/region/[a-z-]{3,40}(?:\.json|/month/[0-9]{4}-[0-9]{2}\.json)')
+EVENT_PAGE = {'www.eventbrite.co.uk': re.compile(r'/e/[A-Za-z0-9%_-]{3,200}'), 'ra.co': re.compile(r'/events/[0-9]{3,12}'), 'dice.fm': re.compile(r'/event/[A-Za-z0-9%_-]{3,200}')}
 TFL_STATUS = re.compile(r'/Line/[a-z][a-z0-9-]{1,30}(?:,[a-z][a-z0-9-]{1,30}){0,7}/Status')
 
 
@@ -75,8 +79,9 @@ def validate(url, method='GET', body=None):
     host_path = p.netloc == 'events.humanitix.com' and not p.query and HUMANITIX_HOST.fullmatch(p.path)
     tfl_path = p.netloc == 'api.tfl.gov.uk' and not p.query and TFL_STATUS.fullmatch(p.path)
     hpi_path = p.netloc == 'landregistry.data.gov.uk' and HPI_PATH.fullmatch(p.path)
+    event_path = p.netloc in EVENT_PAGE and EVENT_PAGE[p.netloc].fullmatch(p.path)
     if (p.scheme != 'https' or p.netloc not in ROUTES or p.fragment
-            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path and not host_path and not tfl_path and not hpi_path)):
+            or (p.path not in ROUTES[p.netloc] and not notice_path and not meetup_path and not host_path and not tfl_path and not hpi_path and not event_path)):
         raise SourceError('Destination outside reviewed endpoint scope')
     if method == 'POST':
         if (p.netloc, p.path, p.query) != ('api.ted.europa.eu', '/v3/notices/search', ''):

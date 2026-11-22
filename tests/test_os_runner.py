@@ -189,30 +189,64 @@ class Venture(unittest.TestCase):
 
 
 class MissionEvents(unittest.TestCase):
-    def test_one_trace_through_all_stages_and_only_action_is_a_proposal(self):
+    NOW = 1795348800.0                                             # Sun 22 Nov 2026 -> target weekend 28/29 Nov
+    PAGE = ('<html><script type="application/ld+json">{"@type":"SocialEvent","name":"Winter Gala Ball","startDate":"2026-11-28T19:30:00+00:00",'
+            '"location":{"@type":"Place","name":"The Club","address":{"streetAddress":"1 Pall Mall","addressLocality":"London","postalCode":"SW1"}},'
+            '"offers":[{"price":"45","priceCurrency":"GBP"}]}</script></html>')
+    HITS = [{"title": "Winter Gala Ball", "url": "https://www.eventbrite.co.uk/e/winter-gala-1", "domain": "eventbrite.co.uk", "extract": "gala at a members club"},
+            {"title": "Best galas in London", "url": "https://www.eventbrite.co.uk/d/london/gala/", "domain": "eventbrite.co.uk", "extract": "list"},
+            {"title": "Kids party", "url": "https://dice.fm/event/kids", "domain": "dice.fm", "extract": "family fun"}]
+
+    def pages(self, page, robots="User-agent: *\nAllow: /"):
+        return lambda url: robots if url.endswith("/robots.txt") else page
+
+    def test_weekend_and_stable_id(self):
         from apex import mission_events as me
-        hits = [{"title": "Winter Gala Ball", "url": "https://www.eventbrite.co.uk/e/winter-gala-1", "domain": "eventbrite.co.uk", "extract": "Sat 28 Nov at a members club"},
-                {"title": "Best galas in London", "url": "https://www.eventbrite.co.uk/d/london/gala/", "domain": "eventbrite.co.uk", "extract": "list"},
-                {"title": "Kids party", "url": "https://dice.fm/event/kids", "domain": "dice.fm", "extract": "family fun"}]
+        self.assertEqual(me.weekend(self.NOW), ("2026-11-28", "2026-11-29"))
+
+    def test_verified_event_goes_through_every_stage_to_one_proposal(self):
+        from apex import mission_events as me
         proposed = []
         def propose(pid, payload, evidence):
             proposed.append((pid, payload)); return "PENDING"
-        llm = lambda s, u, m: "شبی اجتماعی و رسمی با فضای باشگاهی."
-        out = me.run(1795000000.0, lambda q: hits, llm, propose)
+        out = me.run(self.NOW, lambda q: self.HITS, lambda s, u, m: "شبی اجتماعی و رسمی با فضای باشگاهی.", propose, self.pages(self.PAGE), revision="abc1234")
         self.assertEqual(out["status"], "OK")
+        self.assertEqual(out["trace"], "mission-events-20261128")
         self.assertEqual([s["stage"] for s in out["stages"]], ["OBSERVE", "JUDGE", "INVESTIGATE", "CRITIQUE", "ACT", "VERIFY"])
-        self.assertEqual(len(out["shortlist"]), 1)
-        self.assertEqual(out["shortlist"][0]["date_text"], "Sat 28 Nov")
-        self.assertIn("venue", out["shortlist"][0]["unverified"])
-        self.assertEqual(proposed[0][0], out["trace"])
-        bad = me.run(1795000000.0, lambda q: hits, lambda s, u, m: "فقط 20 پوند!", propose)
+        item = proposed[0][1]["items"][0]
+        self.assertEqual((item["start"][:16], item["venue"], item["price"]), ("2026-11-28T19:30", "The Club", "45 GBP"))
+        self.assertIn("London", item["address"])
+        self.assertEqual(out["receipt"]["approval_id"], out["trace"])
+        self.assertEqual(out["receipt"]["code_revision"], "abc1234")
+        bad = me.run(self.NOW, lambda q: self.HITS, lambda s, u, m: "فقط 20 پوند!", propose, self.pages(self.PAGE))
         self.assertIsNone(bad["shortlist"][0]["reason_fa"])            # a reason with a number is dropped
+
+    def test_honest_zero_result(self):
+        from apex import mission_events as me
+        calls = []
+        propose = lambda *a: calls.append(a) or "PENDING"
+        for fetch in (self.pages(self.PAGE.replace("2026-11-28", "2026-12-05")),              # wrong date
+                      self.pages(self.PAGE, "User-agent: *\nDisallow: /"),                     # site forbids reading
+                      self.pages("<html>no data</html>"),                                      # nothing machine-readable
+                      self.pages(self.PAGE.replace('"@type":"SocialEvent"', '"@type":"SocialEvent","eventStatus":"https://schema.org/EventCancelled"')),
+                      None):                                                                   # no page reader
+            out = me.run(self.NOW, lambda q: self.HITS, None, propose, fetch)
+            self.assertEqual((out["status"], out["shortlist"], out["approval_state"]), ("ZERO_RESULT", [], None))
+            self.assertEqual(out["receipt"]["error_code"], "NO_EVENT_VERIFIED_FOR_TARGET_DATES")
+        self.assertEqual(calls, [])                                    # nothing unverified ever reaches the approval queue
 
     def test_unreachable_queue_is_partial_not_ok(self):
         from apex import mission_events as me
-        hits = [{"title": "Supper club night", "url": "https://ra.co/events/123", "domain": "ra.co", "extract": "x"}]
         def propose(*a):
             raise PermissionError("no")
-        out = me.run(1795000000.0, lambda q: hits, None, propose)
+        out = me.run(self.NOW, lambda q: self.HITS, None, propose, self.pages(self.PAGE))
         self.assertEqual(out["status"], "PARTIAL")
         self.assertFalse([s for s in out["stages"] if s["stage"] == "ACT"][0]["ok"])
+
+    def test_event_pages_allowlisted_but_listings_are_not(self):
+        from apex.sources import public_http
+        public_http.validate("https://www.eventbrite.co.uk/e/winter-gala-1")
+        public_http.validate("https://ra.co/events/123456")
+        for bad in ("https://www.eventbrite.co.uk/d/london/gala/", "https://ra.co/events/uk/london", "https://dice.fm/browse"):
+            with self.assertRaises(Exception):
+                public_http.validate(bad)

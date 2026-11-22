@@ -27,7 +27,7 @@ from apex import priority, scout_common, trend_scout          # noqa: E402
 INTERVAL = 900
 EXPECTED = {"events": 4 * 3600, "wealth": 4 * 3600, "commute": 4 * 3600, "adult": 4 * 3600, "trends": 6 * 3600,
             "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400,
-            "listings": 24 * 3600, "event_links": 12 * 3600, "mission_run": 24 * 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
+            "listings": 24 * 3600, "event_links": 12 * 3600, "mission_events": 24 * 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
 CREDENTIAL = {"A-5": "Reed job-search key", "A-6": "Gmail connection (sync is switched off)"}
 VALUE = {"trends": 3.0, "content_drafts": 4.0, "events": 5.0, "wealth": 6.0, "commute": 2.0, "adult": 3.0, "spend": 6.0}
 
@@ -312,32 +312,49 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
                   "note": "Single-event pages only. The date shown is text from the search result and is not verified; open the page to confirm date, venue and price."}
         to_record.append(("event_links", ev))
         actions.append({"task": "event_links", "result": ev["status"], "detail": ev.get("detail") or f"{len(ev['links'])} link(s), errors: {ev.get('errors') or 'none'}"})
-    if "mission_run" in due:
+    mission_flag = root / "runtime" / "settings" / "mission_now"
+    if "mission_events" in due or mission_flag.is_file():
         from apex import brave_search, mission_events
+        try:
+            mission_flag.unlink()                                  # owner asked for a run now; consumed once
+        except OSError:
+            pass
         bkey = brave_search.load_key(root)
         if not bkey:
-            mis = {"event": "mission_run", "status": "BLOCKED_MISSING_CREDENTIAL", "detail": "Brave search key not set", "stages": [], "shortlist": []}
+            mis = {"event": "mission_events", "status": "BLOCKED", "detail": "Brave search key not set", "stages": [], "shortlist": []}
         else:
             def _search(q):
                 time.sleep(1.2)
                 return brave_search.search(root, bkey, "events", q)
 
+            def _page(url):
+                return fetch(url).decode("utf-8", "replace")
+
             def _propose(pid, payload, evidence):
                 import run_autonomous_agent
+                def _state():
+                    db = _db(root)
+                    try:
+                        row = db.execute("SELECT state FROM proposals WHERE id = ?", (pid,)).fetchone()
+                    finally:
+                        db.close()
+                    return row[0] if row else None
+                existing = _state()
+                if existing:                                       # same weekend's mission already proposed (e.g. before a restart)
+                    return existing
                 with Ledger(root) as ledger:                       # opened only for the instant of the write
                     book = run_autonomous_agent.approval_book(ledger)
                     if book is None:
                         raise PermissionError("approvals secret not readable by this service")
                     book.propose(pid, "studio", "event-shortlist", "agent:A-10", payload, evidence)
-                db = _db(root)
-                try:
-                    row = db.execute("SELECT state FROM proposals WHERE id = ?", (pid,)).fetchone()
-                finally:
-                    db.close()
-                return row[0] if row else None
-            mis = mission_events.run(now, _search, llm, _propose)
-        to_record.append(("mission_run", mis))
-        actions.append({"task": "mission_run", "result": mis["status"], "detail": mis.get("detail") or f"trace {mis.get('trace')}: " + " > ".join(f"{x['stage']}{'' if x['ok'] else '(failed)'}" for x in mis["stages"])})
+                return _state()
+            try:
+                rev = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=root, capture_output=True, text=True, timeout=5).stdout.strip() or None
+            except Exception:                                      # noqa: BLE001
+                rev = None
+            mis = mission_events.run(now, _search, llm, _propose, _page, revision=rev)
+        to_record.append(("mission_events", mis))
+        actions.append({"task": "mission_events", "result": mis["status"], "detail": mis.get("detail") or f"{mis.get('trace')}: " + " > ".join(f"{x['stage']}{'' if x['ok'] else '(failed)'}" for x in mis["stages"])})
     if "graph" in due:
         try:
             from apex import knowledge_graph, people_graph
