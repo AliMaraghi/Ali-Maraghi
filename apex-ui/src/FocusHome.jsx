@@ -99,7 +99,9 @@ function Ventures({ list, lang }) {
 }
 function Studio({ lang, film }) {
   const fa = lang === "fa";
-  const [text, setText] = useState(""); const [l, setL] = useState("fa"); const [msg, setMsg] = useState("");
+  const [text, setText] = useState(""); const [l, setL] = useState("en"); const [msg, setMsg] = useState(""); const [k, setK] = useState(""); const [hasKey, setHasKey] = useState(null);
+  useEffect(() => { fetch("/api/settings/openai_key").then((r) => r.json()).then((j) => setHasKey(!!j.set)).catch(() => {}); }, []);
+  const saveKey = () => fetch("/api/settings/openai_key", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: k }) }).then((r) => { setHasKey(r.ok); setK(""); setMsg(r.ok ? (fa ? "کلید صدا ذخیره شد" : "voice key saved") : (fa ? "کلید معتبر نیست" : "not a valid key")); });
   const send = () => { setMsg("…"); fetch("/api/studio/idea", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, language: l }) })
     .then((r) => r.json().then((j) => setMsg(r.ok ? (fa ? `در صف: ${j.job_id} (حداکثر ۱۵ دقیقه تا شروع)` : `Queued: ${j.job_id} (starts within 15 min)`) : (j.detail || j.error)))).catch(() => setMsg(fa ? "خطا" : "failed")); };
   const HOLD = { NO_NARRATION: "صدای راوی ندارد: هنوز هیچ سرویس صدای دارای مجوز تجاری روی سرور تنظیم نشده", NO_STANDING_GRANT: "مجوز دائمی انتشار خودکار هنوز برای حساب مشخصی ثبت نشده", NO_DESTINATION: "هیچ حساب انتشاری به سرور وصل نیست" };
@@ -108,12 +110,15 @@ function Studio({ lang, film }) {
       <div><b>{fa ? "استودیو: از ایده تا فیلم کوتاه" : "Studio: idea to short film"}</b></div>
       <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
         <input dir="auto" value={text} onChange={(e) => setText(e.target.value)} placeholder={fa ? "ایده را در یک جمله بنویس" : "One-sentence idea"} style={{ flex: 1 }} />
-        <select value={l} onChange={(e) => setL(e.target.value)}><option value="fa">فارسی</option><option value="en">English</option></select>
+        <select value={l} onChange={(e) => setL(e.target.value)}><option value="en">English</option><option value="fa">فارسی</option></select>
         <button onClick={send} disabled={text.trim().length < 8}>{fa ? "بساز" : "Make"}</button>
       </div>
       <div style={{ fontSize: 12 }}>{msg}</div>
+      {hasKey === false && <div style={{ fontSize: 12, marginTop: 4 }}>{fa ? "صدای راوی: کلید OpenAI خودت را اینجا بچسبان (فقط روی سرور خودت می‌ماند؛ سقف ماهانه ۵ پوند): " : "Narration: paste your own OpenAI key (stays on your server; £5 monthly cap): "}
+        <input type="password" value={k} onChange={(e) => setK(e.target.value)} style={{ width: 160 }} /> <button onClick={saveKey} disabled={k.length < 20}>{fa ? "ذخیره" : "Save"}</button></div>}
+      {hasKey && <div style={{ fontSize: 12, opacity: 0.8 }}>{fa ? "کلید صدا ذخیره است." : "Voice key stored."}</div>}
       {film && (<div style={{ marginTop: 8 }}>
-        <div style={{ fontSize: 12, opacity: 0.8 }}>{film.job_id} · {film.status}{film.label ? " · " + (fa ? "پیش‌نویس بی‌صدا" : "silent draft") : ""}{film.idea_to_ready_s != null ? ` · ${fa ? "از ایده تا فایل" : "idea to file"} ${film.idea_to_ready_s}s` : ""}{film.file ? ` · ${film.file.width}×${film.file.height} · ${film.file.duration}s` : ""} · £0</div>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>{film.job_id} · {film.status}{film.label === "NARRATED" ? " · " + (fa ? "با صدای راوی" : "narrated") : film.label ? " · " + (fa ? "پیش‌نویس بی‌صدا" : "silent draft") : ""}{film.idea_to_ready_s != null ? ` · ${fa ? "از ایده تا فایل" : "idea to file"} ${film.idea_to_ready_s}s` : ""}{film.file ? ` · ${film.file.width}×${film.file.height} · ${film.file.duration}s` : ""} · {film.cost ? film.cost + "p" : "£0"}</div>
         <div dir="auto">{film.brief}</div>
         {film.hold_code && <div style={{ color: "#c33" }}>{fa ? "ساخته نشد: " : "Not made: "}{film.hold_code}</div>}
         {film.hold_code === "FFMPEG_NOT_INSTALLED" && <div style={{ fontSize: 12 }}>{fa ? "ابزار ساخت ویدیو (FFmpeg) روی سرور نیست. با این دکمه نسخهٔ رسمی PyPI در پوشهٔ خود APEX نصب می‌شود (حدود ۱۷۰ مگابایت، رایگان)؛ بعد ایده را دوباره بفرست. " : "The video tool (FFmpeg) is not on the server. This installs the PyPI build inside APEX's own folder (about 170 MB, free); then send the idea again. "}

@@ -197,6 +197,25 @@ def _local_llm():
         return None
 
 
+def _make_film(root, job, llm, now):
+    """Script, then narration if a voice key and budget exist (otherwise a silent draft that says why), then the render."""
+    from apex import studio_factory, studio_voice
+    lines = studio_factory.write_script(llm, job)
+    key, narrate = studio_voice.load_key(root), None
+    if key:
+        chars = sum(len(l) for l in lines)
+        def narrate(text, out, _state={}):
+            if "admitted" not in _state:
+                with Ledger(root) as ledger:                       # reserved before the first paid call; held only for the write
+                    _state["admitted"] = studio_voice.admit(ledger, job["job_id"], chars, now)
+            studio_voice.speak(key, text, job["language"], out)
+    film = studio_factory.render(job, lines, root / "runtime" / "studio", ffmpeg=studio_factory.ffmpeg_bin(root), narrate=narrate)
+    if film.get("narration"):
+        film["narration"]["estimated_cost_pence"] = studio_voice.estimate_pence(film["narration"]["chars"])
+        film["cost"] = film["narration"]["estimated_cost_pence"]
+    return film
+
+
 def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", run_scouts=True) -> dict:
     from apex.kernel.memory import Ledger
     from apex.kernel.policy import enforce_durable_stop
@@ -225,10 +244,22 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         to_record.append(("trends", trends))
         actions.append({"task": "trends", "result": trends["status"], "detail": f"{trends['count']} terms, failed feeds: {trends['feeds_failed'] or 'none'}"})
     if "global_trends" in due:
-        from apex import global_trend_swarm
+        from apex import global_trend_swarm, studio_schema
+        kdb = root / "runtime" / "kernel.sqlite3"
+        try:
+            mig = studio_schema.apply(kdb, root / "runtime" / "recovery", now)      # backup verified first; creates only missing studio tables
+            if mig["applied"]:
+                actions.append({"task": "studio_migration", "result": "OK", "detail": f"{len(mig['applied'])} tables created after verified backup {mig['backup']}"})
+        except Exception as exc:                                   # noqa: BLE001
+            actions.append({"task": "studio_migration", "result": "FAILED", "detail": f"{type(exc).__name__}: {str(exc)[:120]}"})
         gt = global_trend_swarm.scan(fetch, scout_common.latest(root, "global_trends"), now)
+        raw_rows = gt.pop("_rows", [])
+        try:
+            gt["stored"] = global_trend_swarm.persist(kdb, gt, raw_rows, now)
+        except Exception as exc:                                   # noqa: BLE001
+            gt["stored"] = {"error": f"{type(exc).__name__}: {str(exc)[:120]}"}
         to_record.append(("global_trends", gt))
-        actions.append({"task": "global_trends", "result": gt["status"], "detail": f"{gt['markets_ok']}/{gt['markets']} markets, {gt['count']} terms, {gt['cross_language']} in more than one language, failed: {gt['feeds_failed'] or 'none'}"})
+        actions.append({"task": "global_trend_swarm", "result": gt["status"], "detail": f"{gt['markets_ok']}/{gt['markets']} markets, {gt['count']} terms, {gt['cross_language']} in more than one language, failed: {gt['feeds_failed'] or 'none'}, stored: {gt['stored']}"})
     if "comment_replies" in due:
         from apex import comment_responder
         cr = comment_responder.run(root / "runtime" / "kernel.sqlite3", None, llm, None, now)   # no platform adapter exists yet: records BLOCKED
@@ -390,7 +421,7 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
         os.replace(tmp, ideas_file)                                # claimed before work: a crash cannot render the same idea twice
         try:
-            film = studio_factory.render(job, studio_factory.write_script(llm, job), root / "runtime" / "studio", ffmpeg=studio_factory.ffmpeg_bin(root))
+            film = _make_film(root, job, llm, now)
         except studio_factory.Hold as hold:
             film = {"event": "studio_film", "job_id": job["job_id"], "status": "QUALITY_HOLD", "hold_code": str(hold)[:200], "brief": job["brief"],
                     "language": job["language"], "idea_received_at": job["idea_received_at"], "queued": len(ideas)}

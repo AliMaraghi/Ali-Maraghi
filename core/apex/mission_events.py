@@ -97,13 +97,14 @@ def verify_page(fetch_text, url: str, now: float) -> dict:
                 addr = ", ".join(str(addr[k]) for k in ("streetAddress", "addressLocality", "postalCode") if addr.get(k))
             offers = ev.get("offers") or {}
             offers = offers[0] if isinstance(offers, list) and offers else offers
-            price = None
+            price, availability = None, None
             if isinstance(offers, dict):
+                availability = str(offers.get("availability") or "").rsplit("/", 1)[-1] or None
                 price = offers.get("price") or offers.get("lowPrice")
                 price = f"{price} {offers.get('priceCurrency', '')}".strip() if price not in (None, "") else None
             return {"verified": True, "checked_at": checked, "name": str(ev.get("name") or "")[:160], "start": start[:25], "end": str(ev.get("endDate") or "")[:25] or None,
                     "venue": str(loc.get("name") or "")[:120] if isinstance(loc, dict) else None, "address": str(addr)[:200] if addr else None,
-                    "price": price, "status": str(ev.get("eventStatus") or "").rsplit("/", 1)[-1] or None}
+                    "price": price, "availability": availability, "status": str(ev.get("eventStatus") or "").rsplit("/", 1)[-1] or None}
     return {"verified": False, "why": "the page has no machine-readable event data", "checked_at": checked}
 
 
@@ -178,7 +179,7 @@ def run(now: float, search, llm, propose, fetch_text=None, stamp=None, revision=
             v = verify_page(fetch_text, it["url"], now) if fetch_text else {"verified": False, "why": "page reader not available"}
             it["page"] = v
             reasons[v.get("why") or ("on target dates" if v.get("start", "")[:10] in (sat, sun) else "verified but on another date")] = reasons.get(v.get("why") or ("on target dates" if v.get("start", "")[:10] in (sat, sun) else "verified but on another date"), 0) + 1
-            if v.get("verified") and v.get("start", "")[:10] in (sat, sun) and v.get("venue") and "cancel" not in (v.get("status") or "").lower():
+            if v.get("verified") and v.get("start", "")[:10] in (sat, sun) and v.get("venue") and "cancel" not in (v.get("status") or "").lower() and (v.get("availability") or "") not in ("SoldOut", "Discontinued", "OutOfStock"):
                 good.append(it)
         return good[:3], "pages read: " + "; ".join(f"{n} {why}" for why, n in reasons.items())
     short = stage("INVESTIGATE", investigate) or []
@@ -188,7 +189,7 @@ def run(now: float, search, llm, propose, fetch_text=None, stamp=None, revision=
     def critique():
         for it in short:
             p = it["page"]
-            it["not_established"] = [x for x, missing in (("price", not p.get("price")), ("still on sale", True), ("address", not p.get("address"))) if missing]
+            it["not_established"] = [x for x, missing in (("price", not p.get("price")), ("still on sale", p.get("availability") != "InStock"), ("address", not p.get("address"))) if missing]
             it["reason_fa"] = reason_fa(it["matched"], p)
             it["fit"] = it["matched"]
         return short, "each item lists what the page did not establish; the Persian reason is assembled from page facts, no model wording"
@@ -196,7 +197,7 @@ def run(now: float, search, llm, propose, fetch_text=None, stamp=None, revision=
 
     payload = {"trace": trace, "kind": "event-shortlist", "target_dates": [sat, sun],
                "items": [{"title": it["page"]["name"] or it["title"], "url": it["url"], "start": it["page"]["start"], "venue": it["page"]["venue"],
-                          "address": it["page"]["address"], "price": it["page"]["price"], "checked_at": it["page"]["checked_at"],
+                          "address": it["page"]["address"], "price": it["page"]["price"], "availability": it["page"].get("availability"), "checked_at": it["page"]["checked_at"],
                           "fit": it["fit"], "reason_fa": it["reason_fa"], "not_established": it["not_established"]} for it in short]}
     state = stage("ACT", lambda: (lambda st: (st, f"shortlist in the approval queue as {trace}: {st}"))(propose(trace, payload, [it["url"][:80] for it in short])))
     stage("VERIFY", lambda: (state, "approval record read back from the ledger" if state else "no approval record: the queue was not reachable"))

@@ -256,14 +256,15 @@ class MissionEvents(unittest.TestCase):
 
 class StudioFactory(unittest.TestCase):
     FA = ["چرا تصمیم‌های مهم را شب‌ها بدتر می‌گیریم؟", "ذهنِ خسته دنبال راه کوتاه می‌گردد، نه راه درست.", "هر انتخابِ کوچکِ روز، کمی از توان تصمیم‌گیری را خرج می‌کند.",
-          "وقتی خسته‌ای، ساده‌ترین گزینه درست‌ترین به نظر می‌رسد.", "تصمیمِ بزرگ را به صبح بسپار؛ شب فقط یادداشتش کن."]
+          "وقتی خسته‌ای، ساده‌ترین گزینه درست‌ترین به نظر می‌رسد.", "برای همین خریدهای شبانه بیشتر پشیمانی می‌آورند.",
+          "یک قانون ساده کمک می‌کند: شب فقط بنویس، صبح انتخاب کن.", "تصمیمِ بزرگ را به صبح بسپار؛ شب فقط یادداشتش کن."]
 
     def test_script_checks_hold_bad_model_output(self):
         from apex import studio_factory as sf
         job = sf.new_job("چرا شب‌ها بدتر تصمیم می‌گیریم", "fa", 1000.0)
         self.assertEqual(sf.write_script(lambda s, u, m: "\n".join(f"{i + 1}. {l}" for i, l in enumerate(self.FA)), job), self.FA)
-        for bad, code in (("\n".join(self.FA[:4]), "SCRIPT_NOT_FIVE_LINES"), ("\n".join(self.FA[:4] + ["این جمله یک mind انگلیسی دارد و بد است."]), "SCRIPT_NOT_CLEAN_PERSIAN"),
-                          ("\n".join(self.FA[:4] + ["هفتاد درصد مردم، یعنی 70 نفر از صد نفر."]), "SCRIPT_CONTAINS_UNSOURCED_NUMBER")):
+        for bad, code in (("\n".join(self.FA[:4]), "SCRIPT_WRONG_LINE_COUNT"), ("\n".join(self.FA[:6] + ["این جمله یک mind انگلیسی دارد و بد است."]), "SCRIPT_NOT_CLEAN_PERSIAN"),
+                          ("\n".join(self.FA[:6] + ["هفتاد درصد مردم، یعنی 70 نفر از صد نفر."]), "SCRIPT_CONTAINS_UNSOURCED_NUMBER")):
             with self.assertRaises(sf.Hold) as ctx:
                 sf.write_script(lambda s, u, m: bad, job)
             self.assertEqual(str(ctx.exception), code)
@@ -277,13 +278,47 @@ class StudioFactory(unittest.TestCase):
         self.assertEqual(man["shots"][0]["start"], 0.0)
         self.assertNotIn("{\\b1}", sf.ass_text({**man, "shots": [{**man["shots"][0], "caption": "x {\\b1} y"}]}))
         self.assertIn("\u200e£20\u200e", sf.wrap("قیمت £20 است", True))    # a price keeps its order inside Persian
-        self.assertTrue(all(a.startswith("-") or "{" not in a for a in sf.ffmpeg_args(man, "film.ass", "film.mp4")))
+        self.assertEqual(man["hook_starts_at"], 0.0)                     # the hook is on screen from the first frame
+        self.assertEqual(sf.new_job("a global idea for everyone")["language"], "en")   # English-first, whatever the dashboard language
+        self.assertFalse(any("{" in a for a in sf.ffmpeg_args(man, "film.ass", "film.mp4")))
 
     def test_release_gate_holds_a_silent_unconnected_film(self):
         from apex import studio_factory as sf
         gate = sf.release_gate({"status": "RENDERED", "narration": None, "sha256": "x"}, None, [])
         self.assertEqual(gate["decision"], "POLICY_HOLD")
         self.assertEqual(len(gate["reasons"]), 3)
+
+    def test_narrated_render_uses_real_clip_lengths_and_voice_failure_falls_back(self):
+        import shutil, subprocess, tempfile
+        from pathlib import Path
+        from apex import studio_factory as sf, studio_voice as sv
+        if not shutil.which("ffmpeg"):
+            self.skipTest("ffmpeg not installed here")
+        def tone(text, out):                                           # stands in for the provider: a real WAV whose length depends on the line
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi", "-i", f"sine=frequency=220:duration={4 + len(text) % 3}", str(out)], check=True)
+        with tempfile.TemporaryDirectory() as d:
+            r = sf.render(sf.new_job("why we decide worse at night", "en", time.time()), ["Line number %s of the script here" % w for w in "one two three four five six seven".split()], Path(d), narrate=tone)
+            self.assertEqual((r["label"], r["narration"]["lines"], r["file"]["audio_codec"]), ("NARRATED", 7, "aac"))
+            self.assertTrue(abs(r["file"]["duration"] - (r["narration"]["seconds"] + 7 * 0.35)) < 0.6)
+            self.assertEqual(len(r["release"]["reasons"]), 2)             # narration no longer a reason; grant and destination still are
+            def broken(text, out):
+                raise sv.VoiceUnavailable("AUTH_REQUIRED: the OpenAI key was rejected")
+            r2 = sf.render(sf.new_job("another idea about deciding at night", "en", time.time()), self.FA, Path(d), narrate=broken)
+            self.assertEqual((r2["label"], r2["voice_blocked"][:13]), ("DRAFT_NO_NARRATION", "AUTH_REQUIRED"))
+
+    def test_voice_key_shape_and_budget_admission(self):
+        import tempfile
+        from apex import studio_voice as sv
+        from apex.kernel.memory import Ledger
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(ValueError):
+                sv.save_key(d, "not-a-key")
+            self.assertIsNone(sv.load_key(d))
+            with Ledger(d) as ledger:
+                with self.assertRaises(sv.VoiceUnavailable):               # no studio cap configured -> zero paid budget -> refused
+                    sv.admit(ledger, "film-x", 600, time.time())
+            with self.assertRaises(sv.VoiceUnavailable):
+                sv.speak("sk-" + "a" * 30, "hello", "en", __import__("pathlib").Path(d) / "x.wav", post=lambda u, h, b: b"<html>")
 
     def test_real_render_when_ffmpeg_is_present(self):
         import shutil, tempfile
@@ -363,3 +398,35 @@ class CommentResponder(unittest.TestCase):
             soon = c.run(d + "/k.sqlite3", port2, llm2, lambda *a: None, now=10_060.0)
             self.assertEqual((soon["replied"], soon["deferred_rate_limit"]), (0, 3))  # inside the minimum spacing: wait
         self.assertEqual(c.run("/nonexistent", None, None, None)["status"], "BLOCKED")
+
+
+class StudioSchema(unittest.TestCase):
+    def test_backup_first_then_ten_tables_then_rollback_and_never_creates_a_database(self):
+        import sqlite3, tempfile
+        from pathlib import Path
+        from apex import studio_schema as ss, global_trend_swarm as g
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(FileNotFoundError):
+                ss.apply(Path(d) / "missing.sqlite3", Path(d) / "rec")
+            self.assertFalse((Path(d) / "missing.sqlite3").exists())
+            db = Path(d) / "k.sqlite3"
+            c = sqlite3.connect(db); c.execute("CREATE TABLE keep (x)"); c.execute("INSERT INTO keep VALUES (1)"); c.commit(); c.close()
+            out = ss.apply(db, Path(d) / "rec", 1000.0)
+            self.assertEqual(len(out["applied"]), 10)
+            self.assertTrue((Path(d) / "rec" / out["backup"]).is_file())
+            self.assertEqual(ss.apply(db, Path(d) / "rec", 1001.0)["applied"], [])
+            feed = lambda t, v: ("<rss xmlns:ht='https://trends.google.com/trending/rss'><channel><item><title>%s</title><ht:approx_traffic>%s</ht:approx_traffic>"
+                                 "<ht:news_item><ht:news_item_title>Same headline</ht:news_item_title></ht:news_item></item></channel></rss>" % (t, v)).encode()
+            res = g.scan(lambda url: feed("New iPhone", "200K+"), None, 5000.0)
+            st = g.persist(db, res, res.pop("_rows"), 5000.0)
+            self.assertEqual((st["rows"]["studio_global_sources"], st["rows"]["studio_global_trend_observations"], st["rows"]["studio_global_topics"],
+                              st["rows"]["studio_global_topic_evidence"], st["velocity_unknown"]), (13, 13, 1, 1, 13))   # one headline in 13 markets is one piece of evidence
+            res2 = g.scan(lambda url: feed("New iPhone", "500K+"), None, 5000.0 + 7200)
+            g.persist(db, res2, res2.pop("_rows"), 5000.0 + 7200)
+            c = sqlite3.connect(db)
+            self.assertIn("+150000/h", c.execute("SELECT velocity FROM studio_global_topics").fetchone()[0])
+            c.close()
+            ss.rollback(db)
+            c = sqlite3.connect(db)
+            self.assertEqual([r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")], ["keep"])
+            c.close()

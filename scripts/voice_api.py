@@ -405,7 +405,7 @@ class VoiceChatApp:
             try:
                 from apex import studio_factory
                 body = json.loads(environ["wsgi.input"].read(int(length)))
-                job = studio_factory.new_job(body.get("text"), body.get("language", "fa"), time.time())
+                job = studio_factory.new_job(body.get("text"), body.get("language", "en"), time.time())
             except (ValueError, AttributeError) as exc:
                 return self._respond(start_response, 400, {"error": "BAD_IDEA", "detail": str(exc)[:120]})
             ideas_file = Path(self.root) / "runtime" / "inbox" / "studio_ideas.json"
@@ -422,6 +422,19 @@ class VoiceChatApp:
                 tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
                 os.replace(tmp, ideas_file)
             return self._respond(start_response, 200, {"job_id": job["job_id"], "queued": len(ideas), "starts_within_seconds": 900})
+        if path == "/api/settings/openai_key":
+            from apex import studio_voice
+            if method == "GET":
+                return self._respond(start_response, 200, {"set": studio_voice.load_key(self.root) is not None})
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 1 <= int(length) <= 400:
+                return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+            try:
+                body = json.loads(environ["wsgi.input"].read(int(length)))
+                studio_voice.save_key(self.root, body.get("key") if isinstance(body, dict) else None)
+            except (json.JSONDecodeError, ValueError):
+                return self._respond(start_response, 400, {"error": "KEY_SHAPE"})
+            return self._respond(start_response, 200, {"set": True})
         if path == "/api/studio/install_tools":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
