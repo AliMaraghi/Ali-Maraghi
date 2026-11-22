@@ -421,7 +421,7 @@ class VoiceChatApp:
                 tmp = ideas_file.with_suffix(".tmp")
                 tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
                 os.replace(tmp, ideas_file)
-            return self._respond(start_response, 200, {"job_id": job["job_id"], "queued": len(ideas), "starts_within_seconds": 900})
+            return self._respond(start_response, 200, {"job_id": job["job_id"], "queued": len(ideas), "starts_within_seconds": 10})
         if path == "/api/settings/openai_key":
             from apex import studio_voice
             if method == "GET":
@@ -475,7 +475,7 @@ class VoiceChatApp:
             flag = Path(self.root) / "runtime" / "settings" / "mission_now"
             flag.parent.mkdir(parents=True, exist_ok=True)
             flag.write_text(str(time.time()), encoding="utf-8")   # the existing background loop picks this up on its next cycle
-            return self._respond(start_response, 200, {"queued": True, "runs_within_seconds": 900})
+            return self._respond(start_response, 200, {"queued": True, "runs_within_seconds": 10})
         if path == "/api/system/restore_drill":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])

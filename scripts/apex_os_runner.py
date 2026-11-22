@@ -243,7 +243,7 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         trends = trend_scout.scan(fetch)
         to_record.append(("trends", trends))
         actions.append({"task": "trends", "result": trends["status"], "detail": f"{trends['count']} terms, failed feeds: {trends['feeds_failed'] or 'none'}"})
-    if "global_trends" in due:
+    if "global_trends" in due or not (scout_common.latest(root, "global_trends") or {}).get("stored"):
         from apex import global_trend_swarm, studio_schema
         kdb = root / "runtime" / "kernel.sqlite3"
         try:
@@ -561,7 +561,16 @@ def loop(root: Path = ROOT, interval: int = INTERVAL) -> None:
             print(f"[os] cycle exit={out.returncode} {(out.stderr or out.stdout).strip()[-200:]}", flush=True)
         except Exception as exc:                                   # noqa: BLE001 - logged, loop survives
             print(f"[os] cycle failed: {type(exc).__name__}: {str(exc)[:200]}", flush=True)
-        time.sleep(interval)
+        waited = 0
+        while waited < interval:                                   # an idea or a run-now request starts the next cycle within seconds, not at the next quarter hour
+            time.sleep(5)
+            waited += 5
+            try:
+                ideas = root / "runtime" / "inbox" / "studio_ideas.json"
+                if (root / "runtime" / "settings" / "mission_now").is_file() or (ideas.is_file() and ideas.stat().st_size > 4):
+                    break
+            except OSError:
+                pass
 
 
 if __name__ == "__main__":

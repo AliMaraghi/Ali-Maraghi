@@ -103,7 +103,7 @@ function Studio({ lang, film }) {
   useEffect(() => { fetch("/api/settings/openai_key").then((r) => r.json()).then((j) => setHasKey(!!j.set)).catch(() => {}); }, []);
   const saveKey = () => fetch("/api/settings/openai_key", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: k }) }).then((r) => { setHasKey(r.ok); setK(""); setMsg(r.ok ? (fa ? "کلید صدا ذخیره شد" : "voice key saved") : (fa ? "کلید معتبر نیست" : "not a valid key")); });
   const send = () => { setMsg("…"); fetch("/api/studio/idea", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, language: l }) })
-    .then((r) => r.json().then((j) => setMsg(r.ok ? (fa ? `در صف: ${j.job_id} (حداکثر ۱۵ دقیقه تا شروع)` : `Queued: ${j.job_id} (starts within 15 min)`) : (j.detail || j.error)))).catch(() => setMsg(fa ? "خطا" : "failed")); };
+    .then((r) => r.json().then((j) => setMsg(r.ok ? (fa ? `در صف: ${j.job_id} (چند ثانیه تا شروع)` : `Queued: ${j.job_id} (starts within seconds)`) : (j.detail || j.error)))).catch(() => setMsg(fa ? "خطا" : "failed")); };
   const HOLD = { NO_NARRATION: "صدای راوی ندارد: هنوز هیچ سرویس صدای دارای مجوز تجاری روی سرور تنظیم نشده", NO_STANDING_GRANT: "مجوز دائمی انتشار خودکار هنوز برای حساب مشخصی ثبت نشده", NO_DESTINATION: "هیچ حساب انتشاری به سرور وصل نیست" };
   return (
     <div style={{ marginTop: 10, padding: 8, border: "1px solid #8884", borderRadius: 8 }}>
