@@ -27,7 +27,7 @@ from apex import priority, scout_common, trend_scout          # noqa: E402
 INTERVAL = 900
 EXPECTED = {"events": 4 * 3600, "wealth": 4 * 3600, "commute": 4 * 3600, "adult": 4 * 3600, "trends": 6 * 3600,
             "spend": 14 * 86400, "content_drafts": 24 * 3600, "property": 7 * 86400,
-            "listings": 24 * 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
+            "listings": 24 * 3600, "event_links": 12 * 3600, "social": 12 * 3600, "critic": 24 * 3600, "evolution": 24 * 3600, "graph": 6 * 3600}
 CREDENTIAL = {"A-5": "Reed job-search key", "A-6": "Gmail connection (sync is switched off)"}
 VALUE = {"trends": 3.0, "content_drafts": 4.0, "events": 5.0, "wealth": 6.0, "commute": 2.0, "adult": 3.0, "spend": 6.0}
 
@@ -280,6 +280,26 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         actions.extend(venture.work(root, llm, lambda url: json.loads(contracts_finder.fetch_page(url))))
     except Exception as exc:                                       # noqa: BLE001
         actions.append({"task": "venture", "result": "ERROR", "detail": f"{type(exc).__name__}: {str(exc)[:100]}"})
+    if "event_links" in due:
+        from apex import brave_search
+        bkey = brave_search.load_key(root)
+        if not bkey:
+            ev = {"event": "event_links", "status": "BLOCKED_MISSING_CREDENTIAL", "detail": "Brave search key not set", "links": []}
+        else:
+            links, errs, seen = [], [], set()
+            for q in ("London gala night this weekend", "London members social club party this week", "London underground party this weekend", "London wine tasting evening this week"):
+                try:
+                    for r in brave_search.search(root, bkey, "events", q)[:4]:
+                        if r["url"] not in seen:
+                            seen.add(r["url"])
+                            links.append({"query": q, "title": r["title"], "url": r["url"], "site": r["domain"], "extract": r["extract"][:160]})
+                    time.sleep(1.2)
+                except Exception as exc:                           # noqa: BLE001
+                    errs.append(f"{q[:20]}:{type(exc).__name__}")
+            ev = {"event": "event_links", "status": "OK" if links else "NO_DATA", "links": links[:12], "errors": errs,
+                  "note": "Search links to event pages; dates, prices and availability are whatever the page shows when opened."}
+        to_record.append(("event_links", ev))
+        actions.append({"task": "event_links", "result": ev["status"], "detail": ev.get("detail") or f"{len(ev['links'])} link(s), errors: {ev.get('errors') or 'none'}"})
     if "graph" in due:
         try:
             from apex import knowledge_graph, people_graph

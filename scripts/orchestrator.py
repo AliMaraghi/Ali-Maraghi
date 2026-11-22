@@ -726,7 +726,7 @@ def _os_latest(root):
         from apex import scout_common
         return {"cycle": scout_common.latest(root, "os"), "trends": scout_common.latest(root, "trends"),
                 "drafts": scout_common.latest(root, "content_drafts"), "property": scout_common.latest(root, "property"), "social": scout_common.latest(root, "social"), "evening": scout_common.latest(root, "evening"),
-                "ventures": __import__("apex.venture", fromlist=["x"]).load(root), "providers": _providers(root), "listings": scout_common.latest(root, "listings"),
+                "ventures": __import__("apex.venture", fromlist=["x"]).load(root), "providers": _providers(root), "listings": scout_common.latest(root, "listings"), "event_links": scout_common.latest(root, "event_links"),
                 "critic": scout_common.latest(root, "critic"), "evolution": scout_common.latest(root, "evolution"), "graph": scout_common.latest(root, "graph"), "people": __import__("apex.people_graph", fromlist=["x"]).summary(root)}
     except Exception:
         return None

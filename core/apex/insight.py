@@ -63,24 +63,34 @@ def behaviour(record: dict | None) -> list:
     if pd and pd["avg_out_other_pence"]:
         ratio = pd["avg_out_high_income_pence"] / pd["avg_out_other_pence"]
         if ratio >= 1.25:
-            found.append({"name": "Spending rises in weeks money arrives",
+            found.append({"fa": {"name": "خرج در هفته‌هایی که پول می‌رسد بالا می‌رود",
+                                 "evidence": f"میانگین خرج در {pd['high_income_weeks']} هفتهٔ پردرآمدتر {pd['avg_out_high_income_pence']/100:.0f} پوند بود و در بقیه {pd['avg_out_other_pence']/100:.0f} پوند ({ratio:.1f} برابر، {pd['weeks']} هفته). قبض‌های بزرگی که روز حقوق کم می‌شوند هم همین اثر را دارند."},
+                          "name": "Spending rises in weeks money arrives",
                           "evidence": f"Average outgoings £{pd['avg_out_high_income_pence']/100:.0f} in the {pd['high_income_weeks']} biggest-income weeks vs £{pd['avg_out_other_pence']/100:.0f} otherwise ({ratio:.1f}x, {pd['weeks']} weeks). Large bills landing on pay weeks also cause this.",
                           "strength": "strong" if ratio >= 2 else "moderate"})
     if e["convenience_share_pct"] >= 25:
-        found.append({"name": "Large share goes on convenience food",
+        found.append({"fa": {"name": "سهم بزرگی صرف غذای آماده می‌شود",
+                             "evidence": f"سفارش غذا به‌علاوهٔ رستوران و قهوه {e['convenience_share_pct']}٪ خرج ثبت‌شده است؛ خرید خوراکی و هزینه‌های ضروری روی هم {e['essential_share_pct']}٪."},
+                      "name": "Large share goes on convenience food",
                       "evidence": f"Food delivery plus eating out and coffee is {e['convenience_share_pct']}% of tracked spending; groceries and essentials together are {e['essential_share_pct']}%.",
                       "strength": "strong" if e["convenience_share_pct"] >= 40 else "moderate"})
     if e["out_volatility_pct"] >= 60:
-        found.append({"name": "Weekly spending is very uneven",
+        found.append({"fa": {"name": "خرج هفتگی خیلی نامنظم است",
+                             "evidence": f"خرج هفتگی حدود {e['out_volatility_pct']}٪ دور میانگین {e['avg_weekly_out_pence']/100:.0f} پوند بالا و پایین می‌شود."},
+                      "name": "Weekly spending is very uneven",
                       "evidence": f"Weekly outgoings swing by about {e['out_volatility_pct']}% around the £{e['avg_weekly_out_pence']/100:.0f} average.",
                       "strength": "moderate"})
     r = e["recent_vs_before_pct"]
     if r is not None and abs(r) >= 25:
-        found.append({"name": "Spending is trending " + ("up" if r > 0 else "down"),
+        found.append({"fa": {"name": "خرج رو به " + ("افزایش" if r > 0 else "کاهش") + " است",
+                             "evidence": f"میانگین ۴ هفتهٔ اخیر {abs(r)}٪ {'بیشتر' if r > 0 else 'کمتر'} از ۸ هفتهٔ قبل از آن است."},
+                      "name": "Spending is trending " + ("up" if r > 0 else "down"),
                       "evidence": f"Last 4 weeks average {abs(r)}% {'above' if r > 0 else 'below'} the 8 weeks before.",
                       "strength": "moderate"})
     if e["net_weekly_pence"] < 0:
-        found.append({"name": "Outgoings exceed recorded income",
+        found.append({"fa": {"name": "خرج از درآمد ثبت‌شده بیشتر است",
+                             "evidence": f"به‌طور میانگین هفته‌ای {abs(e['net_weekly_pence'])/100:.0f} پوند بیشتر از ورودی خرج شده ({e['weeks']} هفته). درآمدی که به حساب‌های بارگذاری‌نشده می‌رود حساب نشده است."},
+                      "name": "Outgoings exceed recorded income",
                       "evidence": f"Average £{abs(e['net_weekly_pence'])/100:.0f} a week more out than in across {e['weeks']} weeks. Income into accounts you have not uploaded is not counted.",
                       "strength": "moderate"})
     return found

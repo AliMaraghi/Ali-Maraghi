@@ -33,7 +33,7 @@ DEFAULT_CONFIG = {
     "meetup_groups": ["londonpartypeople", "london-night-out", "tastour", "bored-in-london"],
     # Owner said business/finance/property networking and generic singles parties are NOT what he wants.
     "event_exclude": ["networking", "business owners", "landlord", "investment", "finance", "banking", "founders",
-                      "startup", "career", "webinar", "online", "singles", "coding", "website", "agency", "workshop", "course", "bootcamp"],
+                      "startup", "career", "webinar", "online", "singles", "coding", "website", "agency", "workshop", "course", "bootcamp", "virtual", "ecommerce", "brand", "coffee club", "zoom", "masterclass"],
     "event_keywords": ["gala", "social club", "wine tasting", "gallery", "party", "open-minded", "lifestyle"],
     "commute_lines": [],                                 # TfL line ids; set privately on the server, not here
     "food_weekly_cap_pence": 10_000,                     # the owner's weekly limit for food ordered in or eaten out

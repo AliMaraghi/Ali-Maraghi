@@ -39,6 +39,8 @@ REGIONS = {
     "ko": ("ko", "site:go.kr OR site:ac.kr"),
     # Property portals: search-engine links only (the portals themselves are never fetched or scraped).
     "property": ("en", "site:rightmove.co.uk OR site:zoopla.co.uk OR site:onthemarket.com"),
+    # Event listing sites: search-engine links only, the sites themselves are never fetched or scraped.
+    "events": ("en", "site:ra.co OR site:designmynight.com OR site:eventbrite.co.uk OR site:dice.fm OR site:feverup.com"),
 }
 PHRASE_LANG = {"en-gb": "en", "en-us": "en", "global": "en"}
 

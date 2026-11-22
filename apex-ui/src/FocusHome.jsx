@@ -162,7 +162,7 @@ function SpikeCheckin({ spend, t }) {
   return (
     <Card style={{ marginTop: 14 }}>
       <div style={{ color: C.accent, fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{t.spikeTitle}</div>
-      <div dir="ltr" style={{ lineHeight: 1.6 }}>{spike.question}</div>
+      <div dir={lang === "fa" ? "rtl" : "ltr"} style={{ lineHeight: 1.6 }}>{lang === "fa" && spike.category ? `«${CAT_FA[spike.category] || spike.category}» در هفتهٔ ${spike.week_start} به ${(spike.current_pence / 100).toFixed(2)} پوند رسید؛ میانگین چهار هفتهٔ قبلش ${(spike.average_pence / 100).toFixed(2)} پوند در هفته بود. آن هفته چیز خاصی بود؟` : spike.question}</div>
       {saved ? <div style={{ color: C.ok, marginTop: 10 }}>{t.spikeSaved}</div> : (
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t.spikePh} maxLength={600} dir="auto"
@@ -197,7 +197,8 @@ function pickNow(data, unreachable, t) {
   if (unreachable && !data) return { tone: "bad", title: t.offline, body: t.offlineBody };
   const budget = data && data.budget, briefing = data && data.briefing, scout = data && data.scout;
   if (budget && budget.exhausted) return { tone: "need", title: t.budgetOut, body: t.budgetOutBody };
-  const pending = briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0;
+  const osPending = data && data.os && data.os.cycle && typeof data.os.cycle.pending_total === "number" ? data.os.cycle.pending_total : null;
+  const pending = osPending !== null ? osPending : (briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0);
   if (pending > 0) return { tone: "need", title: t.approvals(pending), body: t.approvalsBody, href: "https://console.apexcorelab.uk/", action: t.approvalsBtn };
   if (budget && budget.warning) return { tone: "need", title: t.budgetWarn, body: t.budgetWarnBody };
   const tube = scout && scout.commute;
@@ -377,7 +378,8 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
     ? new Date().toLocaleDateString("fa-IR", { weekday: "long", day: "numeric", month: "long" }) + " (" + gregorian + ")"
     : gregorian;
   const budget = data && data.budget, scout = data && data.scout, briefing = data && data.briefing, osd = data && data.os;
-  const pending = briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0;
+  const osPending = data && data.os && data.os.cycle && typeof data.os.cycle.pending_total === "number" ? data.os.cycle.pending_total : null;
+  const pending = osPending !== null ? osPending : (briefing && Array.isArray(briefing.proposals) ? briefing.proposals.length : 0);
   const events = scout && scout.events, wealth = scout && scout.wealth;
   const eventCount = events && events.picked ? events.picked.length : 0;
   const pill = { padding: "9px 14px", borderRadius: 999, border: `1px solid ${C.line}`, background: "transparent", color: C.text,
@@ -427,7 +429,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
           <div dir="ltr" style={{ marginTop: 14, fontSize: 13, lineHeight: 1.6 }}>
             <div style={{ color: C.muted, marginBottom: 4 }}>{t.secInsight}{scout.spend.insight.economics ? ` · ${scout.spend.insight.economics.weeks} ${t.insWeeks}` : ""}</div>
             {scout.spend.insight.behaviour.map((b) => (
-              <div key={b.name} style={{ marginBottom: 6 }}><b>{b.name}</b> <span style={{ color: C.muted }}>({b.strength})</span><br />{b.evidence}</div>
+              <div key={b.name} dir={lang === "fa" && b.fa ? "rtl" : "ltr"} style={{ marginBottom: 6 }}><b>{lang === "fa" && b.fa ? b.fa.name : b.name}</b> <span style={{ color: C.muted }}>({lang === "fa" ? ({ strong: "قوی", moderate: "متوسط", weak: "ضعیف" })[b.strength] : b.strength})</span><br />{lang === "fa" && b.fa ? b.fa.evidence : b.evidence}</div>
             ))}
             {scout.spend.insight.graph && scout.spend.insight.graph.edges.length > 0 && (
               <div style={{ color: C.muted }}>{t.insLinks}: {scout.spend.insight.graph.edges.slice(0, 5).map((e) => `${e.a} ↔ ${e.b} (${e.r})`).join(" · ")}</div>
@@ -493,6 +495,10 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   {osd.listings && (osd.listings.links || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Listings to open (search links, not verified prices):</div>
                       {osd.listings.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.borough} · {l.site}</span></div>)}</div>
+                  )}
+                  {osd.event_links && (osd.event_links.links || []).length > 0 && (
+                    <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>{lang === "fa" ? "رویدادهای لندن از سایت‌های رویداد (لینک جستجو؛ تاریخ و قیمت را در خود صفحه ببین):" : "London events from listing sites (search links; check date and price on the page):"}</div>
+                      {osd.event_links.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.site}</span><Stars kind="event_link" text={l.title} refInfo={{ agent: "A-10", trace: String(osd.event_links.generated_at), prompt_version: l.query, model: "search" }} /></div>)}</div>
                   )}
                   {osd.social && (osd.social.openers || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>A-10 · openers for: <a href={osd.social.url} target="_blank" rel="noopener noreferrer" style={link}>{osd.social.title}</a></div>

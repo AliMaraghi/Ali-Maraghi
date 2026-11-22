@@ -1,7 +1,7 @@
 // APEX UI service worker. Caches the same-origin UI shell only.
 // Never touches /api/ requests, cross-origin requests or non-GET requests, so
 // no personal data, chat content or dashboard payload is ever written to the cache.
-const CACHE = "apex-ui-v40";
+const CACHE = "apex-ui-v42";
 const SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

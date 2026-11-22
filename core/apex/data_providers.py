@@ -20,6 +20,7 @@ PROVIDERS = [
     ("tfl_status", "Operations", "TfL line status", ("status", "commute"), 9 * H, None),
     ("land_registry_hpi", "Property", "HM Land Registry UK House Price Index", ("status", "property"), 8 * 24 * H, None),
     ("brave_property", "Property", "Portal listing links via Brave search", ("status", "listings"), 49 * H, "brave"),
+    ("brave_events", "Social", "Event-site links via Brave search", ("status", "event_links"), 25 * H, "brave"),
 ] + [(f"google_trends_{g.lower()}", "Content", f"Google Trends daily, {g}", ("trend", g), 13 * H, None) for g in ("GB", "US", "DE", "FR", "ES", "TR", "IR", "AE")] + [
     ("bank_statements", "Finance", "Owner-uploaded bank statements (manual upload, not a bank connection)", None, 0, None),
     ("linkedin_export", "Context", "Owner's LinkedIn connections export (manual upload)", None, 0, None),
