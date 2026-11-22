@@ -30,6 +30,10 @@ def minimized_headers(payload):
     return result
 
 
+# Owner decision 22 Nov 2026: raise the pilot limit from 100 to a fixed 2,000 threads, still metadata only.
+THREAD_CAP=2000
+STATE_BYTES_CAP=8_000_000
+
 class GmailError(Exception):
     def __init__(self,status):self.status=status;super().__init__('Gmail request failed')
 
@@ -102,14 +106,14 @@ class GmailSync:
                     normalized.append({'id':m['id'],'internalDate':date,'labelIds':labels,
                         'headers':minimized_headers(m.get('payload',{})),'source':'gmail-thread:'+tid})
                 state['threads'][tid]=sorted(normalized,key=lambda x:(int(x['internalDate']),x['id']))
-            if len(state['threads'])>100:raise ValueError('Initial pilot retention cap reached; no silent truncation')
+            if len(state['threads'])>THREAD_CAP:raise ValueError('Retention cap of %d threads reached; no silent truncation'%THREAD_CAP)
             state['page']=page.get('nextPageToken')
             if state['page'] is not None and (not isinstance(state['page'],str) or len(state['page'])>2048):raise ValueError('Invalid page token')
             if not state['page']:
                 if state['phase']=='INCREMENTAL':state['cursor']=str(page['historyId'])
                 state['phase']='INCREMENTAL'
             encoded=json.dumps(state,allow_nan=False).encode()
-            if len(encoded)>2_000_000:raise ValueError('Encrypted state size bound')
+            if len(encoded)>STATE_BYTES_CAP:raise ValueError('Encrypted state size bound')
             self.ledger.db.execute('INSERT OR REPLACE INTO google_private_sync VALUES(?,?,?)',
                                   (self.account,self.cipher.encrypt(encoded),generation+1))
             receipt={'status':'PAGE_SYNCHRONIZED','phase':state['phase'],'more_pages':bool(state['page']),
