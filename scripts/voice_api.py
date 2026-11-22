@@ -393,6 +393,14 @@ class VoiceChatApp:
                 except (ValueError, TypeError, AttributeError) as exc:
                     return self._respond(start_response, 400, {"error": str(exc)[:160] or "BAD_REQUEST"})
             return self._respond(start_response, 200, {"gates": venture.GATES, "ventures": venture.load(self.root)})
+        if path == "/api/system/diagnose":
+            import subprocess
+            try:
+                out = subprocess.run(["bash", str(ROOT / "scripts" / "diagnose.sh")], capture_output=True, text=True, timeout=60)
+                text = (out.stdout + ("\n-- stderr\n" + out.stderr if out.stderr.strip() else ""))[-60000:]
+            except Exception as exc:                  # noqa: BLE001
+                text = f"diagnose failed: {type(exc).__name__}: {str(exc)[:200]}"
+            return self._respond(start_response, 200, {"report": text})
         if path == "/api/rate":
             # The owner's 1-5 star rating of one output: the fitness signal for prompt evolution. Append-only file.
             target = Path(self.root) / "runtime" / "settings" / "ratings.jsonl"
