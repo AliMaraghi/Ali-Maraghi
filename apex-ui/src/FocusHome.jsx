@@ -496,6 +496,19 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Listings to open (search links, not verified prices):</div>
                       {osd.listings.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.borough} · {l.site}</span></div>)}</div>
                   )}
+                  {osd.mission_run && osd.mission_run.stages && osd.mission_run.stages.length > 0 && (
+                    <div style={{ marginTop: 10, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
+                      <div><b>{lang === "fa" ? "مأموریت خودکار: رویدادهای لندن" : "Self-started mission: London events"}</b> <span style={{ color: C.muted }}>{osd.mission_run.trace} · {osd.mission_run.status} · {ago(osd.mission_run.generated_at, lang)} · {osd.mission_run.total_ms} ms · £0</span></div>
+                      {osd.mission_run.stages.map((st, i) => <div key={i} style={{ color: st.ok ? C.muted : C.need }}>{st.ok ? "✓" : "✗"} {st.stage} ({st.ms} ms): {st.note}</div>)}
+                      {(osd.mission_run.shortlist || []).map((it, i) => (
+                        <div key={i} style={{ marginTop: 6 }}>
+                          <a href={it.url} target="_blank" rel="noopener noreferrer" style={link}>{it.title}</a> <span style={{ color: C.muted }}>{it.date_text || (lang === "fa" ? "بدون تاریخ" : "no date")} · {it.site}</span>
+                          <Stars kind="mission_event" text={it.title} refInfo={{ agent: "A-10", trace: osd.mission_run.trace, prompt_version: "mission-events-v1", model: "gemma3:4b" }} />
+                          {it.reason_fa && <div dir="rtl">{it.reason_fa}</div>}
+                          <div style={{ color: C.need, fontSize: 12 }}>{lang === "fa" ? "تأییدنشده: " : "Not verified: "}{(it.unverified || []).join(", ")}</div>
+                        </div>))}
+                    </div>
+                  )}
                   {osd.event_links && (osd.event_links.links || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>{lang === "fa" ? "رویدادهای لندن از سایت‌های رویداد (لینک جستجو؛ تاریخ و قیمت را در خود صفحه ببین):" : "London events from listing sites (search links; check date and price on the page):"}</div>
                       {osd.event_links.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.date_text ? l.date_text + " · " : (lang === "fa" ? "تاریخ در نتیجه نبود · " : "no date in result · ")}{l.site}</span><Stars kind="event_link" text={l.title} refInfo={{ agent: "A-10", trace: String(osd.event_links.generated_at), prompt_version: l.query, model: "search" }} /></div>)}</div>

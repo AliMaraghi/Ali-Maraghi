@@ -186,3 +186,33 @@ class Venture(unittest.TestCase):
         from apex import l5, venture as vt
         self.assertIn("I don't have that information", vt.identity())
         self.assertIn("never invent numbers", l5.with_lessons("/nonexistent", "social", "BASE").lower())
+
+
+class MissionEvents(unittest.TestCase):
+    def test_one_trace_through_all_stages_and_only_action_is_a_proposal(self):
+        from apex import mission_events as me
+        hits = [{"title": "Winter Gala Ball", "url": "https://www.eventbrite.co.uk/e/winter-gala-1", "domain": "eventbrite.co.uk", "extract": "Sat 28 Nov at a members club"},
+                {"title": "Best galas in London", "url": "https://www.eventbrite.co.uk/d/london/gala/", "domain": "eventbrite.co.uk", "extract": "list"},
+                {"title": "Kids party", "url": "https://dice.fm/event/kids", "domain": "dice.fm", "extract": "family fun"}]
+        proposed = []
+        def propose(pid, payload, evidence):
+            proposed.append((pid, payload)); return "PENDING"
+        llm = lambda s, u, m: "شبی اجتماعی و رسمی با فضای باشگاهی."
+        out = me.run(1795000000.0, lambda q: hits, llm, propose)
+        self.assertEqual(out["status"], "OK")
+        self.assertEqual([s["stage"] for s in out["stages"]], ["OBSERVE", "JUDGE", "INVESTIGATE", "CRITIQUE", "ACT", "VERIFY"])
+        self.assertEqual(len(out["shortlist"]), 1)
+        self.assertEqual(out["shortlist"][0]["date_text"], "Sat 28 Nov")
+        self.assertIn("venue", out["shortlist"][0]["unverified"])
+        self.assertEqual(proposed[0][0], out["trace"])
+        bad = me.run(1795000000.0, lambda q: hits, lambda s, u, m: "فقط 20 پوند!", propose)
+        self.assertIsNone(bad["shortlist"][0]["reason_fa"])            # a reason with a number is dropped
+
+    def test_unreachable_queue_is_partial_not_ok(self):
+        from apex import mission_events as me
+        hits = [{"title": "Supper club night", "url": "https://ra.co/events/123", "domain": "ra.co", "extract": "x"}]
+        def propose(*a):
+            raise PermissionError("no")
+        out = me.run(1795000000.0, lambda q: hits, None, propose)
+        self.assertEqual(out["status"], "PARTIAL")
+        self.assertFalse([s for s in out["stages"] if s["stage"] == "ACT"][0]["ok"])
