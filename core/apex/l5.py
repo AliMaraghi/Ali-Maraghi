@@ -12,6 +12,17 @@ MAX_LESSONS, LESSON_CHARS = 5, 160
 BANNED = re.compile(r"ignore|disregard|previous instruction|system prompt|no need to|skip the (rule|check)|always approve", re.I)
 
 
+def version_of(system: str) -> dict:
+    """Identity of what produced an output: a hash of the exact system prompt (lessons included) and the model name."""
+    import hashlib
+    try:
+        from . import local_llm
+        model = local_llm.model() if local_llm.enabled() else "none"
+    except Exception:                                              # noqa: BLE001
+        model = "unknown"
+    return {"prompt_version": hashlib.sha256(system.encode()).hexdigest()[:12], "model": model}
+
+
 def _json(llm, system: str, user: str, tokens: int = 350):
     if llm is None:
         return None
@@ -86,7 +97,7 @@ def social(root, llm, events: dict | None, mentions) -> dict:
     obj = _json(llm, system, f"EVENT: {top.get('title')}\nWHEN: {top.get('start')}")
     lines = [str(x)[:200] for x in (obj or {}).get("openers", []) if isinstance(x, str) and mentions(x, top.get("title", ""))][:3]
     return {"event": "social", "status": "OK" if lines else ("NO_MODEL" if llm is None else "NO_DATA"),
-            "title": top.get("title"), "start": top.get("start"), "url": top.get("url"), "openers": lines, "energy_used": level}
+            "title": top.get("title"), "start": top.get("start"), "url": top.get("url"), "openers": lines, "energy_used": level, "agent": "A-10", **version_of(system)}
 
 
 # ---- A-17: argue against each pending proposal -------------------------------------------------------------
@@ -102,7 +113,8 @@ def red_team(llm, proposals: list) -> dict:
         if obj and isinstance(obj.get("against"), str):
             notes.append({"proposal_id": p["id"], "kind": p["kind"], "against": obj["against"][:400],
                           "what_to_check": str(obj.get("what_to_check", ""))[:200]})
-    return {"event": "critic", "status": "OK" if notes else ("NO_MODEL" if llm is None else "NO_DATA"), "reviewed": len(proposals[:5]), "notes": notes}
+    return {"event": "critic", "status": "OK" if notes else ("NO_MODEL" if llm is None else "NO_DATA"), "reviewed": len(proposals[:5]), "notes": notes,
+            "agent": "A-17", **version_of(CRITIC)}
 
 
 # ---- A-18: nightly review -> lessons ---------------------------------------------------------------------

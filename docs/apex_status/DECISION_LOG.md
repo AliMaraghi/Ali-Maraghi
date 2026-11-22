@@ -78,3 +78,14 @@ transactional audit around existing workflow, retaining finite budgets/exact cou
 Actual blocked-source receipt ran through CLI queue to durable blocked report.
 Final162 passed,2 skipped; crash/competition/security evidence recorded. Independent
 review/utility baseline unavailable and explicitly not claimed. No production/spend.
+
+## 2026-11-22 Gmail retention and coverage policy (owner decision)
+
+- Owner instruction in chat, 22 Nov 2026 02:45 UTC, verbatim: "1. Raise it to a fixed larger number (say 2,000 threads), still metadata only."
+- Policy as implemented (`core/apex/gmail_sync.py`): metadata only; at most 2,000 threads held, encrypted; the 2,000 is treated as temporary.
+- Initial coverage is bounded: newest threads first, stopping when another page would not fit. The receipt then reports
+  `coverage.initial_complete = false, stopped = CAPACITY`. Older mail is NOT covered and nothing claims it is.
+- After the initial pass, incremental history keeps the set current. If new threads push the count over the cap, the oldest
+  are evicted and every eviction is counted in the receipt (`evicted_oldest`). Deleted threads are removed (404 on refresh).
+- Existing stored state (the first 100 threads) is preserved; the sync resumes from its saved page token.
+- Not decided: full-mailbox backfill, any content beyond headers, or a larger cap. Each needs a new owner decision.

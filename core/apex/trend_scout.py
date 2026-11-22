@@ -76,4 +76,5 @@ def draft(llm, trend: dict, lessons=None) -> dict | None:
         return None
     return {"term": trend["term"], "lang": trend["lang"], "geos": trend.get("geos"), "trend_score": trend.get("score"),
             "hook": obj["hook"][:200], "beats": [str(b)[:200] for b in obj["beats"][:4]],
-            "angle": str(obj.get("angle", ""))[:20], "platform": str(obj.get("platform", ""))[:20], "state": "DRAFT_NEEDS_OWNER"}
+            "angle": str(obj.get("angle", ""))[:20], "platform": str(obj.get("platform", ""))[:20], "state": "DRAFT_NEEDS_OWNER",
+            "agent": "A-11", "prompt_version": __import__("hashlib").sha256(system.encode()).hexdigest()[:12]}

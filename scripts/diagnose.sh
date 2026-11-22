@@ -31,6 +31,7 @@ except Exception as e:
 PY
 echo; echo "-- which code each service loaded (process start vs latest commit)"
 echo "latest commit: $(git log -1 --format='%cI %h' 2>&1)"
+echo "that commit arrived on this server at: $(git reflog -1 --format='%cd' --date=iso-strict 2>&1)   full HEAD: $(git rev-parse HEAD 2>&1)   uncommitted files: $(git status --short 2>/dev/null | wc -l)"
 for u in apex-voice apex-ui apex-console apex-worker apex-agents; do
   pid=$(systemctl show -p MainPID --value "$u" 2>/dev/null)
   printf '%-14s pid=%s started=%s\n' "$u" "$pid" "$( [ -n "$pid" ] && [ "$pid" != 0 ] && ps -o lstart= -p "$pid" 2>/dev/null )"
@@ -51,6 +52,21 @@ try:
     print("-- mission schedules (worker)")
     for sid, enabled, remaining, issued in db.execute("SELECT id, enabled, remaining, issued FROM mission_schedules"):
         print(f"  {sid}: enabled={enabled} remaining={remaining} issued={issued}")
+    print("-- worker schedule payloads (what each would execute; saved code identity vs current)")
+    import sys
+    sys.path.insert(0, "core")
+    try:
+        from apex.kernel.schedules import code_digest
+        current = code_digest()
+    except Exception as e:
+        current = "unavailable:" + type(e).__name__
+    for sid, packet in db.execute("SELECT id, packet FROM mission_schedules"):
+        saved = json.loads(packet)
+        t = saved.get("template", {})
+        print(f"  {sid}: saved_code={str(saved.get('code_sha256'))[:12]} current_code={str(current)[:12]} match={saved.get('code_sha256') == current}")
+        for node in t.get("nodes", []):
+            task = node.get("task", {})
+            print(f"     node {node.get('id')} depends_on={node.get('depends_on')} domain={task.get('domain')} expires={task.get('expires_at') or task.get('expiry')} case_keys={sorted((node.get('case') or {}).keys())[:8]}")
     print("-- pending approvals by proposer (same table the console queue shows)")
     for proposer, n in db.execute("SELECT proposer, COUNT(*) FROM proposals WHERE state='PENDING' GROUP BY proposer"):
         print(f"  {proposer}: {n}")

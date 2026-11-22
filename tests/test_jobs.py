@@ -18,13 +18,18 @@ from test_kernel import document, NOW, WORK
 T = int(NOW.timestamp())
 
 
+# The fixture task must not be expired on the day the suite runs (a fixed date made these tests fail from 20 Nov 2026).
+import datetime as _dt
+_FUTURE = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(days=7)).strftime('%Y-%m-%dT00:00:00Z')
+
+
 class JobTests(unittest.TestCase):
     def setUp(self):
         WORK.mkdir(exist_ok=True)
         self.temp = tempfile.TemporaryDirectory(dir=WORK)
         self.root = Path(self.temp.name)
         self.case = Case.parse(document(self.root))
-        self.task = Task('queued-test', 'opportunity', '2026-11-20T00:00:00Z', 2, 10000, 0)
+        self.task = Task('queued-test', 'opportunity', _FUTURE, 2, 10000, 0)
         self.ledger = Ledger(self.root); self.jobs = Jobs(self.ledger)
 
     def tearDown(self):

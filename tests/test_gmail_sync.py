@@ -96,3 +96,38 @@ class GmailTests(unittest.TestCase):
             client=Mock()
             with self.assertRaises(PermissionError):sync.step(client)
             client.get.assert_not_called()
+
+class GmailCoverageTests(unittest.TestCase):
+    setUp=test_missions.MissionTests.setUp
+    tearDown=test_missions.MissionTests.tearDown
+    def make(self):return GmailSync(self.ledger,Fernet.generate_key(),'owner@example.org',ImportPolicy('owner@example.org',frozenset({'gmail'}),'synthetic-review',30,True))
+    def feed(self,pages):
+        """pages: list of thread-id lists for the initial listing; history returns one new thread 'new1'."""
+        calls={'n':0}
+        def get(resource,params):
+            if resource=='profile':return {'emailAddress':'owner@example.org','historyId':'10'}
+            if resource=='threads':
+                i=calls['n'];calls['n']+=1
+                return {'threads':[{'id':t} for t in pages[i]],'nextPageToken':'p%d'%(i+1) if i+1<len(pages) else None}
+            if resource=='history':return {'history':[{'messagesAdded':[{'message':{'threadId':'new1'}}]}],'historyId':'30'}
+            tid=resource.split('/')[1]
+            return {'id':tid,'messages':[{'id':'m'+tid,'threadId':tid,'internalDate':'9999' if tid=='new1' else str(100+int(tid[1:])),'labelIds':['INBOX'] if tid!='new1' else ['SENT']}]}
+        return Mock(get=Mock(side_effect=get))
+    def test_initial_coverage_is_bounded_reported_and_then_incremental_with_counted_eviction(self):
+        import apex.gmail_sync as g
+        with patch.object(g,'THREAD_CAP',40):
+            sync=self.make();client=self.feed([['t%d'%i for i in range(p*20,p*20+20)] for p in range(5)])
+            r1=sync.step(client);r2=sync.step(client)
+            self.assertEqual((r2['thread_count'],r2['more_pages'],r2['coverage']['stopped']),(40,True,'IN_PROGRESS'))
+            r3=sync.step(client)                                   # no room for another page: stop honestly, do not fail
+            self.assertEqual(r3['status'],'PAGE_SYNCHRONIZED')
+            self.assertEqual(r3['coverage'],{'initial_complete':False,'stopped':'CAPACITY','cap':40,'order':'newest first'})
+            self.assertEqual((r3['phase'],r3['thread_count'],r3['threads_with_inbox']),('INCREMENTAL',40,40))
+            r4=sync.step(client)                                   # incremental: one new thread arrives, the oldest is evicted and counted
+            self.assertEqual((r4['thread_count'],r4['evicted_oldest'],r4['threads_with_sent']),(40,1,1))
+            self.assertNotEqual(r3['cursor_digest'],r4['cursor_digest'])
+            self.assertEqual(r4['coverage']['initial_complete'],False)
+            self.assertTrue(r4['trace_id'].startswith('google-sync-'))
+    def test_small_mailbox_reports_complete_coverage(self):
+        sync=self.make();r=sync.step(self.feed([['t1','t2']]))
+        self.assertEqual(r['coverage'],{'initial_complete':True,'cap':2000})

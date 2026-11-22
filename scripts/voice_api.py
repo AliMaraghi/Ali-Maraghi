@@ -52,6 +52,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import hashlib
 import re
 import sys
 import time
@@ -393,6 +394,16 @@ class VoiceChatApp:
                 except (ValueError, TypeError, AttributeError) as exc:
                     return self._respond(start_response, 400, {"error": str(exc)[:160] or "BAD_REQUEST"})
             return self._respond(start_response, 200, {"gates": venture.GATES, "ventures": venture.load(self.root)})
+        if path == "/api/system/restore_drill":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            import restore_drill
+            try:
+                report = restore_drill.drill(ROOT)
+            except Exception as exc:                  # noqa: BLE001
+                report = {"status": "FAILED", "reason": f"{type(exc).__name__}: {str(exc)[:200]}", "live_database_modified": False}
+            return self._respond(start_response, 200, report)
         if path == "/api/system/diagnose":
             import subprocess
             try:
@@ -409,18 +420,41 @@ class VoiceChatApp:
                     length = int(environ.get("CONTENT_LENGTH") or 0)
                     body = json.loads(environ["wsgi.input"].read(length)) if 0 < length <= 2000 else {}
                     stars, kind, text = int(body.get("stars")), str(body.get("kind"))[:30], str(body.get("text"))[:600]
+                    ref = body.get("ref") if isinstance(body.get("ref"), dict) else {}
+                    link = {k: str(ref.get(k))[:80] for k in ("agent", "trace", "prompt_version", "model") if ref.get(k)}
                     if not 1 <= stars <= 5 or not re.fullmatch(r"[a-z_]{2,30}", kind) or not text.strip():
                         raise ValueError
                     target.parent.mkdir(parents=True, exist_ok=True)
                     with open(target, "a", encoding="utf-8") as out:
-                        out.write(json.dumps({"at": time.time(), "kind": kind, "stars": stars, "text": text}, ensure_ascii=False) + "\n")
+                        out.write(json.dumps({"at": time.time(), "kind": kind, "stars": stars, "text": text,
+                                              "output_id": hashlib.sha256(text.encode()).hexdigest()[:16], **link}, ensure_ascii=False) + "\n")
                 except (ValueError, TypeError, AttributeError, OSError):
                     return self._respond(start_response, 400, {"error": "BAD_RATING"})
+            rows = []
             try:
-                count = sum(1 for _ in open(target, encoding="utf-8"))
+                for line in open(target, encoding="utf-8"):
+                    try:
+                        rows.append(json.loads(line))
+                    except ValueError:
+                        rows.append({"unusable": True})
             except OSError:
-                count = 0
-            return self._respond(start_response, 200, {"ratings": count, "needed_for_evolution": 50})
+                pass
+            valid = [r for r in rows if not r.get("unusable")]
+            linked = [r for r in valid if r.get("prompt_version") and r.get("agent")]
+            latest_per_output = {}
+            for r in valid:
+                latest_per_output[r.get("output_id") or r.get("text")] = r
+            by = {}
+            for r in latest_per_output.values():
+                key = f"{r.get('agent') or 'unlinked'}|{r.get('kind')}|{r.get('prompt_version') or 'no-version'}"
+                b = by.setdefault(key, {"n": 0, "sum": 0})
+                b["n"] += 1
+                b["sum"] += r["stars"]
+            return self._respond(start_response, 200, {
+                "ratings": len(valid), "unusable": len(rows) - len(valid), "linked_to_prompt_version": len(linked),
+                "duplicates_superseded": len(valid) - len(latest_per_output), "needed_for_evolution": 50,
+                "promotion_decision": "INSUFFICIENT_EVIDENCE" if len(latest_per_output) < 50 else "READY_FOR_EVALUATION",
+                "by_agent_kind_version": {k: {"n": v["n"], "mean_stars": round(v["sum"] / v["n"], 2)} for k, v in by.items()}})
         if path == "/api/settings/energy":
             target = Path(self.root) / "runtime" / "settings" / "energy.json"
             if method == "POST":

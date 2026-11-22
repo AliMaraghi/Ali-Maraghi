@@ -65,7 +65,13 @@ class GmailSync:
             if state['cursor'] is None:state['cursor']=str(profile['historyId'])
             params={'maxResults':20}
             if state['page']:params['pageToken']=state['page']
-            if state['phase']=='INITIAL':
+            bounded=state['phase']=='INITIAL' and len(state['threads'])+20>THREAD_CAP
+            if bounded:
+                # Bounded initial coverage: the newest threads up to the cap are held; older mail is NOT covered and the
+                # receipt says so. Incremental updates continue from the cursor taken before the initial listing began.
+                page={'threads':[],'nextPageToken':None};ids=set()
+                state['coverage']={'initial_complete':False,'stopped':'CAPACITY','cap':THREAD_CAP,'order':'newest first'}
+            elif state['phase']=='INITIAL':
                 page=client.get('threads',params)  # No INBOX-only filter: includes Sent/archives/drafts.
                 entries=page.get('threads',[])
                 if not isinstance(entries,list) or len(entries)>20:raise ValueError('Page bound exceeded')
@@ -106,19 +112,31 @@ class GmailSync:
                     normalized.append({'id':m['id'],'internalDate':date,'labelIds':labels,
                         'headers':minimized_headers(m.get('payload',{})),'source':'gmail-thread:'+tid})
                 state['threads'][tid]=sorted(normalized,key=lambda x:(int(x['internalDate']),x['id']))
-            if len(state['threads'])>THREAD_CAP:raise ValueError('Retention cap of %d threads reached; no silent truncation'%THREAD_CAP)
+            evicted=0
+            if len(state['threads'])>THREAD_CAP:
+                if state['phase']=='INITIAL':raise ValueError('Retention cap of %d threads reached; no silent truncation'%THREAD_CAP)
+                # Rolling window (documented policy): keep the newest THREAD_CAP threads; every eviction is counted in the receipt.
+                order=sorted(state['threads'],key=lambda t:int(state['threads'][t][-1]['internalDate']) if state['threads'][t] else 0)
+                for tid in order[:len(state['threads'])-THREAD_CAP]:state['threads'].pop(tid);evicted+=1
             state['page']=page.get('nextPageToken')
             if state['page'] is not None and (not isinstance(state['page'],str) or len(state['page'])>2048):raise ValueError('Invalid page token')
             if not state['page']:
                 if state['phase']=='INCREMENTAL':state['cursor']=str(page['historyId'])
+                elif not bounded:state['coverage']={'initial_complete':True,'cap':THREAD_CAP}
                 state['phase']='INCREMENTAL'
             encoded=json.dumps(state,allow_nan=False).encode()
             if len(encoded)>STATE_BYTES_CAP:raise ValueError('Encrypted state size bound')
             self.ledger.db.execute('INSERT OR REPLACE INTO google_private_sync VALUES(?,?,?)',
                                   (self.account,self.cipher.encrypt(encoded),generation+1))
+            labels=[set(l for m in msgs for l in m['labelIds']) for msgs in state['threads'].values()]
+            trace='google-sync-'+self.account[:16]+'-'+str(generation+1)
             receipt={'status':'PAGE_SYNCHRONIZED','phase':state['phase'],'more_pages':bool(state['page']),
-                     'thread_count':len(state['threads']),'external_writes':0,'scope':'ENCRYPTED_PERSONAL_METADATA'}
-            self.ledger._append('google-sync-'+self.account[:16]+'-'+str(generation+1),'decision','personal',receipt)
+                     'thread_count':len(state['threads']),'external_writes':0,'scope':'ENCRYPTED_PERSONAL_METADATA',
+                     'trace_id':trace,'generation':generation+1,'threads_refreshed':len(ids),'evicted_oldest':evicted,
+                     'cap':THREAD_CAP,'state_bytes':len(encoded),'coverage':state.get('coverage',{'initial_complete':False,'stopped':'IN_PROGRESS'}),
+                     'threads_with_inbox':sum('INBOX' in l for l in labels),'threads_with_sent':sum('SENT' in l for l in labels),
+                     'cursor_digest':hashlib.sha256(str(state['cursor']).encode()).hexdigest()[:12]}
+            self.ledger._append(trace,'decision','personal',receipt)
             return receipt
 
     def review(self):

@@ -97,9 +97,9 @@ function Ventures({ list, lang }) {
     </div>
   );
 }
-function Stars({ kind, text }) {
+function Stars({ kind, text, refInfo }) {
   const [given, setGiven] = useState(0);
-  const rate = (n) => fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, text, stars: n }) })
+  const rate = (n) => fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, text, stars: n, ref: refInfo || {} }) })
     .then((r) => { if (r.ok) setGiven(n); }).catch(() => {});
   return <span style={{ marginInlineStart: 8, whiteSpace: "nowrap" }}>{[1, 2, 3, 4, 5].map((n) => (
     <span key={n} onClick={() => rate(n)} style={{ cursor: "pointer", color: n <= given ? "#fc5" : "#556", fontSize: 16 }}>★</span>))}</span>;
@@ -529,10 +529,10 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   )}
                   {osd.social && (osd.social.openers || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>A-10 · openers for: <a href={osd.social.url} target="_blank" rel="noopener noreferrer" style={link}>{osd.social.title}</a></div>
-                      {osd.social.openers.map((x, i) => <div key={i}>“{x}”<Stars kind="social" text={x} /></div>)}</div>
+                      {osd.social.openers.map((x, i) => <div key={i}>“{x}”<Stars kind="social" text={x} refInfo={{ agent: osd.social.agent, trace: String(osd.social.generated_at), prompt_version: osd.social.prompt_version, model: osd.social.model }} /></div>)}</div>
                   )}
                   {osd.critic && (osd.critic.notes || []).map((n) => (
-                    <div key={n.proposal_id} style={{ marginTop: 8 }}><span style={{ color: C.need }}>A-17 against {n.kind}:</span> {n.against} <span style={{ color: C.muted }}>Check first: {n.what_to_check}</span><Stars kind="critic" text={n.against} /></div>
+                    <div key={n.proposal_id} style={{ marginTop: 8 }}><span style={{ color: C.need }}>A-17 against {n.kind}:</span> {n.against} <span style={{ color: C.muted }}>Check first: {n.what_to_check}</span><Stars kind="critic" text={n.against} refInfo={{ agent: osd.critic.agent, trace: n.proposal_id, prompt_version: osd.critic.prompt_version, model: osd.critic.model }} /></div>
                   ))}
                   {osd.evolution && (
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>A-18 nightly review ({ago(osd.evolution.generated_at, lang)}): </span>
@@ -564,7 +564,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   {osd.drafts && (osd.drafts.drafts || []).map((d, i) => (
                     <div key={i} style={{ marginTop: 8, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                       <div style={{ color: C.muted }}>{d.state} · {d.platform} · {d.lang} · {d.angle} · {d.term}</div>
-                      <div>{d.hook}<Stars kind="content" text={d.hook} /></div>
+                      <div>{d.hook}<Stars kind="content" text={d.hook} refInfo={{ agent: d.agent, trace: String(osd.drafts.generated_at), prompt_version: d.prompt_version, model: "gemma3:4b" }} /></div>
                       <div style={{ color: C.muted }}>{d.beats.join(" / ")}</div>
                     </div>
                   ))}
