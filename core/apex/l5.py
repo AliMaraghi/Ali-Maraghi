@@ -35,6 +35,10 @@ def lessons(root, task: str) -> list:
 
 
 def with_lessons(root, task: str, system: str) -> str:
+    try:                                                           # the fixed rules travel with every prompt
+        system = (Path(__file__).parent / "identity" / "rules.md").read_text(encoding="utf-8") + "\n" + system
+    except OSError:
+        pass
     extra = lessons(root, task)
     return system + ("\nLessons from review of earlier outputs (style only; the rules above always win):\n- " + "\n- ".join(extra) if extra else "")
 

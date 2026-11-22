@@ -140,3 +140,29 @@ class Providers(unittest.TestCase):
         self.assertEqual(by["meetup_ical"], "LIVE")
         self.assertEqual(out["LIVE"] + out["WIRED"] + out["BLOCKED"], out["connected"])
         self.assertLess(out["connected"], out["target"])
+
+
+class Venture(unittest.TestCase):
+    def test_gate_waits_for_owner_and_only_approval_advances(self):
+        from apex import venture as vt
+        with tempfile.TemporaryDirectory() as tmp:
+            v = vt.create(tmp, "Supplier onboarding desk", "Remote supplier onboarding and compliance paperwork for small UK charities")
+            llm = lambda s, u, m: '{"brief": ["a", "b"], "do_this_week": ["x"], "missing": ["price"]}'
+            feed = lambda url: {"releases": [{"id": "n1", "buyer": {"name": "A Trust"}, "tender": {"title": "Supplier onboarding service", "value": {"amount": 5000}}},
+                                             {"id": "n2", "tender": {"title": "Road resurfacing"}}]}
+            out = vt.work(tmp, llm, feed)
+            self.assertEqual(out[0]["result"], "OK")
+            cur = vt.load(tmp)[0]
+            self.assertEqual((cur["gate"], cur["status"]), ("DISCOVER", "WAITING_OWNER"))
+            self.assertEqual(len(cur["briefs"]["DISCOVER"]["evidence"]["lines"]), 1)
+            self.assertEqual(vt.work(tmp, llm, feed), [])                     # nothing moves without the owner
+            self.assertEqual(vt.decide(tmp, v["id"], False, "too vague")["gate"], "DISCOVER")
+            vt.work(tmp, llm, feed)
+            self.assertEqual(vt.decide(tmp, v["id"], True)["gate"], "VALIDATE")
+            with self.assertRaises(ValueError):
+                vt.decide(tmp, v["id"], True)
+
+    def test_identity_rules_travel_with_prompts(self):
+        from apex import l5, venture as vt
+        self.assertIn("I don't have that information", vt.identity())
+        self.assertIn("never invent numbers", l5.with_lessons("/nonexistent", "social", "BASE").lower())

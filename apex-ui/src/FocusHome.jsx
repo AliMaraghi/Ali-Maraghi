@@ -63,6 +63,40 @@ export function useRemembered(key, fallback) {
   return [value, (next) => { setValue(next); store(key, next); }];
 }
 
+const GATES = ["DISCOVER", "VALIDATE", "BUILD", "LAUNCH", "ACQUIRE", "SCALE"];
+function Ventures({ list, lang }) {
+  const [items, setItems] = useState(list);
+  const [name, setName] = useState(""); const [desc, setDesc] = useState(""); const [msg, setMsg] = useState("");
+  useEffect(() => setItems(list), [list]);
+  const post = (path, body) => fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    .then(async (r) => { const d = await r.json(); if (r.ok) { setItems(d.ventures); setMsg(""); setName(""); setDesc(""); } else setMsg(d.error || "error"); }).catch(() => setMsg("error"));
+  const box = { background: "transparent", color: "inherit", border: "1px solid #334", borderRadius: 6, padding: "6px 8px" };
+  return (
+    <div style={{ marginTop: 12 }}>
+      <b>{lang === "fa" ? "کسب‌وکارها: شش دروازه" : "Ventures: six gates"}</b>
+      {items.map((v) => { const b = v.briefs[v.gate]; return (
+        <div key={v.id} style={{ marginTop: 8, padding: 8, border: "1px solid #334", borderRadius: 8 }}>
+          <div><b>{v.name}</b> · {GATES.map((g) => <span key={g} style={{ marginInlineEnd: 6, color: g === v.gate ? "#6c6" : GATES.indexOf(g) < GATES.indexOf(v.gate) ? "#889" : "#445" }}>{g}</span>)} · {v.status}</div>
+          {b && (<div>
+            {b.brief.map((x, i) => <div key={i}>• {x}</div>)}
+            {b.do_this_week.map((x, i) => <div key={"d" + i}>→ {x}</div>)}
+            {b.missing.length > 0 && <div style={{ color: "#c96" }}>Not sourced: {b.missing.join("; ")}</div>}
+            {(b.evidence.lines || []).map((x, i) => <div key={"e" + i} style={{ color: "#889" }}>{x}</div>)}
+          </div>)}
+          {v.status === "WAITING_OWNER" && (<div style={{ marginTop: 6, display: "flex", gap: 6 }}>
+            <button onClick={() => post("/api/venture/decide", { id: v.id, approve: true })} style={{ padding: "6px 12px", borderRadius: 6 }}>{lang === "fa" ? "تأیید، دروازه بعد" : "Approve, next gate"}</button>
+            <button onClick={() => post("/api/venture/decide", { id: v.id, approve: false, note: window.prompt ? "" : "" })} style={{ padding: "6px 12px", borderRadius: 6 }}>{lang === "fa" ? "دوباره بنویس" : "Redo this gate"}</button>
+          </div>)}
+        </div>); })}
+      <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={lang === "fa" ? "نام ایده" : "Venture name"} style={{ ...box, width: 160 }} />
+        <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder={lang === "fa" ? "توضیح: چه خدمتی، برای چه کسی، با چه محدودیتی" : "What service, for whom, under what limits"} style={{ ...box, flex: 1, minWidth: 200 }} />
+        <button onClick={() => post("/api/venture", { name, description: desc })} disabled={!name.trim() || desc.trim().length < 20} style={{ padding: "6px 12px", borderRadius: 6 }}>+</button>
+        <span>{msg}</span>
+      </div>
+    </div>
+  );
+}
 function Stars({ kind, text }) {
   const [given, setGiven] = useState(0);
   const rate = (n) => fetch("/api/rate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, text, stars: n }) })
@@ -479,6 +513,13 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   {osd.providers && (
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Data providers: </span><b>{osd.providers.LIVE} live</b> · {osd.providers.WIRED} wired, not proven fresh · {osd.providers.BLOCKED} blocked on a key or sign-in · manifesto target {osd.providers.target}
                       <div style={{ color: C.muted }}>{osd.providers.rows.filter((r) => r.state !== "LIVE").map((r) => `${r.label} (${r.state})`).join(" · ")}</div></div>
+                  )}
+                  <Ventures list={osd.ventures || []} lang={lang} />
+                  {osd.evening && (
+                    <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Evening summary {osd.evening.day}</div>
+                      <div>Succeeded: {Object.entries(osd.evening.succeeded).map(([k, v]) => `${k}×${v}`).join(", ") || "nothing"}</div>
+                      <div>Did not succeed: {Object.entries(osd.evening.did_not_succeed).map(([k, v]) => `${k}×${v}`).join(", ") || "nothing"}</div>
+                      {osd.evening.waiting_for_owner.map((x, i) => <div key={i} style={{ color: C.need }}>You: {x}</div>)}</div>
                   )}
                   <EnergyRow lang={lang} />
                   {osd.listings && (osd.listings.links || []).length > 0 && (

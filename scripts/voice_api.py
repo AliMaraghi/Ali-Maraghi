@@ -378,6 +378,21 @@ class VoiceChatApp:
             except Exception as exc:                  # noqa: BLE001
                 report = {"status": "ERROR", "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
             return self._respond(start_response, 200, report)
+        if path in ("/api/venture", "/api/venture/decide", "/api/identity"):
+            from apex import venture
+            if path == "/api/identity":
+                return self._respond(start_response, 200, {"text": venture.identity()})
+            if method == "POST":
+                try:
+                    length = int(environ.get("CONTENT_LENGTH") or 0)
+                    body = json.loads(environ["wsgi.input"].read(length)) if 0 < length <= 4000 else {}
+                    if path == "/api/venture":
+                        venture.create(self.root, str(body.get("name", "")), str(body.get("description", "")))
+                    else:
+                        venture.decide(self.root, str(body.get("id", "")), body.get("approve") is True, str(body.get("note", "")))
+                except (ValueError, TypeError, AttributeError) as exc:
+                    return self._respond(start_response, 400, {"error": str(exc)[:160] or "BAD_REQUEST"})
+            return self._respond(start_response, 200, {"gates": venture.GATES, "ventures": venture.load(self.root)})
         if path == "/api/rate":
             # The owner's 1-5 star rating of one output: the fitness signal for prompt evolution. Append-only file.
             target = Path(self.root) / "runtime" / "settings" / "ratings.jsonl"

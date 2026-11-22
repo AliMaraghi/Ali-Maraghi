@@ -274,6 +274,12 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
                    "note": "Search-engine links to portal pages; prices and availability are whatever the page shows when you open it."}
         to_record.append(("listings", lst))
         actions.append({"task": "listings", "result": lst["status"], "detail": lst.get("detail") or f"{len(lst['links'])} link(s)"})
+    try:                                                           # ventures: draft the current gate, then wait for the owner
+        from apex import venture
+        from apex.sources import contracts_finder
+        actions.extend(venture.work(root, llm, lambda url: json.loads(contracts_finder.fetch_page(url))))
+    except Exception as exc:                                       # noqa: BLE001
+        actions.append({"task": "venture", "result": "ERROR", "detail": f"{type(exc).__name__}: {str(exc)[:100]}"})
     if "graph" in due:
         try:
             from apex import knowledge_graph, people_graph
@@ -366,6 +372,26 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
     evo = scout_common.latest(root, "evolution") or {}
     meta = {"confidence": metacognition.confidence(final_gaps, agents, actions),
             "curriculum": metacognition.curriculum(final_gaps, agents, actions, scout_common.latest(root, "property"), len(evo.get("changes", [])))}
+    day = time.strftime("%Y%m%d", time.gmtime(now))
+    eve = scout_common.latest(root, "evening")
+    if time.gmtime(now).tm_hour >= 18 and not (eve and eve.get("day") == day):
+        ran, bad = {}, {}
+        try:
+            db = _db(root)
+            for (raw,) in db.execute("SELECT payload FROM events WHERE event_key LIKE ?", (f"scout.os.{day}.%",)):
+                for a in json.loads(raw).get("actions", []):
+                    bucket = ran if a["result"] == "OK" else bad
+                    bucket[a["task"]] = bucket.get(a["task"], 0) + 1
+            db.close()
+        except (sqlite3.Error, ValueError):
+            pass
+        for a in actions:
+            bucket = ran if a["result"] == "OK" else bad
+            bucket[a["task"]] = bucket.get(a["task"], 0) + 1
+        with Ledger(root) as ledger:
+            scout_common.record(ledger, "evening", {"event": "evening", "status": "OK", "day": day, "succeeded": ran, "did_not_succeed": bad,
+                                                    "waiting_for_owner": [c["task"] for c in meta["curriculum"] if c["who"] == "owner"],
+                                                    "tomorrow": [c["task"] for c in meta["curriculum"] if c["who"] == "system"]}, now)
     payload = {"event": "os_cycle", "status": "OK", "meta": meta, "agents": agents, "gaps": source_gaps(root, now), "plan": plan(gaps, approvals, pulls),
                "actions": actions, "pending_approvals": approvals["pending"][:20],
                "summary": {s: sum(1 for a in agents if a["state"] == s) for s in sorted({a["state"] for a in agents})}}
