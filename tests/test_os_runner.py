@@ -1,3 +1,4 @@
+import time
 import sys, tempfile, unittest
 from pathlib import Path
 R = Path(__file__).resolve().parents[1]
@@ -251,3 +252,46 @@ class MissionEvents(unittest.TestCase):
         for bad in ("https://www.eventbrite.co.uk/d/london/gala/", "https://ra.co/events/uk/london", "https://dice.fm/browse"):
             with self.assertRaises(Exception):
                 public_http.validate(bad)
+
+
+class StudioFactory(unittest.TestCase):
+    FA = ["چرا تصمیم‌های مهم را شب‌ها بدتر می‌گیریم؟", "ذهنِ خسته دنبال راه کوتاه می‌گردد، نه راه درست.", "هر انتخابِ کوچکِ روز، کمی از توان تصمیم‌گیری را خرج می‌کند.",
+          "وقتی خسته‌ای، ساده‌ترین گزینه درست‌ترین به نظر می‌رسد.", "تصمیمِ بزرگ را به صبح بسپار؛ شب فقط یادداشتش کن."]
+
+    def test_script_checks_hold_bad_model_output(self):
+        from apex import studio_factory as sf
+        job = sf.new_job("چرا شب‌ها بدتر تصمیم می‌گیریم", "fa", 1000.0)
+        self.assertEqual(sf.write_script(lambda s, u, m: "\n".join(f"{i + 1}. {l}" for i, l in enumerate(self.FA)), job), self.FA)
+        for bad, code in (("\n".join(self.FA[:4]), "SCRIPT_NOT_FIVE_LINES"), ("\n".join(self.FA[:4] + ["این جمله یک mind انگلیسی دارد و بد است."]), "SCRIPT_NOT_CLEAN_PERSIAN"),
+                          ("\n".join(self.FA[:4] + ["هفتاد درصد مردم، یعنی 70 نفر از صد نفر."]), "SCRIPT_CONTAINS_UNSOURCED_NUMBER")):
+            with self.assertRaises(sf.Hold) as ctx:
+                sf.write_script(lambda s, u, m: bad, job)
+            self.assertEqual(str(ctx.exception), code)
+        with self.assertRaises(sf.Hold):
+            sf.write_script(None, job)
+
+    def test_manifest_is_thirty_to_sixty_seconds_and_text_is_safe(self):
+        from apex import studio_factory as sf
+        man = sf.manifest(sf.new_job("چرا شب‌ها بدتر تصمیم می‌گیریم", "fa", 1000.0), self.FA)
+        self.assertTrue(30 <= man["duration"] <= 60)
+        self.assertEqual(man["shots"][0]["start"], 0.0)
+        self.assertNotIn("{\\b1}", sf.ass_text({**man, "shots": [{**man["shots"][0], "caption": "x {\\b1} y"}]}))
+        self.assertIn("\u200e£20\u200e", sf.wrap("قیمت £20 است", True))    # a price keeps its order inside Persian
+        self.assertTrue(all(a.startswith("-") or "{" not in a for a in sf.ffmpeg_args(man, "film.ass", "film.mp4")))
+
+    def test_release_gate_holds_a_silent_unconnected_film(self):
+        from apex import studio_factory as sf
+        gate = sf.release_gate({"status": "RENDERED", "narration": None, "sha256": "x"}, None, [])
+        self.assertEqual(gate["decision"], "POLICY_HOLD")
+        self.assertEqual(len(gate["reasons"]), 3)
+
+    def test_real_render_when_ffmpeg_is_present(self):
+        import shutil, tempfile
+        from pathlib import Path
+        from apex import studio_factory as sf
+        if not shutil.which("ffmpeg"):
+            self.skipTest("ffmpeg not installed here")
+        with tempfile.TemporaryDirectory() as d:
+            r = sf.render(sf.new_job("چرا شب‌ها بدتر تصمیم می‌گیریم", "fa", time.time()), self.FA, Path(d))
+            self.assertEqual((r["status"], r["file"]["width"], r["file"]["height"], r["release"]["decision"]), ("RENDERED", 1080, 1920, "POLICY_HOLD"))
+            self.assertTrue(30 <= r["file"]["duration"] <= 60 and r["deadline_met"])

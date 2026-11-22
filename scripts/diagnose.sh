@@ -2,6 +2,7 @@
 # Read-only health report for APEX. Changes nothing. Run on the server; send the output file to Claude.
 cd "$(dirname "$0")/.." || exit 1
 echo "== APEX diagnose $(date -u +%FT%TZ) =="; echo "-- code version"; git log --oneline -1 2>&1
+echo; echo "-- studio tools"; (ffmpeg -version 2>&1 | head -1); (ffmpeg -hide_banner -filters 2>/dev/null | grep -c -E " (ass|gradients|loudnorm) " | sed "s/^/ffmpeg filters present of ass,gradients,loudnorm: /"); echo "cpus: $(nproc)"; (which espeak-ng piper 2>&1 | head -2)
 echo; echo "-- memory and disk"; free -m 2>&1 | head -3; df -h . 2>&1 | tail -1
 echo; echo "-- services"
 for u in apex-voice apex-ui apex-console apex-worker apex-agents ollama cloudflared; do

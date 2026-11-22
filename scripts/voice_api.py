@@ -394,6 +394,43 @@ class VoiceChatApp:
                 except (ValueError, TypeError, AttributeError) as exc:
                     return self._respond(start_response, 400, {"error": str(exc)[:160] or "BAD_REQUEST"})
             return self._respond(start_response, 200, {"gates": venture.GATES, "ventures": venture.load(self.root)})
+        if path == "/api/studio/idea":
+            if method != "POST":
+                start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])
+                return [b""]
+            length = environ.get("CONTENT_LENGTH", "")
+            if not length.isdecimal() or not 5 <= int(length) <= 4000:
+                return self._respond(start_response, 400, {"error": "BAD_CONTENT_LENGTH"})
+            try:
+                from apex import studio_factory
+                body = json.loads(environ["wsgi.input"].read(int(length)))
+                job = studio_factory.new_job(body.get("text"), body.get("language", "fa"), time.time())
+            except (ValueError, AttributeError) as exc:
+                return self._respond(start_response, 400, {"error": "BAD_IDEA", "detail": str(exc)[:120]})
+            ideas_file = Path(self.root) / "runtime" / "inbox" / "studio_ideas.json"
+            ideas_file.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                ideas = json.loads(ideas_file.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                ideas = []
+            if len(ideas) >= 10:
+                return self._respond(start_response, 429, {"error": "QUEUED_CAPACITY", "queued": len(ideas)})
+            if not any(i["idea_id"] == job["idea_id"] for i in ideas):
+                ideas.append(job)
+                tmp = ideas_file.with_suffix(".tmp")
+                tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
+                os.replace(tmp, ideas_file)
+            return self._respond(start_response, 200, {"job_id": job["job_id"], "queued": len(ideas), "starts_within_seconds": 900})
+        if path == "/api/studio/film":
+            import re as _re
+            from urllib.parse import parse_qs
+            jid = (parse_qs(environ.get("QUERY_STRING", "")).get("id") or [""])[0]
+            film = Path(self.root) / "runtime" / "studio" / jid / "film.mp4"
+            if not _re.fullmatch(r"film-\d{8}-\d{6}-[0-9a-f]{6}", jid) or not film.is_file():
+                return self._respond(start_response, 404, {"error": "NOT_FOUND"})
+            data = film.read_bytes()
+            start_response("200 OK", CORS_HEADERS + [("Content-Type", "video/mp4"), ("Content-Length", str(len(data))), ("Cache-Control", "private, max-age=3600")])
+            return [data]
         if path == "/api/mission/run_now":
             if method != "POST":
                 start_response("405 Method Not Allowed", CORS_HEADERS + [("Allow", "POST, OPTIONS")])

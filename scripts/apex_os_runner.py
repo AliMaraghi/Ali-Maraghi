@@ -368,6 +368,28 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         if mis is not None:
             to_record.append(("mission_events", mis))
             actions.append({"task": "mission_events", "result": mis["status"], "detail": mis.get("detail") or f"{mis.get('trace')}: " + " > ".join(f"{x['stage']}{'' if x['ok'] else '(failed)'}" for x in mis["stages"])})
+    ideas_file = root / "runtime" / "inbox" / "studio_ideas.json"
+    try:
+        ideas = json.loads(ideas_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        ideas = []
+    if ideas:                                                      # one owner-submitted idea per cycle; rendering stays out of the web service
+        from apex import studio_factory
+        job = ideas.pop(0)
+        tmp = ideas_file.with_suffix(".tmp")
+        tmp.write_text(json.dumps(ideas, ensure_ascii=False), encoding="utf-8")
+        os.replace(tmp, ideas_file)                                # claimed before work: a crash cannot render the same idea twice
+        try:
+            film = studio_factory.render(job, studio_factory.write_script(llm, job), root / "runtime" / "studio")
+        except studio_factory.Hold as hold:
+            film = {"event": "studio_film", "job_id": job["job_id"], "status": "QUALITY_HOLD", "hold_code": str(hold)[:200], "brief": job["brief"],
+                    "language": job["language"], "idea_received_at": job["idea_received_at"], "queued": len(ideas)}
+        except Exception as exc:                                   # noqa: BLE001
+            film = {"event": "studio_film", "job_id": job["job_id"], "status": "FAILED", "hold_code": f"{type(exc).__name__}: {str(exc)[:160]}", "brief": job["brief"],
+                    "language": job["language"], "idea_received_at": job["idea_received_at"], "queued": len(ideas)}
+        film["queued"] = len(ideas)
+        to_record.append(("studio_film", film))
+        actions.append({"task": "studio_film", "result": film["status"], "detail": f"{film['job_id']} {film.get('hold_code') or film.get('label')}"})
     if "graph" in due:
         try:
             from apex import knowledge_graph, people_graph

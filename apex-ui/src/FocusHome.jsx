@@ -97,6 +97,31 @@ function Ventures({ list, lang }) {
     </div>
   );
 }
+function Studio({ lang, film }) {
+  const fa = lang === "fa";
+  const [text, setText] = useState(""); const [l, setL] = useState("fa"); const [msg, setMsg] = useState("");
+  const send = () => { setMsg("…"); fetch("/api/studio/idea", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, language: l }) })
+    .then((r) => r.json().then((j) => setMsg(r.ok ? (fa ? `در صف: ${j.job_id} (حداکثر ۱۵ دقیقه تا شروع)` : `Queued: ${j.job_id} (starts within 15 min)`) : (j.detail || j.error)))).catch(() => setMsg(fa ? "خطا" : "failed")); };
+  const HOLD = { NO_NARRATION: "صدای راوی ندارد: هنوز هیچ سرویس صدای دارای مجوز تجاری روی سرور تنظیم نشده", NO_STANDING_GRANT: "مجوز دائمی انتشار خودکار هنوز برای حساب مشخصی ثبت نشده", NO_DESTINATION: "هیچ حساب انتشاری به سرور وصل نیست" };
+  return (
+    <div style={{ marginTop: 10, padding: 8, border: "1px solid #8884", borderRadius: 8 }}>
+      <div><b>{fa ? "استودیو: از ایده تا فیلم کوتاه" : "Studio: idea to short film"}</b></div>
+      <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+        <input dir="auto" value={text} onChange={(e) => setText(e.target.value)} placeholder={fa ? "ایده را در یک جمله بنویس" : "One-sentence idea"} style={{ flex: 1 }} />
+        <select value={l} onChange={(e) => setL(e.target.value)}><option value="fa">فارسی</option><option value="en">English</option></select>
+        <button onClick={send} disabled={text.trim().length < 8}>{fa ? "بساز" : "Make"}</button>
+      </div>
+      <div style={{ fontSize: 12 }}>{msg}</div>
+      {film && (<div style={{ marginTop: 8 }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>{film.job_id} · {film.status}{film.label ? " · " + (fa ? "پیش‌نویس بی‌صدا" : "silent draft") : ""}{film.idea_to_ready_s != null ? ` · ${fa ? "از ایده تا فایل" : "idea to file"} ${film.idea_to_ready_s}s` : ""}{film.file ? ` · ${film.file.width}×${film.file.height} · ${film.file.duration}s` : ""} · £0</div>
+        <div dir="auto">{film.brief}</div>
+        {film.hold_code && <div style={{ color: "#c33" }}>{fa ? "ساخته نشد: " : "Not made: "}{film.hold_code}</div>}
+        {film.status === "RENDERED" && <video controls playsInline preload="metadata" style={{ width: 200, borderRadius: 8, marginTop: 6 }} src={`/api/studio/film?id=${film.job_id}`} />}
+        {film.release && <div style={{ fontSize: 12, color: "#c33" }}>{fa ? "منتشر نشده. دلیل‌ها: " : "Not published. Reasons: "}{film.release.reasons.map((r) => fa ? (HOLD[r.split(":")[0]] || r) : r).join(" · ")}</div>}
+      </div>)}
+    </div>);
+}
+
 function MissionNow({ lang }) {
   const [state, setState] = useState("");
   const go = () => { setState("…"); fetch("/api/mission/run_now", { method: "POST" }).then((r) => setState(r.ok ? (lang === "fa" ? "در صف؛ در چرخهٔ بعدی اجرا می‌شود (حداکثر ۱۵ دقیقه)" : "queued; runs in the next cycle (15 min at most)") : (lang === "fa" ? "خطا" : "failed"))).catch(() => setState(lang === "fa" ? "خطا" : "failed")); };
@@ -502,6 +527,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>Listings to open (search links, not verified prices):</div>
                       {osd.listings.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.borough} · {l.site}</span></div>)}</div>
                   )}
+                  <Studio lang={lang} film={osd.studio} />
                   <div style={{ marginTop: 10, padding: 8, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                     <div><b>{lang === "fa" ? "مأموریت خودکار: رویدادهای آخر هفتهٔ لندن" : "Self-started mission: London weekend events"}</b>{" "}
                       <MissionNow lang={lang} /></div>
