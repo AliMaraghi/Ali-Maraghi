@@ -498,7 +498,7 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   )}
                   {osd.event_links && (osd.event_links.links || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>{lang === "fa" ? "رویدادهای لندن از سایت‌های رویداد (لینک جستجو؛ تاریخ و قیمت را در خود صفحه ببین):" : "London events from listing sites (search links; check date and price on the page):"}</div>
-                      {osd.event_links.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.site}</span><Stars kind="event_link" text={l.title} refInfo={{ agent: "A-10", trace: String(osd.event_links.generated_at), prompt_version: l.query, model: "search" }} /></div>)}</div>
+                      {osd.event_links.links.map((l, i) => <div key={i}><a href={l.url} target="_blank" rel="noopener noreferrer" style={link}>{l.title}</a> <span style={{ color: C.muted }}>{l.date_text ? l.date_text + " · " : (lang === "fa" ? "تاریخ در نتیجه نبود · " : "no date in result · ")}{l.site}</span><Stars kind="event_link" text={l.title} refInfo={{ agent: "A-10", trace: String(osd.event_links.generated_at), prompt_version: l.query, model: "search" }} /></div>)}</div>
                   )}
                   {osd.social && (osd.social.openers || []).length > 0 && (
                     <div style={{ marginTop: 10 }}><div style={{ color: C.muted }}>A-10 · openers for: <a href={osd.social.url} target="_blank" rel="noopener noreferrer" style={link}>{osd.social.title}</a></div>

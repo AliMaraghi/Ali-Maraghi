@@ -286,18 +286,30 @@ def cycle(root: Path = ROOT, now: float | None = None, fetch=None, llm="auto", r
         if not bkey:
             ev = {"event": "event_links", "status": "BLOCKED_MISSING_CREDENTIAL", "detail": "Brave search key not set", "links": []}
         else:
-            links, errs, seen = [], [], set()
-            for q in ("London gala night this weekend", "London members social club party this week", "London underground party this weekend", "London wine tasting evening this week"):
+            import re as _re
+            single = _re.compile(r"eventbrite\.co\.uk/e/|ra\.co/events/\d|dice\.fm/event/|designmynight\.com/london/.+/.+|feverup\.com/m/\d")
+            banned = _re.compile(r"teen|kids|child|family|toddler|school|online|virtual|webinar|course|workshop", _re.I)
+            when = _re.compile(r"\b(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*,?\s+\d{1,2}\s+[A-Z][a-z]{2,8}|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*(?:\s+20\d\d)?", _re.I)
+            month = time.strftime("%B %Y", time.gmtime(now))
+            links, errs, seen, dropped = [], [], set(), 0
+            for q in (f"London gala tickets {month}", f"London members club party tickets {month}", f"London warehouse party tickets {month}",
+                      f"London wine tasting evening tickets {month}", f"London supper club tickets {month}"):
                 try:
-                    for r in brave_search.search(root, bkey, "events", q)[:4]:
-                        if r["url"] not in seen:
-                            seen.add(r["url"])
-                            links.append({"query": q, "title": r["title"], "url": r["url"], "site": r["domain"], "extract": r["extract"][:160]})
+                    for r in brave_search.search(root, bkey, "events", q):
+                        text = r["title"] + " " + r["extract"]
+                        if r["url"] in seen or not single.search(r["url"]) or banned.search(text):
+                            dropped += 1                           # category pages and non-events are not offered as events
+                            continue
+                        seen.add(r["url"])
+                        found = when.search(text)
+                        links.append({"query": q, "title": r["title"], "url": r["url"], "site": r["domain"], "extract": r["extract"][:160],
+                                      "date_text": found.group(0) if found else None})
                     time.sleep(1.2)
                 except Exception as exc:                           # noqa: BLE001
                     errs.append(f"{q[:20]}:{type(exc).__name__}")
-            ev = {"event": "event_links", "status": "OK" if links else "NO_DATA", "links": links[:12], "errors": errs,
-                  "note": "Search links to event pages; dates, prices and availability are whatever the page shows when opened."}
+            links.sort(key=lambda l: l["date_text"] is None)
+            ev = {"event": "event_links", "status": "OK" if links else "NO_DATA", "links": links[:12], "errors": errs, "dropped_not_single_events": dropped,
+                  "note": "Single-event pages only. The date shown is text from the search result and is not verified; open the page to confirm date, venue and price."}
         to_record.append(("event_links", ev))
         actions.append({"task": "event_links", "result": ev["status"], "detail": ev.get("detail") or f"{len(ev['links'])} link(s), errors: {ev.get('errors') or 'none'}"})
     if "graph" in due:
