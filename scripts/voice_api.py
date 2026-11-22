@@ -397,7 +397,7 @@ class VoiceChatApp:
             import subprocess
             try:
                 out = subprocess.run(["bash", str(ROOT / "scripts" / "diagnose.sh")], capture_output=True, text=True, timeout=60)
-                text = (out.stdout + ("\n-- stderr\n" + out.stderr if out.stderr.strip() else ""))[-60000:]
+                text = (out.stdout + ("\n-- stderr\n" + out.stderr if out.stderr.strip() else ""))[:120000]
             except Exception as exc:                  # noqa: BLE001
                 text = f"diagnose failed: {type(exc).__name__}: {str(exc)[:200]}"
             return self._respond(start_response, 200, {"report": text})

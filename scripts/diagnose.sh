@@ -11,7 +11,8 @@ echo; echo "-- timers"; systemctl --user list-timers --no-pager 2>&1 | head -12;
 for u in apex-console apex-worker apex-agents apex-voice; do
   echo; echo "-- last 50 log lines: $u"
   (journalctl -u "$u" -n 50 --no-pager 2>/dev/null; journalctl --user -u "$u" -n 50 --no-pager 2>/dev/null) | tail -50 \
-    | sed -E 's/(key|token|secret|password|authorization)([=: ]+)[^ ]+/\1\2[hidden]/Ig'
+    | sed -E 's/(key|token|secret|password|authorization)([=: ]+)[^ ]+/\1\2[hidden]/Ig' \
+    | cut -c1-320 | awk '{k=$0; sub(/^[A-Z][a-z]+ +[0-9]+ [0-9:]+ /,"",k); gsub(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+Z/,"",k); if(k==prev){n++} else {if(n>0)print "   (previous line repeated " n " more times)"; print; n=0; prev=k}} END{if(n>0)print "   (previous line repeated " n " more times)"}'
 done
 echo; echo "-- database"
 python3 - <<'PY'
