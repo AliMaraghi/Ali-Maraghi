@@ -512,6 +512,9 @@ export default function FocusHome({ lang, setLang, data, unreachable, lastAction
                   )}
                   {osd.providers && (
                     <div style={{ marginTop: 10 }}><span style={{ color: C.muted }}>Data providers: </span><b>{osd.providers.LIVE} live</b> · {osd.providers.WIRED} wired, not proven fresh · {osd.providers.BLOCKED} blocked on a key or sign-in · manifesto target {osd.providers.target}
+                      {osd.providers.inventory && (<div>Your inventory of {osd.providers.inventory.total}: <b>{osd.providers.inventory.LIVE} live</b> · {osd.providers.inventory.WIRED} wired · {osd.providers.inventory.BLOCKED} blocked · {osd.providers.inventory.NOT_CONNECTED} not connected
+                        {Object.entries(osd.providers.inventory.categories).map(([cat, items]) => (
+                          <div key={cat} style={{ color: C.muted }}>{cat}: {items.filter((i) => i.state !== "NOT_CONNECTED").map((i) => `${i.name} (${i.state})`).join(", ") || "none connected"} · {items.filter((i) => i.state === "NOT_CONNECTED").length} to do</div>))}</div>)}
                       <div style={{ color: C.muted }}>{osd.providers.rows.filter((r) => r.state !== "LIVE").map((r) => `${r.label} (${r.state})`).join(" · ")}</div></div>
                   )}
                   <Ventures list={osd.ventures || []} lang={lang} />

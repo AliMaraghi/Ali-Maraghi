@@ -166,3 +166,13 @@ class Venture(unittest.TestCase):
         from apex import l5, venture as vt
         self.assertIn("I don't have that information", vt.identity())
         self.assertIn("never invent numbers", l5.with_lessons("/nonexistent", "social", "BASE").lower())
+
+
+class Inventory(unittest.TestCase):
+    def test_inventory_counts_are_honest(self):
+        from apex import data_providers as dp
+        out = dp.status(lambda n: None, {}, 1.0)["inventory"]
+        self.assertEqual(out["total"], 133)
+        self.assertEqual(out["LIVE"], 0)
+        self.assertEqual(out["LIVE"] + out["WIRED"] + out["BLOCKED"] + out["NOT_CONNECTED"], 133)
+        self.assertGreater(out["NOT_CONNECTED"], 110)

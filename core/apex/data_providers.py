@@ -35,6 +35,48 @@ PROVIDERS = [
 ]
 
 
+# The owner's target inventory (22 Nov 2026): 130 sources plus later additions. A target, not a claim of connection.
+INVENTORY = {
+    "Research and scientific evidence": ["PubMed", "Europe PMC", "Crossref", "OpenAlex", "Semantic Scholar", "arXiv", "CORE", "DOAJ", "Zenodo", "Figshare",
+        "ClinicalTrials.gov", "Cochrane Library", "NICE", "NHS", "World Health Organization", "Our World in Data", "UKRI Gateway to Research", "CORDIS", "OpenAIRE", "Unpaywall"],
+    "Strategy, economics and industry": ["LSE IDEAS", "Chatham House", "King's College London War Studies", "Middle East Institute", "Carnegie Middle East Center",
+        "Oxford Internet Institute", "Pew Research Center", "SemiAnalysis", "Bloomberg", "Financial Times", "Data Center Dynamics", "Stronger by Science", "Examine.com",
+        "Human Kinetics", "World Bank", "International Monetary Fund", "OECD", "Eurostat", "Office for National Statistics", "Bank of England"],
+    "Government, procurement and regulation": ["Companies House", "SEC EDGAR", "UK Find a Tender", "UK Contracts Finder", "EU TED", "SAM.gov", "USAspending.gov",
+        "legislation.gov.uk", "HM Revenue & Customs", "Financial Conduct Authority", "Information Commissioner's Office", "Department for Work and Pensions",
+        "HM Land Registry", "UK Planning Data", "Energy Performance of Buildings Register", "data.gov.uk", "London Datastore", "Transport for London", "Met Office", "European Central Bank"],
+    "Google ecosystem": ["Gmail", "Google Drive", "Google Docs", "Google Sheets", "Google Slides", "Google Calendar", "Google People", "Google Tasks", "Google Photos",
+        "Google Maps Platform", "Google Search Console", "Google Analytics", "Google Ads", "Google Business Profile", "YouTube"],
+    "Productivity and infrastructure": ["Microsoft Outlook", "Microsoft Teams", "Microsoft OneDrive", "Microsoft SharePoint", "Microsoft Planner", "Microsoft To Do",
+        "Microsoft OneNote", "Microsoft Power Automate", "Notion", "Slack", "Dropbox", "Box", "Cloudflare", "IONOS", "Google Cloud"],
+    "Financial and business services": ["TrueLayer", "Yapily", "Plaid", "Moneyhub", "Xero", "QuickBooks Online", "FreeAgent", "Stripe", "PayPal", "Wise"],
+    "Social, professional and community": ["LinkedIn", "Facebook Pages", "Instagram Professional", "Threads", "WhatsApp Business", "TikTok", "X", "Reddit", "Pinterest",
+        "Telegram", "Discord", "Buffer", "Resident Advisor", "Feeld", "Meetup"],
+    "AI, creative tools and self-improvement": ["OpenAI", "Anthropic Claude", "Google Gemini", "OpenRouter", "Hugging Face", "GitHub", "GitLab", "Stack Exchange", "PyPI",
+        "npm", "Context7", "Runway", "ElevenLabs", "Adobe Creative Cloud", "CometAP"],
+    "Later additions": ["BBC Persian", "OnlyFans", "Binance"],
+}
+# inventory name -> ids of the connected providers above that serve it
+SERVED_BY = {"PubMed": ["pubmed"], "Crossref": ["crossref"], "arXiv": ["arxiv"], "UK Contracts Finder": ["uk_contracts_finder"], "EU TED": ["ted_europa"],
+             "HM Land Registry": ["land_registry_hpi"], "Transport for London": ["tfl_status"], "Gmail": ["gmail_metadata"], "Google Drive": ["google_drive_backup"],
+             "LinkedIn": ["linkedin_export"], "Meetup": ["meetup_ical"]}
+
+
+def inventory(rows: list) -> dict:
+    """Every inventory target with its honest state: LIVE, WIRED, BLOCKED or NOT_CONNECTED."""
+    by_id, rank = {r["id"]: r["state"] for r in rows}, {"LIVE": 3, "WIRED": 2, "BLOCKED": 1}
+    out, totals = {}, {"LIVE": 0, "WIRED": 0, "BLOCKED": 0, "NOT_CONNECTED": 0}
+    for category, names in INVENTORY.items():
+        items = []
+        for name in names:
+            states = [by_id[i] for i in SERVED_BY.get(name, []) if i in by_id]
+            state = max(states, key=lambda x: rank[x]) if states else "NOT_CONNECTED"
+            totals[state] += 1
+            items.append({"name": name, "state": state})
+        out[category] = items
+    return {"total": sum(totals.values()), **totals, "categories": out}
+
+
 def status(latest, have: dict, now: float) -> dict:
     """latest(name) -> newest record or None; have = {"reed": bool, "brave": bool, "google": bool}."""
     rows = []
@@ -52,4 +94,4 @@ def status(latest, have: dict, now: float) -> dict:
             state = "LIVE" if fresh else "WIRED"
         rows.append({"id": pid, "domain": domain, "label": label, "state": state})
     count = {s: sum(1 for r in rows if r["state"] == s) for s in ("LIVE", "WIRED", "BLOCKED")}
-    return {"target": TARGET, "connected": len(rows), **count, "rows": rows}
+    return {"target": TARGET, "connected": len(rows), **count, "rows": rows, "inventory": inventory(rows)}
